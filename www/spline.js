@@ -11,8 +11,8 @@ function Coord(x, y) {
 }
 
 function Spline(w1, w2) {
-	this.startTheta = toRadians(w1.theta) + (Math.PI /2);
-	this.endTheta = toRadians(w2.theta) - (Math.PI /2);
+	this.startTheta = toRadians(w1.angle) + (Math.PI /2);
+	this.endTheta = toRadians(w2.angle) - (Math.PI /2);
 	Object.defineProperty(this, "xOff", { enumerable: true, get: function () { return w1.x; } });
 	Object.defineProperty(this, "yOff", { enumerable: true, get: function () { return w1.y; } });
 	Object.defineProperty(this, "knot", { enumerable: true, get: function () { return Math.sqrt((w2.x - w1.x) * (w2.x - w1.x) + (w2.y - w1.y) * (w2.y - w1.y)); } });
