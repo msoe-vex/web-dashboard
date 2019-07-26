@@ -1,3 +1,3 @@
-# CORE 2062's Web Interface
+# Web Interface for RoboUtil Library
 
-View at [https://core2062.github.io/COREWebDashboard/www/](https://core2062.github.io/COREWebDashboard/www/)
+View at [https://wishbonea.github.io/WebDashboard/www/](https://wishbonea.github.io/WebDashboard/www/)
