@@ -27,10 +27,10 @@ canvas.oncontextmenu = function (evt) {
 canvas.addEventListener('mousemove', function (evt) {
 	var cnv = document.getElementById('windowCanvas');
 	var rect = cnv.getBoundingClientRect();
-	fieldMousePos = {
-		x: Math.floor((evt.clientX - rect.left) / (rect.right - rect.left) * cnv.width),
-		y: Math.floor((evt.clientY - rect.top) / (rect.bottom - rect.top) * cnv.height)
-	};
+	fieldMousePos = new point(
+		Math.floor((evt.clientX - rect.left) / (rect.right - rect.left) * cnv.width),
+		Math.floor((evt.clientY - rect.top) / (rect.bottom - rect.top) * cnv.height)
+	);
 }, false);
 
 canvas.addEventListener('mousedown', function (evt) {

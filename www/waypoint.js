@@ -1,4 +1,4 @@
-class Robot {
+class Waypoint {
     constructor(x, y, angle, name) {
         this.name = name || "wp";
         this.x = parseFloat(x);
@@ -24,5 +24,29 @@ class Robot {
 
     get angle() {
         return this.m_angle;
+    }
+
+    get x() {
+        return this._x;
+    }
+
+    set x(value) {
+        this._x = value;
+    }
+
+    get y() {
+        return this._y;
+    }
+
+    set y(value) {
+        this._y = value;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    set name(value) {
+        this._name = value;
     }
 }
