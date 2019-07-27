@@ -117,6 +117,10 @@ class Path {
             return waypoints;
         };
 
+        this.getNumWaypoints = function () {
+          return waypoints.length;
+        };
+
         this.getWaypoint = function (waypointIndex) {
             const obj = waypoints[waypointIndex];
             return new Proxy(obj, {
@@ -137,14 +141,13 @@ class Path {
         };
 
         this.getClosestWaypoint = function (coordinate, radius) {
-            var mX = px2inX(fieldMousePos.x);
-            var mY = px2inY(fieldMousePos.y);
-            var closestWaypoint = -1;
-            var currentLeastDistance = radius;
-            for (var i = 0; i < waypoints.length; i++) {
-                var distance = hypot(mX, mY, waypoints[i].x, waypoints[i].y);
+            let mousePosInInches = pixelsToInches(fieldMousePos);
+            let closestWaypoint = -1;
+            let currentLeastDistance = radius;
+            for (let i in waypoints) {
+                let distance = hypot(mousePosInInches.x, mousePosInInches.y, waypoints[i].x, waypoints[i].y);
                 if (distance < currentLeastDistance) {
-                    closestWaypoint = i;
+                    closestWaypoint = parseInt(i);
                     currentLeastDistance = distance;
                 }
             }

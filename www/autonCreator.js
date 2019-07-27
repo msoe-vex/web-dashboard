@@ -1,23 +1,14 @@
 var fieldImage = new Image();
 var robotImage = new Image();
 
-var rotTarget = -1;
-var moveTarget = -1;
-
 //properties
 var fieldWidthIn = 143.04;
-var fieldHeightIn = 143.04;
 var robotWidthIn = 15;
 var robotCenterIn = 6;
 
 var ratio = 1;
 
-var splines = [];
-var samples = 5;
-
 var toolBarWidth = 100;
-var fieldWidthPxl = 0;
-var waypoints = [];
 var ws;
 var selectedWaypointIndex;
 var selectedWaypoint;
@@ -39,10 +30,18 @@ function newWaypoint() {
 }
 
 function removeWaypoint() {
-    if (waypointSelected) {
-        path.removeWaypoint(selectedWaypointIndex);
-    } else {
-        path.removeWaypoint();
+    if (path.getNumWaypoints() > 0) {
+        if (waypointSelected) {
+            path.removeWaypoint(selectedWaypointIndex);
+            if (path.getNumWaypoints() === 0) {
+                selectedWaypointIndex = -1;
+                waypointSelected = false;
+            } else if(path.getNumWaypoints() === selectedWaypointIndex) {
+                selectedWaypointIndex--;
+            }
+        } else {
+            path.removeWaypoint();
+        }
     }
 }
 
@@ -52,21 +51,22 @@ function autonCreatorInit() {
     robotImage.src = "images/robot.png";
     path.newWaypoint(0, 0, 0 , "startWaypoint");
     // newWaypoint(97, 100, 0 * (Math.PI / 180));
-    path.newWaypoint(0, 75, 0, 0, "endWaypoint");
+    path.newWaypoint(0, 71, 0, 0, "endWaypoint");
     // newWaypoint(-97, 168, 0 * (Math.PI / 180));
 }
 
 function autonCreatorDataLoop() {
-    fieldWidthPxl = windowWidth - toolBarWidth - 12;
-    ratio = fieldWidthPxl / fieldWidthIn;
+    fieldHeightPxl = windowHeight;
+
+    ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
 
-    if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, 15) === selectedWaypointIndex) {
+    if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn/2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
-    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, 15) === selectedWaypointIndex) {
+    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn/2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
     } else if(fieldMouseRising.l) {
-        var selectedIndex = path.getClosestWaypoint(fieldMousePos, 15);
+        let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn/2);
         if (selectedIndex >= 0) {
             //Select a waypoint
             selectedWaypointIndex = selectedIndex;
@@ -77,6 +77,7 @@ function autonCreatorDataLoop() {
             selectedWaypointIndex = undefined;
             waypointSelected = false;
         }
+        waypointAction = WaypointAction.NONE;
     } else if (fieldMouseFalling.l || fieldMouseFalling.r) {
         waypointAction = WaypointAction.NONE;
     }
@@ -88,17 +89,16 @@ function autonCreatorDataLoop() {
     }
 
     // update data
-    let mousePosX = px2inX(fieldMousePos.x);
-    let mousePosY = px2inY(fieldMousePos.y);
+    let mousePos = pixelsToInches(fieldMousePos);
 
     switch(waypointAction) {
         case WaypointAction.MOVE:
-            selectedWaypoint.x = mousePosX;
-            selectedWaypoint.y = mousePosY;
+            selectedWaypoint.x = mousePos.x;
+            selectedWaypoint.y = mousePos.y;
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:
-            let angle = toDegrees(Math.atan2((mousePosX - selectedWaypoint.x), (mousePosY - selectedWaypoint.y)));
+            let angle = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
 
             if (fieldKeyboard.control) {
                 angle = Math.round(angle / 15) * 15;
@@ -124,26 +124,25 @@ function autonCreatorDrawLoop() {
     let robotWidthPxl = robotWidthIn * ratio;
     let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
     let robotCenterPxl = robotCenterIn * ratio;
-    let fieldHeightPxl = fieldHeightIn * ratio;
+    let fieldWidthPxl = fieldWidthIn * ratio;
+    let fieldHeightPxl = fieldWidthPxl * (fieldImage.height / fieldImage.width);
 
     fieldContext.canvas.width = fieldWidthPxl;
     fieldContext.canvas.height = fieldHeightPxl;
 
-    document.getElementById("windowDiv").style.width = fieldWidthPxl + 12 + "px";
-    document.getElementById("windowDiv").style.height = (windowHeight - 32) + "px";
-
-    creatorToolbar.style.width = toolBarWidth + "px";
-    creatorToolbar.style.height = (windowHeight) + "px";
+    // creatorToolbar.style.width = toolBarWidth + "px";
+    // creatorToolbar.style.height = (windowHeight) + "px";
 
     fieldContext.drawImage(fieldImage,0, 0, fieldWidthPxl, fieldHeightPxl);
 
     if(waypointSelected) {
-        document.getElementById("statusBarXY").innerText = "X: " + selectedWaypoint.x.toFixed(1)
-            + " Y: " + selectedWaypoint.y.toFixed(1) + " Angle: " + selectedWaypoint.angle.toFixed(2)
-            + " Name: " + selectedWaypoint.name;
+        // document.getElementById("statusBarXY").innerText = "X: " + selectedWaypoint.x.toFixed(1)
+        //     + " Y: " + selectedWaypoint.y.toFixed(1) + " Angle: " + selectedWaypoint.angle.toFixed(2)
+        //     + " Name: " + selectedWaypoint.name;
     } else {
-        document.getElementById("statusBarXY").innerText = "X: " + px2inX(fieldMousePos.x).toFixed(1)
-            + " Y: " + px2inY(fieldMousePos.y).toFixed(1);
+        let mousePos = pixelsToInches(fieldMousePos);
+        // document.getElementById("statusBarXY").innerText = "X: " + mousePos.x.toFixed(1)
+        //     + " Y: " + mousePos.y.toFixed(1);
     }
 
     if(waypointAction === WaypointAction.ROTATE) {
@@ -152,25 +151,30 @@ function autonCreatorDrawLoop() {
             fieldMousePos.y - 8);
     }
 
-    let waypoints = path.getWaypoints();
+    if (path.getNumWaypoints() > 0) {
+        // Draw waypoints
+        let waypoints = path.getWaypoints();
 
-    for (let i in waypoints) {
-        let waypoint = waypoints[i];
-        let waypointPosXPxl = in2pxX(waypoint.x);
-        let waypointPosYPxl = in2pxY(waypoint.y);
-        let waypointRotation = waypoint.angle;
-        fieldContext.save();
-        fieldContext.translate(Math.floor(waypointPosXPxl), Math.floor(waypointPosYPxl));
-        fieldContext.rotate(toRadians(waypointRotation));
-        if (parseInt(i) === selectedWaypointIndex) {
-            fieldContext.shadowBlur = 10;
-            fieldContext.shadowColor = 'white';
+        for (let i in waypoints) {
+            let waypoint = waypoints[i];
+            let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+            let waypointRotation = waypoint.angle;
+            fieldContext.save();
+            fieldContext.translate(waypointPos.x, waypointPos.y);
+            fieldContext.rotate(toRadians(waypointRotation + 90));
+
+            // Add highlight to currently selected waypoint
+            if (parseInt(i) === selectedWaypointIndex) {
+                fieldContext.shadowBlur = 10;
+                fieldContext.shadowColor = 'white';
+            }
+
+            fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+            fieldContext.restore();
         }
-        fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
-        fieldContext.restore();
     }
 
-    //Draw spline
+    // Draw spline
     let points;
     if (waypointAction !== WaypointAction.NONE) {
         points = path.getPoints(selectedWaypointIndex);
@@ -178,72 +182,28 @@ function autonCreatorDrawLoop() {
         points = path.getPoints();
     }
 
-    fieldContext.lineWidth = Math.floor(windowWidth * .005);
-    fieldContext.strokeStyle = "#00ffff";
+    if (points.length !== 0) {
+        fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
+        fieldContext.strokeStyle = "#00ffff";
 
-    fieldContext.moveTo(Math.floor(in2pxX(points[0].x)), Math.floor(in2pxY(points[0].y)));
-    fieldContext.beginPath();
+        let pointInPixels = inchesToPixels(points[0]);
+        fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
+        fieldContext.beginPath();
 
-    for (let point of points) {
-        fieldContext.lineTo(Math.floor(in2pxX(point.x)), Math.floor(in2pxY(point.y)));
+        for (let point of points) {
+            let pointInPixels = inchesToPixels(point);
+            fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+        }
+
+        fieldContext.stroke();
     }
-
-    fieldContext.stroke();
-}
-
-function angleBetweenRobot(a, b) {
-    //a += (a < 0 ? 2 * Math.PI : 0);
-    //b += (b < 0 ? 2 * Math.PI : 0);
-    var dif1 = b - a;
-    var dif2 = a - b;
-    dif1 += (dif1 < 0 ? 2 * Math.PI : 0);
-    dif2 += (dif2 < 0 ? 2 * Math.PI : 0);
-    var dif = (Math.abs(dif2) < Math.abs(dif1) ? -dif2 : dif1);
-    if (dif > Math.PI) {
-        dif = dif - 2 * Math.PI;
-    }
-    return dif / Math.abs(samples);
 }
 
 function pathAsText(pretty) {
-    var output = [];
-    var inc = 1 / samples;
-    for (var s = 0; s < splines.length; s++) {
-        var c = splines[s].spline.get(0);
-        var waypoint = {
-            "name": waypoints[s].name,
-            "x": Number(c.x.toFixed(2)),
-            "y": Number(c.y.toFixed(2)),
-            "theta": Number(waypoints[s].angle.toFixed(2)),
-            "pathAngle": Number(splines[s].spline.startAngle.toFixed(2))
-        };
-        var delta = angleBetweenRobot(waypoints[s].angle, waypoints[s + 1].angle);
-        var intermediateAngle = waypoints[s].angle;
-        output.push(waypoint);
-        for (var i = inc; i < 1; i += inc) {
-            intermediateAngle += delta;
-            c = splines[s].spline.get(i);
-            var waypoint = {
-                "name": "point",
-                "x": Number(c.x.toFixed(2)),
-                "y": Number(c.y.toFixed(2)),
-                "theta": Number(intermediateAngle.toFixed(2))
-            };
-            output.push(waypoint);
-        }
-    }
-    c = splines[splines.length - 1].spline.get(1);
-    var waypoint = {
-        "name": waypoints[s].name,
-        "x": Number(c.x.toFixed(2)),
-        "y": Number(c.y.toFixed(2)),
-        "theta": Number(waypoints[waypoints.length - 1].angle.toFixed(2)),
-        "pathAngle": Number(splines[splines.length - 1].spline.endAngle.toFixed(2))
-    };
-    output.push(waypoint);
+    let output = path;
     console.log("Path: ");
     console.log(output);
-    if (pretty === true) {
+    if (pretty) {
         return JSON.stringify(output, null, 4);
     } else {
         return JSON.stringify(output);
@@ -261,11 +221,6 @@ function sendPath() {
 
 function loadPath(path) {
     var tmpObj = JSON.parse(path);
-    waypoints = [];
-    splines = [];
-    rotTarget = -1;
-    moveTarget = -1;
-    samples = 5;
     for (var i = 0; i < tmpObj.length; i++) {
         var tmpItem = tmpObj[i];
         if (tmpObj[i].name !== "point") {
@@ -297,27 +252,27 @@ function connectToRobot() {
 }
 
 function inchesToPixels(pointInInches) {
-    pointInInches.x
+    function in2pxX(fieldInches) {
+        return (fieldInches + (fieldWidthIn / 2)) * ratio;
+    }
+
+    function in2pxY(fieldInches) {
+        return fieldInches * ratio;
+    }
+
+    return new point(in2pxY(pointInInches.y), in2pxX(pointInInches.x));
 }
 
 function pixelsToInches(pointInPixels) {
+    function px2inY(px) {
+        return px / ratio;
+    }
 
-}
+    function px2inX(px) {
+        return (px / ratio) - (fieldWidthIn / 2);
+    }
 
-function px2inX(px) {
-   return -1 * ((fieldWidthIn / 2) - (px / ratio));
-}
-
-function in2pxX(fieldInches) {
-   return (ratio * ((fieldWidthIn / 2) + fieldInches));
-}
-
-function px2inY(px) {
-   return fieldHeightIn - (px / ratio);
-}
-
-function in2pxY(fieldInches) {
-   return -1 * (fieldInches - fieldHeightIn) * ratio;
+    return new point(px2inX(pointInPixels.y), px2inY(pointInPixels.x));
 }
 
 function setSideStartingPos() {

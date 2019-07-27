@@ -7,9 +7,8 @@ function initialize() {
     windowDiv.addEventListener('dragover', handleDragOver, false);
     windowDiv.addEventListener('drop', handleFileSelect, false);
 
-    creatorToolbar = document.getElementById('toolBar');
-    windowWidth = window.innerWidth;
-    windowHeight = window.innerHeight;
+    windowWidth = $("#windowCanvas").width();
+    windowHeight = $("#windowCanvas").height();
 
     autonCreatorInit();
     loop();
@@ -20,12 +19,12 @@ function initialize() {
 function loop() {
     updateInput();
 
-    document.getElementById("connect-to-robot-button").style.background = connectedToRobot()?'#00e600':'#ee0000';
-    document.getElementById("connect-to-robot-button").style.color = connectedToRobot()?'#000000':'#ffffff';
-    document.getElementById("connect-to-robot-button").innerText = connectedToRobot()?"Connected to Waypoint":"Connect to Waypoint";
+    // document.getElementById("connect-to-robot-button").style.background = connectedToRobot()?'#00e600':'#ee0000';
+    // document.getElementById("connect-to-robot-button").style.color = connectedToRobot()?'#000000':'#ffffff';
+    // document.getElementById("connect-to-robot-button").innerText = connectedToRobot()?"Connected to Waypoint":"Connect to Waypoint";
 
-    windowWidth = window.innerWidth;
-    windowHeight = window.innerHeight;
+    windowWidth = $("#windowCanvas").width();
+    windowHeight = $("#windowCanvas").height();
 
     fieldContext.clearRect(0, 0, windowWidth, windowHeight);
     fieldContext.rect(0, 0, windowWidth, windowHeight);
