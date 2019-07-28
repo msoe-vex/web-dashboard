@@ -1,8 +1,9 @@
-function Waypoint(x, y, angle, name) {
+function Waypoint(x, y, angle, name, shared) {
     let _name = name || "wp";
     let _x = parseFloat(x);
     let _y = parseFloat(y);
     let _angle = parseFloat(angle);
+    let _shared = shared || false;
 
     Object.defineProperty(this, "name", {
         enumerable: true,
@@ -36,5 +37,11 @@ function Waypoint(x, y, angle, name) {
         enumerable: true,
         get: function(){ return parseFloat(_y.toFixed(2)) },
         set: function(value){ _y = value }
+    });
+
+    Object.defineProperty(this, "shared", {
+        enumerable: true,
+        get: function(){ return _shared },
+        set: function(value){ _shared = value }
     });
 }

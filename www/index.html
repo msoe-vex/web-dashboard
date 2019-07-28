@@ -7,10 +7,10 @@
           name="viewport"/>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
 
     <style>
         .btn {
@@ -71,20 +71,26 @@
 
         .sidenav {
             height: 100%;
-            width: 0;
+            width: 300px;
             position: fixed;
             z-index: 1;
             right: 0;
-            background-color: #111;
+            border-width:1px;
+            border-color: black;
             overflow-x: hidden;
             transition: 0.5s;
-            padding-top: 60px;
         }
 
         .sidebar {
             position: absolute;
-            right: 0;
+            right: 300px;
             box-shadow:none;
+        }
+
+        .popover {
+            width:100px;
+            height:100px;
+            overflow:visible;
         }
     </style>
 </head>
@@ -131,10 +137,9 @@
 <div class="d-flex" style="flex: 1 1 auto;">
 
     <div class="bg-light sidenav" id="mySidenav">
-        <div class="bg-light" id="demo">
-            <div class="list-group " style="width:100px">
-
-            </div>
+        <a class="navbar-brand px-3">Shared Waypoints</a>
+            <div class="bg-light" id="demo">
+                <button type="button" class="sharedWaypoint btn btn-block btn-secondary" onclick="newWaypoint(20, 31, 0, 'GetCubeStack3', true)" data-trigger="hover" data-toggle="popover">GetCubeStack3</button>
         </div>
     </div>
 
@@ -152,11 +157,11 @@
 </div>
 
 <script>
-    let open = false;
+    let open = true;
     function openNav() {
         if (!open) {
-            document.getElementById("mySidenav").style.width = "250px";
-            document.getElementById("thing").style.right = "250px";
+            document.getElementById("mySidenav").style.width = "300px";
+            document.getElementById("thing").style.right = "300px";
 
         } else {
             document.getElementById("mySidenav").style.width = "0";
@@ -168,7 +173,6 @@
     }
 </script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src='math.js'></script>
 <script src='input.js'></script>
 <script src='spline.js'></script>

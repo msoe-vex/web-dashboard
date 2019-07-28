@@ -41,8 +41,8 @@ $('#pathSelector').on('change', function() {
     selectedPath = this.value;
 });
 
-function newWaypoint() {
-    path.newWaypoint();
+function newWaypoint(x, y, angle, name, shared) {
+    path.newWaypoint(x, y, angle, name, shared);
 }
 
 function removeWaypoint() {
@@ -151,6 +151,20 @@ function nameRobot() {
     }
 }
 
+function perc2color(perc) {
+    var r, g, b = 0;
+    if(perc < 50) {
+        r = 255;
+        g = Math.round(5.1 * perc);
+    }
+    else {
+        g = 255;
+        r = Math.round(510 - 5.10 * perc);
+    }
+    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return '#' + ('000000' + h.toString(16)).slice(-6);
+}
+
 function autonCreatorDrawLoop() {
     let robotWidthPxl = robotWidthIn * ratio;
     let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
@@ -215,18 +229,73 @@ function autonCreatorDrawLoop() {
 
     if (points.length !== 0) {
         fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
-        fieldContext.strokeStyle = "#00ffff";
 
-        let pointInPixels = inchesToPixels(points[0]);
-        fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
-        fieldContext.beginPath();
-
-        for (let point of points) {
-            let pointInPixels = inchesToPixels(point);
-            fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+        for (let i = 1; i < points.length; i++) {
+            let lastPointInPixels = inchesToPixels(points[i-1]);
+            let currentPointInPixels = inchesToPixels(points[i]);
+            fieldContext.beginPath();
+            fieldContext.strokeStyle = perc2color(points[i].speed);
+            fieldContext.moveTo(lastPointInPixels.x, lastPointInPixels.y);
+            fieldContext.lineTo(currentPointInPixels.x, currentPointInPixels.y);
+            fieldContext.stroke();
         }
+    }
 
-        fieldContext.stroke();
+    // Draw ghost of other path if the changing point is shared
+    if (waypointAction !== WaypointAction.NONE && selectedWaypoint.shared && waypointSelected) {
+        for (let i in paths) {
+            if (i !== selectedPath) {
+                let otherPath = paths[i];
+                let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
+
+                if (otherWaypointIndex !== undefined) {
+                    let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
+
+                    otherWaypoint.x = selectedWaypoint.x;
+                    otherWaypoint.y = selectedWaypoint.y;
+                    otherWaypoint.angle = selectedWaypoint.angle;
+
+                    if (otherPath.getNumWaypoints() > 0) {
+                        // Draw waypoints
+                        let waypoints = otherPath.getWaypoints();
+
+                        for (let waypoint of waypoints) {
+                            let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+                            let waypointRotation = waypoint.angle;
+                            fieldContext.save();
+                            fieldContext.translate(waypointPos.x, waypointPos.y);
+                            fieldContext.rotate(toRadians(waypointRotation + 90));
+                            fieldContext.globalAlpha = 0.5;
+                            fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+                            fieldContext.restore();
+                        }
+                    }
+
+                    // Draw spline
+                    let points = otherPath.getPoints(otherWaypointIndex);
+
+                    fieldContext.save();
+
+                    if (points.length !== 0) {
+                        fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
+                        fieldContext.strokeStyle = "#d9d9d9";
+                        fieldContext.globalAlpha = 0.5;
+
+                        let pointInPixels = inchesToPixels(points[0]);
+                        fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
+                        fieldContext.beginPath();
+
+                        for (let point of points) {
+                            let pointInPixels = inchesToPixels(point);
+                            fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+                        }
+
+                        fieldContext.stroke();
+                    }
+                    fieldContext.restore();
+                }
+            }
+        }
     }
 }
 

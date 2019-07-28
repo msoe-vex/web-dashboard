@@ -14,13 +14,18 @@ class Path {
         let splines = [];
         let points = [];
 
+
         let regenerate = true;
 
         let simplified = false;
 
-        this.newWaypoint = function (x, y, angle, name, index) {
+        this.newWaypoint = function (x, y, angle, name, shared, index) {
             if (index === undefined) {
                 index = waypoints.length - 1;
+            }
+
+            if (shared === undefined) {
+                shared = false;
             }
 
             let lastWaypoint;
@@ -34,7 +39,7 @@ class Path {
                 y = (y === undefined) ? 0 : y;
                 angle = (angle === undefined) ? 0 : angle;
             }
-            let newRobot = new Waypoint(x, y, angle, name);
+            let newRobot = new Waypoint(x, y, angle, name, shared);
             waypoints.push(newRobot);
             if (lastWaypoint) {
                 let newSpline = new Spline(lastWaypoint, newRobot);
@@ -91,36 +96,74 @@ class Path {
                         rightSpline.spline.startAngle = waypoints[i].angle;
                     }
                 }
+                if (splines.length !== 0) {
+                    for (let s in splines) {
+                        let spline = splines[s];
+                        let stepSize = 1 / spline.samples;
+                        spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
+                            spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
 
-                for (let s in splines) {
-                    let spline = splines[s];
-                    let stepSize = 1 / spline.samples;
-                    spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
-                        spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
-
-                    if(waypointToSimplify !== undefined &&
-                        (parseInt(s) === waypointToSimplify || parseInt(s) === waypointToSimplify - 1)) {
-                        spline.samples = 7;
-                        stepSize = 1 / spline.samples;
-                    } else {
-                        while (spline.length > 6) { //Increase samples until <6 in between first and second points
-                            spline.samples++;
+                        if (waypointToSimplify !== undefined &&
+                            (parseInt(s) === waypointToSimplify || parseInt(s) === waypointToSimplify - 1)) {
+                            spline.samples = 7;
                             stepSize = 1 / spline.samples;
-                            spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
-                                spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
+                        } else {
+                            while (spline.length > 4) { //Increase samples until <4 in between first and second points
+                                spline.samples++;
+                                stepSize = 1 / spline.samples;
+                                spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
+                                    spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
+                            }
                         }
-                    }
 
-                    points.push(spline.spline.get(0));
+                        points.push(spline.spline.get(0));
 
-                    for (let i = stepSize; i < 1; i += stepSize) {
-                        points.push(spline.spline.get(i));
+                        for (let i = stepSize; i < 1; i += stepSize) {
+                            points.push(spline.spline.get(i));
+                        }
+                        points.push(spline.spline.get(1));
                     }
-                    points.push(spline.spline.get(1));
+                    this.calculateSpeed();
+                    regenerate = false;
                 }
-                regenerate = false;
             }
             return points;
+        };
+
+        this.calculateSpeed = function () {
+            let k = 1;
+            let maxVel = 100;
+            let maxAccel = 80;
+
+            //Limit speed around curves based on curvature
+            for (let i in points) {
+                if (parseInt(i) === 0 || parseInt(i) >= (points.length - 1)) {
+                    points[i].speed = maxVel;
+                } else {
+                    let curvature = calculateCurvature(points[parseInt(i) - 1], points[parseInt(i)], points[parseInt(i) + 1]);
+                    if (curvature === 0 || isNaN(curvature)) {
+                        points[i].speed = maxVel;
+                    } else {
+                        points[i].speed = Math.min(maxVel, k / curvature);
+                    }
+                }
+            }
+
+            points[0].speed = 0;
+            points[points.length - 1].speed = 0;
+
+            //Limit acceleration
+            for (let i = 1; i < points.length; i++) {
+                let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
+                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * maxAccel * distance));
+            }
+
+            //Limit deceleration
+            for (let i = points.length - 2; i >= 0; i--) {
+                let distance = hypot(points[i + 1].x, points[i + 1].y, points[i].x, points[i].y);
+                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i + 1].speed**2 + 2 * maxAccel * distance));
+            }
+
         };
 
         this.getWaypoints = function () {
@@ -145,12 +188,13 @@ class Path {
             });
         };
 
-        this.getWaypointByName = function (name) {
-            for (let waypoint of waypoints) {
-                if (name === waypoint.name) {
-                    return waypoint;
+        this.getWaypointIndexByName = function (name) {
+            for (let i in waypoints) {
+                if (name === waypoints[i].name) {
+                    return i;
                 }
             }
+            return undefined;
         };
 
         this.getClosestWaypoint = function (coordinate, radius) {

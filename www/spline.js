@@ -1,6 +1,7 @@
-function point(x, y) {
+function point(x, y, speed) {
 	let _x = x;
 	let _y = y;
+	let _speed = speed || 0;
 
 	Object.defineProperty(this, "x", {
 		enumerable: true,
@@ -13,6 +14,12 @@ function point(x, y) {
 		get: function(){ return parseFloat(_y.toFixed(2)) },
 		set: function(value){ _y = value }
 	});
+
+    Object.defineProperty(this, "speed", {
+        enumerable: true,
+        get: function(){ return parseFloat(_speed.toFixed(2)) },
+        set: function(value){ _speed = value }
+    });
 }
 
 function Spline(w1, w2) {
