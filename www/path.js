@@ -176,5 +176,11 @@ class Path {
         };
     }
 
-
+    static fromJson(json) {
+        let path = new Path(json.name);
+        for (let waypoint of json.waypoints) {
+            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.name);
+        }
+        return path;
+    }
 }

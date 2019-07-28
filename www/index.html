@@ -7,6 +7,7 @@
           name="viewport"/>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -67,6 +68,12 @@
         .navbar {
             margin-bottom: 0;
         }
+
+        .sidebar {
+            position: absolute;
+            right: 0;
+            box-shadow:none;
+        }
     </style>
 </head>
 
@@ -109,10 +116,31 @@
         </button>
     </form>
 </nav>
-<div class="windowDivClass d-flex justify-content-center align-items-center" style="flex: 1 1 auto;" id="windowDiv">
-    <canvas class="windowClass" id="windowCanvas"></canvas>
-</div>
 
+<div class="d-flex" style="flex: 1 1 auto;">
+
+    <nav class="bg-light d-flex collapse show" id="demo" aria-expanded="true" style="position: absolute; right: 0; height: 100%">
+        <div class="list-group list-group-flush" style="width:100px">
+            <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Shortcuts</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
+        </div>
+    </nav>
+
+    <div class="sidebar d-flex align-self-center" style="flex: 1 1 auto;" >
+        <a onclick="document.getElementById(this.getAttribute('data-target')).style.display = 'none';" data-toggle="collapse" data-target="demo" aria-controls="demo" aria-hidden="true" aria-expanded="true" style="cursor:pointer; writing-mode: vertical-rl; color: white; padding: 10px; padding-right: 100px">
+            <i class="fas fa-chevron-left"></i>
+            Expand Sidebar
+            <i class="fas fa-chevron-left"></i>
+        </a>
+    </div>
+    <div class="windowDivClass d-flex justify-content-center align-content-center" style="flex: 1 1 auto;" id="windowDiv">
+        <canvas class="windowClass" id="windowCanvas"></canvas>
+    </div>
+</div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src='math.js'></script>

@@ -79,7 +79,7 @@ function autonCreatorInit() {
 }
 
 function autonCreatorDataLoop() {
-    fieldHeightPxl = windowHeight;
+    let fieldHeightPxl = windowHeight;
 
     ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
@@ -251,16 +251,13 @@ function sendPath() {
 }
 
 function loadPath(path) {
-    var tmpObj = JSON.parse(path);
-    for (var i = 0; i < tmpObj.length; i++) {
-        var tmpItem = tmpObj[i];
-        if (tmpObj[i].name !== "point") {
-            newWaypoint(tmpItem.x, tmpItem.y, tmpItem.theta, tmpItem.pathAngle, tmpItem.name);
-        }
+    let json = JSON.parse(path);
+    let loadedPaths = [];
+    for (let path of json.paths) {
+        loadedPaths.push(Path.fromJson(path));
     }
-    if (waypoints.length > 1) {
-        splines[0].spline.startAngle = tmpObj[0].pathAngle;
-    }
+    paths = loadedPaths;
+    lastSelectedPath = -1;
 }
 
 function connectedToRobot() {
@@ -273,7 +270,7 @@ function connectedToRobot() {
 }
 
 function connectToRobot() {
-    if (!location.protocol === 'https:') {
+    if (location.protocol !== 'https:') {
         ws = new WebSocket('ws://' + document.location.host + '/path');
         if(!(ws.readyState === ws.CONNECTING || ws.readyState === ws.OPEN)) {
             console.log("Can not connect to: " + 'ws://' + document.location.host + '/path');
