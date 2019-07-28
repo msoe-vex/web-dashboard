@@ -161,8 +161,8 @@ function autonCreatorDrawLoop() {
     fieldContext.canvas.width = fieldWidthPxl;
     fieldContext.canvas.height = fieldHeightPxl;
 
-    // creatorToolbar.style.width = toolBarWidth + "px";
-    // creatorToolbar.style.height = (windowHeight) + "px";
+    let smallScreen = parseInt(windowWidth) < fieldWidthPxl;
+    $("#windowDiv").toggleClass("justify-content-center", !smallScreen).toggleClass("justify-content-start", smallScreen);
 
     fieldContext.drawImage(fieldImage,0, 0, fieldWidthPxl, fieldHeightPxl);
 

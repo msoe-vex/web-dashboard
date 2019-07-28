@@ -69,6 +69,18 @@
             margin-bottom: 0;
         }
 
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            right: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
         .sidebar {
             position: absolute;
             right: 0;
@@ -110,37 +122,51 @@
         <button type="button" class="btn btn-primary" onclick=exportPath()>Export Path</button>
         <button type="button" class="btn btn-primary" onclick=sendPath()>Send Path</button>
         <button type="button" class="btn btn-danger" id="connect-to-robot-button" onclick=connectToRobot()>Connect to Robot</button>
-        <button type="button" style="position: absolute; right: 0;" class="btn btn-info" data-toggle="modal"
-                data-target="#myModal">
-            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Config
+        <button type="button" class="btn btn-info ml-auto" data-toggle="modal" data-target="#myModal">
+            <i class="fas fa-cog"></i> Config
         </button>
     </form>
 </nav>
 
 <div class="d-flex" style="flex: 1 1 auto;">
 
-    <nav class="bg-light d-flex collapse show" id="demo" aria-expanded="true" style="position: absolute; right: 0; height: 100%">
-        <div class="list-group list-group-flush" style="width:100px">
-            <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
-            <a href="#" class="list-group-item list-group-item-action bg-light">Shortcuts</a>
-            <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
-            <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
-            <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
-            <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
-        </div>
-    </nav>
+    <div class="bg-light sidenav" id="mySidenav">
+        <div class="bg-light" id="demo">
+            <div class="list-group " style="width:100px">
 
-    <div class="sidebar d-flex align-self-center" style="flex: 1 1 auto;" >
-        <a onclick="document.getElementById(this.getAttribute('data-target')).style.display = 'none';" data-toggle="collapse" data-target="demo" aria-controls="demo" aria-hidden="true" aria-expanded="true" style="cursor:pointer; writing-mode: vertical-rl; color: white; padding: 10px; padding-right: 100px">
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar d-flex align-self-center" id="thing" style=" transition: 0.5s; flex: 1 1 auto;" >
+        <a onclick="openNav()" style="cursor:pointer; writing-mode: vertical-rl; color: white;">
             <i class="fas fa-chevron-left"></i>
             Expand Sidebar
             <i class="fas fa-chevron-left"></i>
         </a>
     </div>
+
     <div class="windowDivClass d-flex justify-content-center align-content-center" style="flex: 1 1 auto;" id="windowDiv">
         <canvas class="windowClass" id="windowCanvas"></canvas>
     </div>
 </div>
+
+<script>
+    let open = false;
+    function openNav() {
+        if (!open) {
+            document.getElementById("mySidenav").style.width = "250px";
+            document.getElementById("thing").style.right = "250px";
+
+        } else {
+            document.getElementById("mySidenav").style.width = "0";
+            document.getElementById("thing").style.right = "0";
+
+        }
+        open = !open;
+
+    }
+</script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src='math.js'></script>

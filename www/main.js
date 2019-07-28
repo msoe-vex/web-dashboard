@@ -23,7 +23,7 @@ function loop() {
     // document.getElementById("connect-to-robot-button").style.color = connectedToRobot()?'#000000':'#ffffff';
     // document.getElementById("connect-to-robot-button").innerText = connectedToRobot()?"Connected to Waypoint":"Connect to Waypoint";
 
-    windowWidth = $("#windowCanvas").width();
+    windowWidth = $(window).width();
     windowHeight = $("#windowCanvas").height();
 
     fieldContext.clearRect(0, 0, windowWidth, windowHeight);
