@@ -23,7 +23,23 @@ const WaypointAction = {
 
 let path = new Path();
 
+let paths = [];
+
+let selectedPath = -1;
+let lastSelectedPath = -1;
+
 let waypointAction = WaypointAction.NONE;
+
+function addPath(path) {
+    paths.push(path);
+    $('#pathSelector').append($('<option/>', {
+        value: paths.length - 1
+    }).text(path.name));
+}
+
+$('#pathSelector').on('change', function() {
+    selectedPath = this.value;
+});
 
 function newWaypoint() {
     path.newWaypoint();
@@ -47,11 +63,18 @@ function removeWaypoint() {
 
 function autonCreatorInit() {
     connectToRobot();
+    let firstPath = new Path("First Path");
+    addPath(firstPath);
+    let testPath = new Path("Test Path");
+    testPath.newWaypoint(20, 10, 0, "start");
+    testPath.newWaypoint(45, 30, 0, "mid");
+    testPath.newWaypoint(30, 70, 0, "end");
+    addPath(testPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
-    path.newWaypoint(0, 0, 0 , "startWaypoint");
+    firstPath.newWaypoint(0, 7.5, 0 , "startWaypoint");
     // newWaypoint(97, 100, 0 * (Math.PI / 180));
-    path.newWaypoint(0, 71, 0, 0, "endWaypoint");
+    firstPath.newWaypoint(0, 71, 0, "endWaypoint");
     // newWaypoint(-97, 168, 0 * (Math.PI / 180));
 }
 
@@ -60,6 +83,14 @@ function autonCreatorDataLoop() {
 
     ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
+    if(lastSelectedPath !== selectedPath) {
+        path = paths[selectedPath];
+        selectedWaypointIndex = -1;
+        waypointSelected = false;
+        waypointAction = WaypointAction.NONE;
+    }
+
+    lastSelectedPath = selectedPath;
 
     if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn/2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
@@ -78,7 +109,7 @@ function autonCreatorDataLoop() {
             waypointSelected = false;
         }
         waypointAction = WaypointAction.NONE;
-    } else if (fieldMouseFalling.l || fieldMouseFalling.r) {
+    } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
         waypointAction = WaypointAction.NONE;
     }
 
@@ -200,14 +231,14 @@ function autonCreatorDrawLoop() {
 }
 
 function pathAsText(pretty) {
-    let output = path;
+    let output = {
+        sharedWaypoints: [],
+        paths: paths
+    };
+    let json = JSON.stringify(output, null, 4);
     console.log("Path: ");
-    console.log(output);
-    if (pretty) {
-        return JSON.stringify(output, null, 4);
-    } else {
-        return JSON.stringify(output);
-    }
+    console.log(json);
+    return json;
 }
 
 function exportPath() {

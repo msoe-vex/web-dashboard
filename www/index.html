@@ -34,7 +34,7 @@
         }
 
         canvas.windowClass {
-            background-color: #0b8006;
+            background-color: #000000;
             height: 100%;
             outline: none;
         }
@@ -42,20 +42,6 @@
         div.windowDivClass {
             overflow: hidden;
             background-color: #000000;
-        }
-
-        div.toolBarClass {
-            display: inline-block;
-            background-color: black;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 100px;
-            height: 100%;
-            position: static;
-            float: right;
-            padding: 0px;
-            border: 0px;
         }
 
         div.statusBar {
@@ -78,52 +64,9 @@
             font-family: "Consolas", monospace;
         }
 
-        .tabSelect {
-            height: 100%;
-            width: 25%;
-            font-size: 15px;
-            background-color: #008CBA;
-            color: #CCCCCC;
-            transition-duration: .15s;
-            border: none #005090;
-            float: left;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .tabSelect:hover {
-            border: 1px solid #005090;
-            color: white;
-            background-color: #0070C0;
-        }
-
-        .toolBarButton {
-            height: 50px;
-            width: 100%;
-            font-size: 15px;
-            background-color: #008CBA;
-            color: #CCCCCC;
-            transition-duration: .15s;
-            border: none #005090;
-            float: left;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .toolBarButton:hover {
-            border: 1px solid #005090;
-            color: white;
-            background-color: #0070C0;
-        }
-
         .navbar {
             margin-bottom: 0;
         }
-
-        .flex-grow {
-            flex: 1 0 auto;
-        }
-
     </style>
 </head>
 
@@ -149,8 +92,11 @@
 <!--    </button>-->
 
 <!--</div>-->
-<nav class="navbar navbar-expand-sm bg-light p-0">
+<nav class="navbar-vertical navbar-expand-sm bg-light p-0">
     <form class="form-inline py-0">
+            <select name="pathSelector" class="custom-select" id="pathSelector">
+                <option selected disabled hidden>Select Path</option>
+            </select>
         <button type="button" class="btn btn-success" onclick=newWaypoint()>Create New Waypoint</button>
         <button type="button" class="btn btn-danger" onclick=removeWaypoint()>Remove Waypoint</button>
         <button type="button" class="btn btn-primary" onclick=nameRobot()>Name Waypoint</button>

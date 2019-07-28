@@ -1,16 +1,18 @@
-class point {
-    constructor(x, y) {
-        this._x = x;
-        this._y = y;
-    }
+function point(x, y) {
+	let _x = x;
+	let _y = y;
 
-    get x() {
-        return this._x;
-    }
+	Object.defineProperty(this, "x", {
+		enumerable: true,
+		get: function(){ return parseFloat(_x.toFixed(2)) },
+		set: function(value){ _x = value }
+	});
 
-    get y() {
-        return this._y;
-    }
+	Object.defineProperty(this, "y", {
+		enumerable: true,
+		get: function(){ return parseFloat(_y.toFixed(2)) },
+		set: function(value){ _y = value }
+	});
 }
 
 function Spline(w1, w2) {

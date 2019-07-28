@@ -1,52 +1,40 @@
-class Waypoint {
-    constructor(x, y, angle, name) {
-        this.name = name || "wp";
-        this.x = parseFloat(x);
-        this.y = parseFloat(y);
-        this.m_angle = parseFloat(angle);
-    };
+function Waypoint(x, y, angle, name) {
+    let _name = name || "wp";
+    let _x = parseFloat(x);
+    let _y = parseFloat(y);
+    let _angle = parseFloat(angle);
 
-    /**
-     * Set rotation of waypoint. 0 degrees is straight forward, or up on the page
-     * @param degrees
-     */
-    set angle(degrees) {
-        this.m_angle = degrees;
+    Object.defineProperty(this, "name", {
+        enumerable: true,
+        get: function(){ return _name },
+        set: function(value){ _name = value }
+    });
 
-        while(this.m_angle > 180) {
-            this.m_angle -= 360;
+    Object.defineProperty(this, "angle", {
+        enumerable: true,
+        get: function(){ return parseFloat(_angle.toFixed(2)) },
+        set: function(value){
+            _angle = value;
+
+            while(_angle > 180) {
+                _angle -= 360;
+            }
+
+            while(_angle < -180) {
+                _angle += 360;
+            }
         }
+    });
 
-        while(this.m_angle < -180) {
-            this.m_angle += 360;
-        }
-    }
+    Object.defineProperty(this, "x", {
+        enumerable: true,
+        get: function(){ return parseFloat(_x.toFixed(2)) },
+        set: function(value){ _x = value }
+    });
 
-    get angle() {
-        return this.m_angle;
-    }
-
-    get x() {
-        return this._x;
-    }
-
-    set x(value) {
-        this._x = value;
-    }
-
-    get y() {
-        return this._y;
-    }
-
-    set y(value) {
-        this._y = value;
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    set name(value) {
-        this._name = value;
-    }
+    Object.defineProperty(this, "y", {
+        enumerable: true,
+        get: function(){ return parseFloat(_y.toFixed(2)) },
+        set: function(value){ _y = value }
+    });
 }

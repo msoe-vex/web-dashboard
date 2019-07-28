@@ -1,5 +1,15 @@
+function toCamelCase(str) {
+    if(str !== undefined) {
+        return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+            return match.toUpperCase();
+        });
+    }
+}
+
 class Path {
-    constructor() {
+    constructor(pathName) {
+        this.name = toCamelCase(pathName);
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -122,6 +132,9 @@ class Path {
         };
 
         this.getWaypoint = function (waypointIndex) {
+            if (waypointIndex >= waypoints.length) {
+                return undefined;
+            }
             const obj = waypoints[waypointIndex];
             return new Proxy(obj, {
                 set(target, prop, value, receiver) {
@@ -156,7 +169,7 @@ class Path {
 
         this.toJSON = function () {
             return {
-                name: name,
+                name: this.name,
                 waypoints: waypoints,
                 points: this.getPoints()
             }
