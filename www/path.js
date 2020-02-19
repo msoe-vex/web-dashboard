@@ -8,8 +8,10 @@ function toCamelCase(str) {
 }
 
 class Path {
-    constructor(pathName) {
+    constructor(pathName, maxVel, maxAccel) {
         this.name = toCamelCase(pathName);
+        this.maxVel = maxVel;
+        this.maxAccel = maxAccel;
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -18,6 +20,22 @@ class Path {
         let regenerate = true;
 
         let simplified = false;
+
+        this.setMaxVel = function (maxVel) {
+            this.maxVel = maxVel;
+        };
+
+        this.setMaxAccel = function (maxAccel) {
+            this.maxAccel = maxAccel;
+        };
+
+        this.getMaxVel = function () {
+            return this.maxVel;
+        };
+
+        this.getMaxAccel = function () {
+            return this.maxAccel;
+        };
 
         this.newWaypoint = function (x, y, angle, name, shared, index) {
             if (index === undefined) {
@@ -131,37 +149,34 @@ class Path {
         };
 
         this.calculateSpeed = function () {
-            let k = 1;
-            let maxVel = 100;
-            let maxAccel = 80;
+            let k = 1.6;
 
             //Limit speed around curves based on curvature
             for (let i in points) {
                 if (parseInt(i) === 0 || parseInt(i) >= (points.length - 1)) {
-                    points[i].speed = maxVel;
+                    points[i].speed = this.maxVel;
                 } else {
                     let curvature = calculateCurvature(points[parseInt(i) - 1], points[parseInt(i)], points[parseInt(i) + 1]);
                     if (curvature === 0 || isNaN(curvature)) {
-                        points[i].speed = maxVel;
+                        points[i].speed = this.maxVel;
                     } else {
-                        points[i].speed = Math.min(maxVel, k / curvature);
+                        points[i].speed = Math.min(this.maxVel, k / (curvature * this.maxVel));
                     }
                 }
             }
 
-            points[0].speed = 0;
-            points[points.length - 1].speed = 0;
+            points[0].speed = this.maxVel;
 
             //Limit acceleration
-            for (let i = 1; i < points.length; i++) {
-                let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
-                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * maxAccel * distance));
-            }
+            // for (let i = 1; i < points.length; i++) {
+            //     let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
+            //     points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * this.maxAccel * distance));
+            // }
 
             //Limit deceleration
             for (let i = points.length - 2; i >= 0; i--) {
                 let distance = hypot(points[i + 1].x, points[i + 1].y, points[i].x, points[i].y);
-                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i + 1].speed**2 + 2 * maxAccel * distance));
+                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i + 1].speed**2 + 2 * this.maxAccel * distance));
             }
 
         };

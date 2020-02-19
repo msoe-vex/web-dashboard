@@ -63,9 +63,9 @@ function removeWaypoint() {
 
 function autonCreatorInit() {
     connectToRobot();
-    let firstPath = new Path("First Path");
+    let firstPath = new Path("First Path", 5.41, 0.5); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
     addPath(firstPath);
-    let testPath = new Path("Test Path");
+    let testPath = new Path("Test Path", 5.41, 0.5); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
     testPath.newWaypoint(20, 10, 0, "start");
     testPath.newWaypoint(45, 30, 0, "mid");
     testPath.newWaypoint(30, 70, 0, "end");
@@ -152,6 +152,7 @@ function nameRobot() {
 }
 
 function perc2color(perc) {
+    perc *= 100;
     var r, g, b = 0;
     if(perc < 50) {
         r = 255;
@@ -234,7 +235,7 @@ function autonCreatorDrawLoop() {
             let lastPointInPixels = inchesToPixels(points[i-1]);
             let currentPointInPixels = inchesToPixels(points[i]);
             fieldContext.beginPath();
-            fieldContext.strokeStyle = perc2color(points[i].speed);
+            fieldContext.strokeStyle = perc2color(points[i].speed/path.getMaxVel());
             fieldContext.moveTo(lastPointInPixels.x, lastPointInPixels.y);
             fieldContext.lineTo(currentPointInPixels.x, currentPointInPixels.y);
             fieldContext.stroke();

@@ -43,7 +43,7 @@ function handleFileSelect(evt) {
     var read = new FileReader();
     read.readAsText(file);
 
-    read.onloadend = function(){
+    read.onloadend = function() {
         console.log(read.result);
 		loadPath(read.result);
     }
