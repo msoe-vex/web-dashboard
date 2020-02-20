@@ -8,10 +8,11 @@ function toCamelCase(str) {
 }
 
 class Path {
-    constructor(pathName, maxVel, maxAccel) {
+    constructor(pathName, maxVel, maxAccel, k) {
         this.name = toCamelCase(pathName);
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
+        this.k = (k === undefined) ? 1.6 : k;
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -149,8 +150,6 @@ class Path {
         };
 
         this.calculateSpeed = function () {
-            let k = 1.6;
-
             //Limit speed around curves based on curvature
             for (let i in points) {
                 if (parseInt(i) === 0 || parseInt(i) >= (points.length - 1)) {
@@ -160,7 +159,7 @@ class Path {
                     if (curvature === 0 || isNaN(curvature)) {
                         points[i].speed = this.maxVel;
                     } else {
-                        points[i].speed = Math.min(this.maxVel, k / (curvature * this.maxVel));
+                        points[i].speed = Math.min(this.maxVel, this.k / (curvature * this.maxVel));
                     }
                 }
             }
@@ -229,6 +228,9 @@ class Path {
         this.toJSON = function () {
             return {
                 name: this.name,
+                maxAccel: this.maxAccel,
+                maxVel: this.maxVel,
+                k: this.k,
                 waypoints: waypoints,
                 points: this.getPoints()
             }
@@ -236,7 +238,7 @@ class Path {
     }
 
     static fromJson(json) {
-        let path = new Path(json.name);
+        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
         for (let waypoint of json.waypoints) {
             path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.name);
         }

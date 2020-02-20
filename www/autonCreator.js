@@ -41,8 +41,20 @@ $('#pathSelector').on('change', function() {
     selectedPath = this.value;
 });
 
+function newPath() {
+    let name = prompt("Name the Path");
+    let path = new Path(name, 5.41, 0.5);
+    path.newWaypoint(20, 10, 0, "start");
+    path.newWaypoint(30, 70, 0, "end");
+    addPath(path);
+}
+
 function newWaypoint(x, y, angle, name, shared) {
     path.newWaypoint(x, y, angle, name, shared);
+}
+
+function newSharedWaypoint() {
+    path.newWaypoint(undefined, undefined, undefined, prompt("Name"), true);
 }
 
 function removeWaypoint() {
@@ -76,6 +88,7 @@ function autonCreatorInit() {
     // newWaypoint(97, 100, 0 * (Math.PI / 180));
     firstPath.newWaypoint(0, 71, 0, "endWaypoint");
     // newWaypoint(-97, 168, 0 * (Math.PI / 180));
+    selectedPath = 0;
 }
 
 function autonCreatorDataLoop() {
@@ -322,11 +335,13 @@ function sendPath() {
 
 function loadPath(path) {
     let json = JSON.parse(path);
-    let loadedPaths = [];
+    paths = [];
+    $('#pathSelector').empty();
     for (let path of json.paths) {
-        loadedPaths.push(Path.fromJson(path));
+        addPath(Path.fromJson(path));
     }
-    paths = loadedPaths;
+    console.log("Loaded paths: ");
+    console.log(paths);
     lastSelectedPath = -1;
 }
 
