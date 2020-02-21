@@ -43,7 +43,7 @@ $('#pathSelector').on('change', function() {
 
 function newPath() {
     let name = prompt("Name the Path");
-    let path = new Path(name, 5.41, 0.5);
+    let path = new Path(name, 100, 50, 6);
     path.newWaypoint(20, 10, 0, "start");
     path.newWaypoint(30, 70, 0, "end");
     addPath(path);
@@ -75,13 +75,8 @@ function removeWaypoint() {
 
 function autonCreatorInit() {
     connectToRobot();
-    let firstPath = new Path("First Path", 5.41, 0.5); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
+    let firstPath = new Path("TestPath", 100, 50, 6); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
     addPath(firstPath);
-    let testPath = new Path("Test Path", 5.41, 0.5); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
-    testPath.newWaypoint(20, 10, 0, "start");
-    testPath.newWaypoint(45, 30, 0, "mid");
-    testPath.newWaypoint(30, 70, 0, "end");
-    addPath(testPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
     firstPath.newWaypoint(0, 7.5, 0 , "startWaypoint");

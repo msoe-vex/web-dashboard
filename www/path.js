@@ -159,7 +159,7 @@ class Path {
                     if (curvature === 0 || isNaN(curvature)) {
                         points[i].speed = this.maxVel;
                     } else {
-                        points[i].speed = Math.min(this.maxVel, this.k / (curvature * this.maxVel));
+                        points[i].speed = Math.min(this.maxVel, (this.k * this.maxVel) / (curvature * this.maxVel));
                     }
                 }
             }
