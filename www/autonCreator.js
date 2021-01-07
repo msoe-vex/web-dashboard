@@ -3,7 +3,7 @@ var robotImage = new Image();
 
 //properties
 var fieldWidthIn = 143.04;
-var robotWidthIn = 15;
+var robotWidthIn = 14.5;
 var robotCenterIn = 6;
 
 var ratio = 1;
