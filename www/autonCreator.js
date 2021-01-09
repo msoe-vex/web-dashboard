@@ -25,6 +25,8 @@ let path = new Path();
 
 let paths = [];
 
+let isTank = true;
+
 let selectedPath = -1;
 let lastSelectedPath = -1;
 
@@ -47,6 +49,16 @@ function newPath() {
     path.newWaypoint(20, 10, 0, "start");
     path.newWaypoint(30, 70, 0, "end");
     addPath(path);
+}
+
+function setSwerve() {
+    if (isTank == false) {
+        isTank = true;
+        $("#swerveTankToggle").text("Tank Drive");
+    } else {
+        isTank = false;
+        $("#swerveTankToggle").text("Swerve Drive");
+    }
 }
 
 function newWaypoint(x, y, angle, name, shared) {
