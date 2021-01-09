@@ -28,11 +28,17 @@ function point(x, y, speed) {
 /*
  * Function takes two waypoints and returns generated points in a spline between the two given waypoints
  */
-function Spline(w1, w2) {
-	// startAngle = angle of waypoint 1 in degrees
-	this.startAngle = toRadians(w1.angle) + (Math.PI /2);
-	// endAngle = angle of waypoint 2 in degrees
-	this.endAngle = toRadians(w2.angle) - (Math.PI /2);
+function Spline(w1, w2, isTank) {
+	if (isTank) {
+		// startAngle = angle of waypoint 1 in degrees
+		this.startAngle = toRadians(w1.angle) + (Math.PI / 2);
+		// endAngle = angle of waypoint 2 in degrees
+		this.endAngle = toRadians(w2.angle) - (Math.PI / 2);
+	} else {
+		this.startAngle = w1.spline_angle;
+		// endAngle = angle of waypoint 2 in degrees
+		this.endAngle = w2.spline_angle;
+	}
 	// knot = distance between the two waypoints
 	Object.defineProperty(this, "knot", { enumerable: true, get: function () { return Math.sqrt((w2.x - w1.x) * (w2.x - w1.x) + (w2.y - w1.y) * (w2.y - w1.y)); } });
 	// angleOff = angle between the starting waypoint and the ending waypoint in radians

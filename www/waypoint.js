@@ -3,6 +3,7 @@ function Waypoint(x, y, angle, name, shared) {
     let _x = parseFloat(x);
     let _y = parseFloat(y);
     let _angle = parseFloat(angle);
+    let _spline_angle = parseFloat(angle);
     let _shared = shared || false;
 
     Object.defineProperty(this, "name", {
@@ -23,6 +24,22 @@ function Waypoint(x, y, angle, name, shared) {
 
             while(_angle < -180) {
                 _angle += 360;
+            }
+        }
+    });
+
+    Object.defineProperty(this, "spline_angle", {
+        enumerable: true,
+        get: function(){ return parseFloat(_spline_angle.toFixed(2)) },
+        set: function(value){
+            _spline_angle = value;
+
+            while(_spline_angle > 180) {
+                _spline_angle -= 360;
+            }
+
+            while(_spline_angle < -180) {
+                _spline_angle += 360;
             }
         }
     });

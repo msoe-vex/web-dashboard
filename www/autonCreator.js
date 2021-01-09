@@ -1,31 +1,28 @@
-var fieldImage = new Image();
-var robotImage = new Image();
+const fieldImage = new Image();
+const robotImage = new Image();
 
 //properties
-var fieldWidthIn = 143.04;
-var robotWidthIn = 14.5;
-var robotCenterIn = 6;
+const fieldWidthIn = 143.04;
+let robotWidthIn = 14.5;
+let robotCenterIn = 6;
 
-var ratio = 1;
+let ratio = 1;
 
-var toolBarWidth = 100;
-var ws;
-var selectedWaypointIndex;
-var selectedWaypoint;
+let ws;
+let selectedWaypointIndex;
+let selectedWaypoint;
 
-var waypointSelected = false;
+let waypointSelected = false;
 
 const WaypointAction = {
-    MOVE: "move",
-    ROTATE: "rotate",
-    NONE: "none"
+    MOVE: 1,
+    ROTATE: 2,
+    SPLINE_ROTATE: 3,
+    NONE: 4
 };
 
 let path = new Path();
-
 let paths = [];
-
-let isTank = true;
 
 let selectedPath = -1;
 let lastSelectedPath = -1;
@@ -52,11 +49,11 @@ function newPath() {
 }
 
 function setSwerve() {
-    if (isTank == false) {
-        isTank = true;
+    if (!path.getIsTank()) {
+        path.setIsTank(true);
         $("#swerveTankToggle").text("Tank Drive");
     } else {
-        isTank = false;
+        path.setIsTank(false);
         $("#swerveTankToggle").text("Swerve Drive");
     }
 }
@@ -149,14 +146,24 @@ function autonCreatorDataLoop() {
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:
-            let angle = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
+            let angle1 = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
 
             if (fieldKeyboard.control) {
-                angle = Math.round(angle / 15) * 15;
+                angle1 = Math.round(angle1 / 15) * 15;
             }
-            // adjust waypoint angle
-            selectedWaypoint.angle = angle;
 
+            // Move spline only
+            if (fieldKeyboard.shift && !path.getIsTank()) {
+                // Swerve - Update spline only with right click shift
+                selectedWaypoint.spline_angle = angle1;
+            } else if (!path.getIsTank()) {
+                // Swerve - Update Robot only with right click
+                selectedWaypoint.angle = angle1;
+            } else {
+                // Tank - Update both spine and robot angles
+                selectedWaypoint.angle = angle1;
+                selectedWaypoint.spline_angle = angle1;
+            }
             fieldCanvas.style.cursor = cursors.crosshair;
             break;
         case WaypointAction.NONE:
@@ -173,7 +180,7 @@ function nameRobot() {
 
 function perc2color(perc) {
     perc *= 100;
-    var r, g, b = 0;
+    let r, g, b = 0;
     if(perc < 50) {
         r = 255;
         g = Math.round(5.1 * perc);
@@ -182,7 +189,7 @@ function perc2color(perc) {
         g = 255;
         r = Math.round(510 - 5.10 * perc);
     }
-    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    let h = r * 0x10000 + g * 0x100 + b * 0x1;
     return '#' + ('000000' + h.toString(16)).slice(-6);
 }
 
@@ -213,8 +220,13 @@ function autonCreatorDrawLoop() {
 
     if(waypointAction === WaypointAction.ROTATE) {
         fieldContext.fillStyle = "#ffffff";
-        fieldContext.fillText((selectedWaypoint.angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
-            fieldMousePos.y - 8);
+        if (fieldKeyboard.shift) {
+            fieldContext.fillText((selectedWaypoint.spline_angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
+                fieldMousePos.y - 8);
+        } else {
+            fieldContext.fillText((selectedWaypoint.angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
+                fieldMousePos.y - 8);
+        }
     }
 
     if (path.getNumWaypoints() > 0) {
@@ -393,19 +405,4 @@ function pixelsToInches(pointInPixels) {
     }
 
     return new point(px2inX(pointInPixels.y), px2inY(pointInPixels.x));
-}
-
-function setSideStartingPos() {
-    newWaypoint(97, 19, (-Math.PI / 2), 0, "sideStartWaypoint");
-    newWaypoint(0, 80, 0, 0);
-}
-
-function setCenterStartingPos() {
-    newWaypoint(8, 19, 0, 0, "centerStartWaypoint");
-    newWaypoint(0, 80, 0, 0);
-}
-
-function setScaleStartingPos() {
-    newWaypoint(104.5, 310.99, 0, 0, "scaleWaypoint");
-    newWaypoint(0, 80, 0, 0);
 }

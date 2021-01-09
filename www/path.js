@@ -8,11 +8,12 @@ function toCamelCase(str) {
 }
 
 class Path {
-    constructor(pathName, maxVel, maxAccel, k) {
+    constructor(pathName, maxVel, maxAccel, k, isTank) {
         this.name = toCamelCase(pathName);
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.k = (k === undefined) ? 1.6 : k;
+        this.isTank = (isTank === undefined) ? true : isTank;
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -38,6 +39,14 @@ class Path {
             return this.maxAccel;
         };
 
+        this.getIsTank = function () {
+            return this.isTank;
+        }
+
+        this.setIsTank = function (isTank) {
+            this.isTank = isTank;
+        }
+
         this.newWaypoint = function (x, y, angle, name, shared, index) {
             if (index === undefined) {
                 index = waypoints.length - 1;
@@ -61,7 +70,7 @@ class Path {
             let newRobot = new Waypoint(x, y, angle, name, shared);
             waypoints.push(newRobot);
             if (lastWaypoint) {
-                let newSpline = new Spline(lastWaypoint, newRobot);
+                let newSpline = new Spline(lastWaypoint, newRobot, isTank);
                 let lastSpline = splines.length > 0 ? splines[splines.length - 1].spline : undefined;
                 if (lastSpline) {
                     newSpline.startAngle = lastSpline.endAngle;
@@ -85,7 +94,7 @@ class Path {
                     splines.splice(index, 1);
                 } else {
                     splines.splice(index, 1);
-                    let newSpline = new Spline(waypoints[index - 1], waypoints[index]);
+                    let newSpline = new Spline(waypoints[index - 1], waypoints[index], isTank);
                     newSpline.startAngle = waypoints[index - 1].angle;
                     newSpline.endAngle = waypoints[index].angle;
                     splines[index - 1].spline = newSpline;
@@ -108,11 +117,11 @@ class Path {
                 for (let i in waypoints) {
                     let leftSpline = i === 0 ? undefined : splines[i - 1];
                     if (leftSpline) {
-                        leftSpline.spline.endAngle = waypoints[i].angle;
+                        leftSpline.spline.endAngle = waypoints[i].spline_angle;
                     }
                     let rightSpline = i === splines.length ? undefined : splines[i];
                     if (rightSpline) {
-                        rightSpline.spline.startAngle = waypoints[i].angle;
+                        rightSpline.spline.startAngle = waypoints[i].spline_angle;
                     }
                 }
                 if (splines.length !== 0) {
@@ -231,6 +240,7 @@ class Path {
                 maxAccel: this.maxAccel,
                 maxVel: this.maxVel,
                 k: this.k,
+                isTank: this.isTank,
                 waypoints: waypoints,
                 points: this.getPoints()
             }
@@ -238,7 +248,7 @@ class Path {
     }
 
     static fromJson(json) {
-        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
+        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k, json.isTank);
         for (let waypoint of json.waypoints) {
             path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.name);
         }

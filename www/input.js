@@ -1,21 +1,21 @@
-var fieldMousePos = { x: 0, y: 0 };
-var fieldMouseButton = { l: false, m: false, r: false };
-var fieldMouseOld = { l: false, m: false, r: false };
-var fieldMouseRising = { l: false, m: false, r: false };
-var fieldMouseFalling = { l: false, m: false, r: false };
+let fieldMousePos = { x: 0, y: 0 };
+let fieldMouseButton = { l: false, m: false, r: false };
+let fieldMouseOld = { l: false, m: false, r: false };
+let fieldMouseRising = { l: false, m: false, r: false };
+let fieldMouseFalling = { l: false, m: false, r: false };
 
-var fieldKeyboard = { shift: false, control: false, n: false };
-var fieldKeyboardOld = { shift: false, control: false, n:false };
-var fieldKeyboardRising = { shift: false, control: false, n: false };
-var fieldKeyboardFalling = { shift: false, control: false, n: false };
+let fieldKeyboard = { shift: false, control: false, n: false };
+let fieldKeyboardOld = { shift: false, control: false, n:false };
+let fieldKeyboardRising = { shift: false, control: false, n: false };
+let fieldKeyboardFalling = { shift: false, control: false, n: false };
 
-var cursors = {
+const cursors = {
 	default: "default",
 	crosshair: "crosshair",
 	move: "move"
 };
 
-var canvas = document.getElementById('windowCanvas');
+const canvas = document.getElementById('windowCanvas');
 
 canvas.setAttribute("tabindex", 0);
 
@@ -25,8 +25,8 @@ canvas.oncontextmenu = function (evt) {
 };
 
 canvas.addEventListener('mousemove', function (evt) {
-	var cnv = document.getElementById('windowCanvas');
-	var rect = cnv.getBoundingClientRect();
+	const cnv = document.getElementById('windowCanvas');
+	const rect = cnv.getBoundingClientRect();
 	fieldMousePos = new point(
 		Math.floor((evt.clientX - rect.left) / (rect.right - rect.left) * cnv.width),
 		Math.floor((evt.clientY - rect.top) / (rect.bottom - rect.top) * cnv.height)
@@ -78,8 +78,8 @@ canvas.addEventListener("touchstart", function (e) {
 	console.log("touchstart");
 
 	fieldMousePos = getTouchPos(canvas, e);
-    var touch = e.touches[0];
-    var mouseEvent = new MouseEvent("mousedown", {
+	const touch = e.touches[0];
+	const mouseEvent = new MouseEvent("mousedown", {
         clientX: touch.clientX,
         clientY: touch.clientY,
         button: 0
@@ -89,7 +89,7 @@ canvas.addEventListener("touchstart", function (e) {
 
 canvas.addEventListener("touchend", function (e) {
 	console.log("touchend");
-    var mouseEvent = new MouseEvent("mouseup", {
+	const mouseEvent = new MouseEvent("mouseup", {
         button: 0
     });
     canvas.dispatchEvent(mouseEvent);
@@ -98,8 +98,8 @@ canvas.addEventListener("touchend", function (e) {
 canvas.addEventListener("touchmove", function (e) {
 	console.log("touchmove");
 
-	var touch = e.touches[0];
-    var mouseEvent = new MouseEvent("mousemove", {
+	const touch = e.touches[0];
+	const mouseEvent = new MouseEvent("mousemove", {
         clientX: touch.clientX,
         clientY: touch.clientY
     });
