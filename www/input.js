@@ -75,7 +75,6 @@ canvas.addEventListener('keyup', function (evt) {
 
 // Set up touch events for mobile, etc
 canvas.addEventListener("touchstart", function (e) {
-	console.log("touchstart");
 
 	fieldMousePos = getTouchPos(canvas, e);
 	const touch = e.touches[0];
@@ -88,7 +87,6 @@ canvas.addEventListener("touchstart", function (e) {
 }, false);
 
 canvas.addEventListener("touchend", function (e) {
-	console.log("touchend");
 	const mouseEvent = new MouseEvent("mouseup", {
         button: 0
     });
@@ -96,7 +94,6 @@ canvas.addEventListener("touchend", function (e) {
 }, false);
 
 canvas.addEventListener("touchmove", function (e) {
-	console.log("touchmove");
 
 	const touch = e.touches[0];
 	const mouseEvent = new MouseEvent("mousemove", {
@@ -107,21 +104,22 @@ canvas.addEventListener("touchmove", function (e) {
 }, false);
 
 // Prevent scrolling when touching the canvas
-document.body.addEventListener("touchstart", function (e) {
-    if (e.target === canvas) {
-        e.preventDefault();
-    }
-}, false);
-document.body.addEventListener("touchend", function (e) {
-    if (e.target === canvas) {
-        e.preventDefault();
-    }
-}, false);
-document.body.addEventListener("touchmove", function (e) {
-    if (e.target === canvas) {
-        e.preventDefault();
-    }
-}, false);
+// Needs Mozernizr
+// document.body.addEventListener("touchstart", function (e) {
+//     if (e.target === canvas) {
+//         e.preventDefault();
+//     }
+// }, Modernizr.passiveeventlisteners ? {passive: true} : false);
+// document.body.addEventListener("touchend", function (e) {
+//     if (e.target === canvas) {
+//         e.preventDefault();
+//     }
+// }, Modernizr.passiveeventlisteners ? {passive: true} : false);
+// document.body.addEventListener("touchmove", function (e) {
+//     if (e.target === canvas) {
+//         e.preventDefault();
+//     }
+// }, Modernizr.passiveeventlisteners ? {passive: true} : false);
 
 // Get the position of a touch relative to the canvas
 function getTouchPos(canvasDom, touchEvent) {

@@ -7,6 +7,14 @@ function toCamelCase(str) {
     }
 }
 
+/*
+ * Path Class
+ *
+ * Paths are made up of waypoints which are connected by splines.
+ * Each spline is a series of points bewteen the waypoints.
+ *
+ * Paths also contain path and robot specific data used in some calculations
+ */
 class Path {
     constructor(pathName, maxVel, maxAccel, k, isTank) {
         this.name = toCamelCase(pathName);

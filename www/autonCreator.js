@@ -59,8 +59,8 @@ function setSwerve() {
     }
 }
 
-function newWaypoint(x, y, angle, name, shared) {
-    path.newWaypoint(x, y, angle, angle, name, shared);
+function newWaypoint(x, y, angle, spline_angle, name, shared) {
+    path.newWaypoint(x, y, angle, spline_angle, name, shared);
 }
 
 function newSharedWaypoint() {

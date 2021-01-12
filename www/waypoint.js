@@ -1,3 +1,12 @@
+/*
+ * Function defines the attributes of a waypoint
+ *
+ * x,y - coordinate position of waypoint
+ * angle - angle of the robot
+ * spline angle - angle of the generated robot path (spline)
+ * name - given name of the waypoint (default: "wp")
+ * shared - whether or not the waypoint is shared (default: False)
+ */
 function Waypoint(x, y, angle, spline_angle, name, shared) {
     let _name = name || "wp";
     let _x = parseFloat(x);
