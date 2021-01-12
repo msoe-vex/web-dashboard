@@ -43,7 +43,7 @@ $('#pathSelector').on('change', function() {
 
 function newPath() {
     let name = prompt("Name the Path");
-    let path = new Path(name, 100, 50, 6, True);
+    let path = new Path(name, 100, 50, 6, true);
     path.newWaypoint(20, 10, 0, 0, "start");
     path.newWaypoint(30, 70, 0, 0, "end");
     addPath(path);
