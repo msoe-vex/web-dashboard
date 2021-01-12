@@ -1,3 +1,3 @@
 # Web Interface for RoboUtil Library
 
-View at [https://andrewkempen.github.io/WebDashboard/www/](https://andrewkempen.github.io/WebDashboard/www/)
+View at [https://msoe-vex.github.io/WebDashboard/www/](https://msoe-vex.github.io/WebDashboard/www/)

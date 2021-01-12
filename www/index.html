@@ -15,27 +15,6 @@
 </head>
 
 <body onload="initialize()">
-
-<!--<div class="statusBar" id="statusDiv">-->
-<!--    <p class="statusBarText" id="statusBarXY"></p>-->
-<!--</div>-->
-
-<!--<div class="toolBarClass" id="toolBar">-->
-<!--    <button class="toolBarButton" onclick=newWaypoint()>Create New Waypoint</button>-->
-<!--    <button class="toolBarButton" onclick=removeWaypoint()>Remove Waypoint</button>-->
-<!--    <button class="toolBarButton" onclick=nameRobot()>Name Waypoint</button>-->
-<!--    <button class="toolBarButton" onclick=setSideStartingPos()>Side Starting Pos</button>-->
-<!--    <button class="toolBarButton" onclick=setCenterStartingPos()>Center Starting Pos</button>-->
-<!--    <button class="toolBarButton" onclick=setScaleStartingPos()>Scale Starting Pos</button>-->
-<!--    <button class="toolBarButton" onclick=exportPath()>Export Path</button>-->
-<!--    <button class="toolBarButton" onclick=sendPath()>Send Path</button>-->
-<!--    <button class="toolBarButton" id="connect-to-robot-button" onclick=connectToRobot()>Connect to Robot</button>-->
-<!--    <button type="button" style="position: absolute; bottom: 0;" class="btn btn-info btn-block" data-toggle="modal"-->
-<!--            data-target="#myModal">-->
-<!--        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Config-->
-<!--    </button>-->
-
-<!--</div>-->
 <nav class="navbar-vertical navbar-expand-sm bg-light p-0">
     <form class="form-inline py-0">
             <select name="pathSelector" class="custom-select" id="pathSelector">
@@ -60,7 +39,8 @@
     <div class="bg-light sidenav" id="mySidenav">
         <a class="navbar-brand px-3">Shared Waypoints</a>
             <div class="bg-light" id="demo">
-                <button type="button" class="sharedWaypoint btn btn-block btn-secondary" onclick="newWaypoint(20, 31, 0, 'GetCubeStack3', true)" data-trigger="hover" data-toggle="popover">GetCubeStack3</button>
+                <!--todo create buttons dynamically from list of shared waypoints-->
+                <button type="button" class="sharedWaypoint btn btn-block btn-secondary" onclick="newWaypoint(20, 31, 0, 0, 'GetCubeStack3', true)" data-trigger="hover" data-toggle="popover">GetCubeStack3</button>
         </div>
     </div>
 

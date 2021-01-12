@@ -1,9 +1,9 @@
-function Waypoint(x, y, angle, name, shared) {
+function Waypoint(x, y, angle, spline_angle, name, shared) {
     let _name = name || "wp";
     let _x = parseFloat(x);
     let _y = parseFloat(y);
     let _angle = parseFloat(angle);
-    let _spline_angle = parseFloat(angle);
+    let _spline_angle = parseFloat(spline_angle);
     let _shared = shared || false;
 
     Object.defineProperty(this, "name", {

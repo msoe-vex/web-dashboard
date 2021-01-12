@@ -23,6 +23,7 @@ const WaypointAction = {
 
 let path = new Path();
 let paths = [];
+let sharedWaypoints = [];
 
 let selectedPath = -1;
 let lastSelectedPath = -1;
@@ -42,9 +43,9 @@ $('#pathSelector').on('change', function() {
 
 function newPath() {
     let name = prompt("Name the Path");
-    let path = new Path(name, 100, 50, 6);
-    path.newWaypoint(20, 10, 0, "start");
-    path.newWaypoint(30, 70, 0, "end");
+    let path = new Path(name, 100, 50, 6, True);
+    path.newWaypoint(20, 10, 0, 0, "start");
+    path.newWaypoint(30, 70, 0, 0, "end");
     addPath(path);
 }
 
@@ -59,11 +60,12 @@ function setSwerve() {
 }
 
 function newWaypoint(x, y, angle, name, shared) {
-    path.newWaypoint(x, y, angle, name, shared);
+    path.newWaypoint(x, y, angle, angle, name, shared);
 }
 
 function newSharedWaypoint() {
-    path.newWaypoint(undefined, undefined, undefined, prompt("Name"), true);
+    let newWaypoint = path.newWaypoint(undefined, undefined, undefined, undefined, prompt("Name"), true);
+    sharedWaypoints.push(newWaypoint)
 }
 
 function removeWaypoint() {
@@ -88,10 +90,8 @@ function autonCreatorInit() {
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
-    firstPath.newWaypoint(0, 7.5, 0 , "startWaypoint");
-    // newWaypoint(97, 100, 0 * (Math.PI / 180));
-    firstPath.newWaypoint(0, 71, 0, "endWaypoint");
-    // newWaypoint(-97, 168, 0 * (Math.PI / 180));
+    firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint");
+    firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint");
     selectedPath = 0;
 }
 

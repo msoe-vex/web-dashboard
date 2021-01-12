@@ -47,7 +47,7 @@ class Path {
             this.isTank = isTank;
         }
 
-        this.newWaypoint = function (x, y, angle, name, shared, index) {
+        this.newWaypoint = function (x, y, angle, spline_angle, name, shared, index) {
             if (index === undefined) {
                 index = waypoints.length - 1;
             }
@@ -62,15 +62,17 @@ class Path {
                 x = (x === undefined) ? lastWaypoint.x + 15 : x;
                 y = (y === undefined) ? lastWaypoint.y + 15 : y;
                 angle = (angle === undefined) ? lastWaypoint.angle : angle;
+                spline_angle = (spline_angle === undefined) ? lastWaypoint.spline_angle : spline_angle;
             } else {
                 x = (x === undefined) ? 0 : x;
                 y = (y === undefined) ? 0 : y;
                 angle = (angle === undefined) ? 0 : angle;
+                spline_angle = (spline_angle === undefined) ? 0 : spline_angle;
             }
-            let newRobot = new Waypoint(x, y, angle, name, shared);
-            waypoints.push(newRobot);
+            let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, shared);
+            waypoints.push(newWaypoint);
             if (lastWaypoint) {
-                let newSpline = new Spline(lastWaypoint, newRobot, isTank);
+                let newSpline = new Spline(lastWaypoint, newWaypoint, isTank);
                 let lastSpline = splines.length > 0 ? splines[splines.length - 1].spline : undefined;
                 if (lastSpline) {
                     newSpline.startAngle = lastSpline.endAngle;
@@ -83,6 +85,7 @@ class Path {
             }
 
             regenerate = true;
+            return newWaypoint;
         };
 
         this.removeWaypoint = function (index) {
@@ -250,7 +253,7 @@ class Path {
     static fromJson(json) {
         let path = new Path(json.name, json.maxVel, json.maxAccel, json.k, json.isTank);
         for (let waypoint of json.waypoints) {
-            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.name);
+            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name);
         }
         return path;
     }
