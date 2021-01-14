@@ -84,18 +84,21 @@ function newSharedWaypoint() {
             })
         }
     };
+    // Creates new shared waypoint
     let name = prompt("Shared Waypoint Name");
-    let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
-    sharedWaypoints.push(newShared);
-    let buttonList = $("#waypointsList");
-    let button = $("<button>" + name + "</button>");
-    //button.innerText = name;
-    button.attr("type", "button");
-    button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
-    button.attr("data-trigger", "hover");
-    button.attr("data-toggle", "popover");
-    button.click(() => clickShared(name));
-    buttonList.append(button);
+    if (name !== null) {
+        let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
+        sharedWaypoints.push(newShared);
+        let buttonList = $("#waypointsList");
+        let button = $("<button>" + name + "</button>");
+        //button.innerText = name;
+        button.attr("type", "button");
+        button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
+        button.attr("data-trigger", "hover");
+        button.attr("data-toggle", "popover");
+        button.click(() => clickShared(name));
+        buttonList.append(button);
+    }
 }
 
 function removeWaypoint() {
@@ -138,7 +141,6 @@ function saveConfig () {
     robotWidth = $("#robotWidth").val();
     robotName = $("#robotName").val();
     savedIsTank = isTank;
-    path.setIsTank(savedIsTank);
     $("#myModal").modal("hide");
 }
 
@@ -207,8 +209,8 @@ function autonCreatorDataLoop() {
                 selectedWaypoint.angle = angle1;
             } else {
                 // Tank - Update both spine and robot angles
-                selectedWaypoint.angle = toRadians(angle1) + (Math.PI / 2);
-                selectedWaypoint.spline_angle = toRadians(angle1) + (Math.PI / 2);
+                selectedWaypoint.angle = angle1;
+                selectedWaypoint.spline_angle = angle1;
             }
             fieldCanvas.style.cursor = cursors.crosshair;
             break;
@@ -342,7 +344,6 @@ function autonCreatorDrawLoop() {
                     sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
                     sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
                     sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
-                    sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
 
                     if (otherPath.getNumWaypoints() > 0) {
                         // Draw waypoints
@@ -390,7 +391,7 @@ function autonCreatorDrawLoop() {
 
 function pathAsText(pretty) {
     let output = {
-        sharedWaypoints: [],
+        sharedWaypoints: sharedWaypoints,
         robot: {
             robotName,
             robotWidth,

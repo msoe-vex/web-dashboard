@@ -96,7 +96,7 @@ class Path {
                     splines.splice(index, 1);
                 } else {
                     splines.splice(index, 1);
-                    let newSpline = new Spline(waypoints[index - 1], waypoints[index], isTank);
+                    let newSpline = new Spline(waypoints[index - 1], waypoints[index]);
                     newSpline.startAngle = waypoints[index - 1].angle;
                     newSpline.endAngle = waypoints[index].angle;
                     splines[index - 1].spline = newSpline;
