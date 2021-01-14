@@ -42,7 +42,7 @@ function addPath(path) {
     }).text(path.name));
 }
 
-$('#pathSelector').on('change', function() {
+$('#pathSelector').on('change', function () {
     selectedPath = this.value;
 });
 
@@ -68,8 +68,34 @@ function newWaypoint(x, y, angle, spline_angle, name, shared) {
 }
 
 function newSharedWaypoint() {
-    let newWaypoint = path.newWaypoint(undefined, undefined, undefined, undefined, prompt("Name"), true);
-    sharedWaypoints.push(newWaypoint)
+    // Function runs if dynamically created shared waypoint button is pressed
+    const clickShared = (name)  => {
+        let inPath = false;
+        path.getWaypoints().forEach(function(point) {
+            if (point.name === name && point.shared) {
+                inPath = true;
+            }
+        })
+        if (inPath === false) {
+            sharedWaypoints.forEach(function(point) {
+                if (name === point.name) {
+                    path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, true);
+                }
+            })
+        }
+    };
+    let name = prompt("Shared Waypoint Name");
+    let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
+    sharedWaypoints.push(newShared);
+    let buttonList = $("#waypointsList");
+    let button = $("<button>" + name + "</button>");
+    //button.innerText = name;
+    button.attr("type", "button");
+    button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
+    button.attr("data-trigger", "hover");
+    button.attr("data-toggle", "popover");
+    button.click(() => clickShared(name));
+    buttonList.append(button);
 }
 
 function removeWaypoint() {
@@ -79,7 +105,7 @@ function removeWaypoint() {
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
                 waypointSelected = false;
-            } else if(path.getNumWaypoints() === selectedWaypointIndex) {
+            } else if (path.getNumWaypoints() === selectedWaypointIndex) {
                 selectedWaypointIndex--;
             }
         } else {
@@ -121,7 +147,7 @@ function autonCreatorDataLoop() {
 
     ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
-    if(lastSelectedPath !== selectedPath) {
+    if (lastSelectedPath !== selectedPath) {
         path = paths[selectedPath];
         selectedWaypointIndex = -1;
         waypointSelected = false;
@@ -130,18 +156,17 @@ function autonCreatorDataLoop() {
 
     lastSelectedPath = selectedPath;
 
-    if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn/2) === selectedWaypointIndex) {
+    if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
-    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn/2) === selectedWaypointIndex) {
+    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
-    } else if(fieldMouseRising.l) {
-        let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn/2);
+    } else if (fieldMouseRising.l) {
+        let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
         if (selectedIndex >= 0) {
             //Select a waypoint
             selectedWaypointIndex = selectedIndex;
             waypointSelected = true;
-        }
-        else {
+        } else {
             //Deselect waypoint
             selectedWaypointIndex = undefined;
             waypointSelected = false;
@@ -160,7 +185,7 @@ function autonCreatorDataLoop() {
     // update data
     let mousePos = pixelsToInches(fieldMousePos);
 
-    switch(waypointAction) {
+    switch (waypointAction) {
         case WaypointAction.MOVE:
             selectedWaypoint.x = mousePos.x;
             selectedWaypoint.y = mousePos.y;
@@ -182,8 +207,8 @@ function autonCreatorDataLoop() {
                 selectedWaypoint.angle = angle1;
             } else {
                 // Tank - Update both spine and robot angles
-                selectedWaypoint.angle = angle1;
-                selectedWaypoint.spline_angle = angle1;
+                selectedWaypoint.angle = toRadians(angle1) + (Math.PI / 2);
+                selectedWaypoint.spline_angle = toRadians(angle1) + (Math.PI / 2);
             }
             fieldCanvas.style.cursor = cursors.crosshair;
             break;
@@ -202,11 +227,10 @@ function nameRobot() {
 function perc2color(perc) {
     perc *= 100;
     let r, g, b = 0;
-    if(perc < 50) {
+    if (perc < 50) {
         r = 255;
         g = Math.round(5.1 * perc);
-    }
-    else {
+    } else {
         g = 255;
         r = Math.round(510 - 5.10 * perc);
     }
@@ -227,9 +251,9 @@ function autonCreatorDrawLoop() {
     let smallScreen = parseInt(windowWidth) < fieldWidthPxl;
     $("#windowDiv").toggleClass("justify-content-center", !smallScreen).toggleClass("justify-content-start", smallScreen);
 
-    fieldContext.drawImage(fieldImage,0, 0, fieldWidthPxl, fieldHeightPxl);
+    fieldContext.drawImage(fieldImage, 0, 0, fieldWidthPxl, fieldHeightPxl);
 
-    if(waypointSelected) {
+    if (waypointSelected) {
         // document.getElementById("statusBarXY").innerText = "X: " + selectedWaypoint.x.toFixed(1)
         //     + " Y: " + selectedWaypoint.y.toFixed(1) + " Angle: " + selectedWaypoint.angle.toFixed(2)
         //     + " Name: " + selectedWaypoint.name;
@@ -239,7 +263,7 @@ function autonCreatorDrawLoop() {
         //     + " Y: " + mousePos.y.toFixed(1);
     }
 
-    if(waypointAction === WaypointAction.ROTATE) {
+    if (waypointAction === WaypointAction.ROTATE) {
         fieldContext.fillStyle = "#ffffff";
         if (fieldKeyboard.shift) {
             fieldContext.fillText((selectedWaypoint.spline_angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
@@ -285,10 +309,10 @@ function autonCreatorDrawLoop() {
         fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
 
         for (let i = 1; i < points.length; i++) {
-            let lastPointInPixels = inchesToPixels(points[i-1]);
+            let lastPointInPixels = inchesToPixels(points[i - 1]);
             let currentPointInPixels = inchesToPixels(points[i]);
             fieldContext.beginPath();
-            fieldContext.strokeStyle = perc2color(points[i].speed/path.getMaxVel());
+            fieldContext.strokeStyle = perc2color(points[i].speed / path.getMaxVel());
             fieldContext.moveTo(lastPointInPixels.x, lastPointInPixels.y);
             fieldContext.lineTo(currentPointInPixels.x, currentPointInPixels.y);
             fieldContext.stroke();
@@ -297,6 +321,12 @@ function autonCreatorDrawLoop() {
 
     // Draw ghost of other path if the changing point is shared
     if (waypointAction !== WaypointAction.NONE && selectedWaypoint.shared && waypointSelected) {
+        let sharedIndex = -1;
+        sharedWaypoints.forEach(function(point, index) {
+            if (selectedWaypoint.name === point.name) {
+                sharedIndex = index;
+            }
+        })
         for (let i in paths) {
             if (i !== selectedPath) {
                 let otherPath = paths[i];
@@ -304,10 +334,15 @@ function autonCreatorDrawLoop() {
 
                 if (otherWaypointIndex !== undefined) {
                     let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
-
+                    
                     otherWaypoint.x = selectedWaypoint.x;
                     otherWaypoint.y = selectedWaypoint.y;
                     otherWaypoint.angle = selectedWaypoint.angle;
+                    otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
+                    sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
+                    sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
+                    sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
+                    sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
 
                     if (otherPath.getNumWaypoints() > 0) {
                         // Draw waypoints
@@ -371,7 +406,7 @@ function pathAsText(pretty) {
 }
 
 function exportPath() {
-    var file = new File([pathAsText(true)], "path.json", { type: "text/plain;charset=utf-8" });
+    var file = new File([pathAsText(true)], "path.json", {type: "text/plain;charset=utf-8"});
     saveAs(file);
 }
 
@@ -398,7 +433,7 @@ function loadPath(path) {
 }
 
 function connectedToRobot() {
-    if(ws) {
+    if (ws) {
         return ws.readyState === ws.OPEN;
     } else {
         return false;
@@ -409,7 +444,7 @@ function connectedToRobot() {
 function connectToRobot() {
     if (location.protocol !== 'https:') {
         ws = new WebSocket('ws://' + document.location.host + '/path');
-        if(!(ws.readyState === ws.CONNECTING || ws.readyState === ws.OPEN)) {
+        if (!(ws.readyState === ws.CONNECTING || ws.readyState === ws.OPEN)) {
             console.log("Can not connect to: " + 'ws://' + document.location.host + '/path');
             ws = new WebSocket('ws://10.20.62.2:5810/path');
         }

@@ -16,12 +16,11 @@ function toCamelCase(str) {
  * Paths also contain path and robot specific data used in some calculations
  */
 class Path {
-    constructor(pathName, maxVel, maxAccel, k, isTank) {
+    constructor(pathName, maxVel, maxAccel, k) {
         this.name = toCamelCase(pathName);
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.k = (k === undefined) ? 1.6 : k;
-        this.isTank = (isTank === undefined) ? true : isTank;
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -46,14 +45,6 @@ class Path {
         this.getMaxAccel = function () {
             return this.maxAccel;
         };
-
-        this.getIsTank = function () {
-            return this.isTank;
-        }
-
-        this.setIsTank = function (isTank) {
-            this.isTank = isTank;
-        }
 
         this.newWaypoint = function (x, y, angle, spline_angle, name, shared, index) {
             if (index === undefined) {
@@ -80,7 +71,7 @@ class Path {
             let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, shared);
             waypoints.push(newWaypoint);
             if (lastWaypoint) {
-                let newSpline = new Spline(lastWaypoint, newWaypoint, isTank);
+                let newSpline = new Spline(lastWaypoint, newWaypoint);
                 let lastSpline = splines.length > 0 ? splines[splines.length - 1].spline : undefined;
                 if (lastSpline) {
                     newSpline.startAngle = lastSpline.endAngle;
@@ -251,7 +242,6 @@ class Path {
                 maxAccel: this.maxAccel,
                 maxVel: this.maxVel,
                 k: this.k,
-                isTank: this.isTank,
                 waypoints: waypoints,
                 points: this.getPoints()
             }
@@ -259,7 +249,7 @@ class Path {
     }
 
     static fromJson(json) {
-        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k, json.isTank);
+        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
         for (let waypoint of json.waypoints) {
             path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name);
         }
