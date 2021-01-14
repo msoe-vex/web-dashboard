@@ -88,11 +88,15 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button class="close" data-dismiss="modal" type="button">&times;</button>
                 <h3 class="modal-title">Configuration Settings</h3>
+                <button class="close" data-dismiss="modal" type="button" onclick=loadConfig()>&times;</button>
             </div>
             <div class="modal-body">
                 <form class="form">
+                    <div class="form-group">
+                        <label for="robotName">Robot name:</label>
+                        <input class="form-control" id="robotName" type="text">
+                    </div>
                     <div class="form-group">
                         <label for="robotWidth">Robot width: (Inches)</label>
                         <input class="form-control" id="robotWidth" type="number">
@@ -112,8 +116,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-default" data-dismiss="modal" type="button">Close</button>
-                <button class="btn btn-primary" type="button">Save changes</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button" onclick=loadConfig()>Close</button>
+                <button class="btn btn-primary" type="button" onclick=saveConfig()>Save changes</button>
             </div>
         </div>
 

@@ -24,6 +24,11 @@ const WaypointAction = {
 let path = new Path();
 let paths = [];
 let sharedWaypoints = [];
+let robotWidth = 0;
+let robotLength = 0;
+let robotName = "";
+let isTank = true;
+let savedIsTank = isTank;
 
 let selectedPath = -1;
 let lastSelectedPath = -1;
@@ -43,20 +48,19 @@ $('#pathSelector').on('change', function() {
 
 function newPath() {
     let name = prompt("Name the Path");
-    let path = new Path(name, 100, 50, 6, true);
+    let path = new Path(name, 100, 50, 6);
     path.newWaypoint(20, 10, 0, 0, "start");
     path.newWaypoint(30, 70, 0, 0, "end");
     addPath(path);
 }
 
 function setSwerve() {
-    if (!path.getIsTank()) {
-        path.setIsTank(true);
-        $("#swerveTankToggle").text("Tank Drive");
-    } else {
-        path.setIsTank(false);
+    if (isTank) {
         $("#swerveTankToggle").text("Swerve Drive");
+    } else {
+        $("#swerveTankToggle").text("Tank Drive");
     }
+    isTank = !isTank;
 }
 
 function newWaypoint(x, y, angle, spline_angle, name, shared) {
@@ -93,6 +97,23 @@ function autonCreatorInit() {
     firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint");
     firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint");
     selectedPath = 0;
+}
+
+function loadConfig () {
+    $("#robotLength").val(robotLength);
+    $("#robotWidth").val(robotWidth);
+    $("#robotName").val(robotName);
+    isTank = savedIsTank;
+    $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
+}
+
+function saveConfig () {
+    robotLength = $("#robotLength").val();
+    robotWidth = $("#robotWidth").val();
+    robotName = $("#robotName").val();
+    savedIsTank = isTank;
+    path.setIsTank(savedIsTank);
+    $("#myModal").modal("hide");
 }
 
 function autonCreatorDataLoop() {
@@ -153,10 +174,10 @@ function autonCreatorDataLoop() {
             }
 
             // Move spline only
-            if (fieldKeyboard.shift && !path.getIsTank()) {
+            if (fieldKeyboard.shift && !savedIsTank) {
                 // Swerve - Update spline only with right click shift
                 selectedWaypoint.spline_angle = angle1;
-            } else if (!path.getIsTank()) {
+            } else if (!savedIsTank) {
                 // Swerve - Update Robot only with right click
                 selectedWaypoint.angle = angle1;
             } else {
@@ -335,6 +356,12 @@ function autonCreatorDrawLoop() {
 function pathAsText(pretty) {
     let output = {
         sharedWaypoints: [],
+        robot: {
+            robotName,
+            robotWidth,
+            robotLength,
+            savedIsTank
+        },
         paths: paths
     };
     let json = JSON.stringify(output, null, 4);
@@ -356,6 +383,12 @@ function loadPath(path) {
     let json = JSON.parse(path);
     paths = [];
     $('#pathSelector').empty();
+    robotLength = json.robot.robotWidth;
+    robotWidth = json.robot.robotWidth;
+    robotName = json.robot.robotName;
+    isTank = json.robot.savedIsTank;
+    savedIsTank = json.robot.savedIsTank;
+    loadConfig ();
     for (let path of json.paths) {
         addPath(Path.fromJson(path));
     }
