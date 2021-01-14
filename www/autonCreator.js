@@ -67,7 +67,26 @@ function newWaypoint(x, y, angle, spline_angle, name, shared) {
     path.newWaypoint(x, y, angle, spline_angle, name, shared);
 }
 
+/*
+ * Creates a new shared waypoint
+ * Called when the 'New Shared Waypoint' button is pressed
+ */
 function newSharedWaypoint() {
+    // Creates new shared waypoint with button
+    let name = prompt("Shared Waypoint Name");
+    if (name !== null) {
+        let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
+        sharedWaypoints.push(newShared);
+        newSharedButton(name);
+    }
+}
+
+/*
+* Creates a new button for a shared waypoint
+ */
+function newSharedButton(name) {
+    let buttonList = $("#waypointsList");
+    let button = $("<button>" + name + "</button>");
     // Function runs if dynamically created shared waypoint button is pressed
     const clickShared = (name)  => {
         let inPath = false;
@@ -77,6 +96,7 @@ function newSharedWaypoint() {
             }
         })
         if (inPath === false) {
+            console.log("")
             sharedWaypoints.forEach(function(point) {
                 if (name === point.name) {
                     path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, true);
@@ -84,23 +104,28 @@ function newSharedWaypoint() {
             })
         }
     };
-    // Creates new shared waypoint
-    let name = prompt("Shared Waypoint Name");
-    if (name !== null) {
-        let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
-        sharedWaypoints.push(newShared);
-        let buttonList = $("#waypointsList");
-        let button = $("<button>" + name + "</button>");
-        //button.innerText = name;
-        button.attr("type", "button");
-        button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
-        button.attr("data-trigger", "hover");
-        button.attr("data-toggle", "popover");
-        button.click(() => clickShared(name));
-        buttonList.append(button);
-    }
+    //button.innerText = name;
+    button.attr("type", "button");
+    button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
+    button.attr("data-trigger", "hover");
+    button.attr("data-toggle", "popover");
+    button.click(() => clickShared(name));
+    buttonList.append(button);
 }
 
+/*
+ * Loads in all shared waypoints when a JSON file is added
+ */
+function loadSharedButtons() {
+    sharedWaypoints.forEach(function(point) {
+        newSharedButton(point.name);
+    })
+}
+
+/*
+ * Removes the selected by waypoint
+ * Called when the 'Remove Waypoint' button is pressed
+ */
 function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
@@ -340,7 +365,6 @@ function autonCreatorDrawLoop() {
                     otherWaypoint.x = selectedWaypoint.x;
                     otherWaypoint.y = selectedWaypoint.y;
                     otherWaypoint.angle = selectedWaypoint.angle;
-                    otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
                     sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
                     sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
                     sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
@@ -424,12 +448,14 @@ function loadPath(path) {
     robotName = json.robot.robotName;
     isTank = json.robot.savedIsTank;
     savedIsTank = json.robot.savedIsTank;
+    sharedWaypoints = json.sharedWaypoints;
     loadConfig ();
     for (let path of json.paths) {
         addPath(Path.fromJson(path));
     }
-    console.log("Loaded paths: ");
-    console.log(paths);
+    loadSharedButtons();
+    //console.log("Loaded paths: ");
+    //console.log(paths);
     lastSelectedPath = -1;
 }
 

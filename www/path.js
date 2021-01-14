@@ -251,7 +251,7 @@ class Path {
     static fromJson(json) {
         let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
         for (let waypoint of json.waypoints) {
-            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name);
+            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.shared);
         }
         return path;
     }
