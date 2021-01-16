@@ -96,7 +96,6 @@ function newSharedButton(name) {
             }
         })
         if (inPath === false) {
-            console.log("")
             sharedWaypoints.forEach(function(point) {
                 if (name === point.name) {
                     path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, true);
@@ -104,7 +103,6 @@ function newSharedButton(name) {
             })
         }
     };
-    //button.innerText = name;
     button.attr("type", "button");
     button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
     button.attr("data-trigger", "hover");
@@ -117,7 +115,7 @@ function newSharedButton(name) {
  * Loads in all shared waypoints when a JSON file is added
  */
 function loadSharedButtons() {
-    sharedWaypoints.forEach(function(point) {
+    sharedWaypoints.forEach(function (point) {
         newSharedButton(point.name);
     })
 }
@@ -153,7 +151,7 @@ function autonCreatorInit() {
     selectedPath = 0;
 }
 
-function loadConfig () {
+function loadConfig() {
     $("#robotLength").val(robotLength);
     $("#robotWidth").val(robotWidth);
     $("#robotName").val(robotName);
@@ -161,7 +159,7 @@ function loadConfig () {
     $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
 }
 
-function saveConfig () {
+function saveConfig() {
     robotLength = $("#robotLength").val();
     robotWidth = $("#robotWidth").val();
     robotName = $("#robotName").val();
@@ -247,7 +245,43 @@ function autonCreatorDataLoop() {
 
 function nameRobot() {
     if (waypointSelected) {
-        selectedWaypoint.name = prompt("Name the Waypoint");
+        let name = selectedWaypoint.name;
+        let newName = prompt("Name the Waypoint");
+
+        if (newName !== null) {
+            selectedWaypoint.name = newName;
+            if (selectedWaypoint.shared) {
+                // Update global shared waypoint
+                sharedWaypoints.forEach(function (point) {
+                    if (name === point.name) {
+                        point.name = newName;
+                    }
+                })
+
+                // Update shared waypoints in every path
+                for (let i in paths) {
+                    if (i !== selectedPath) {
+                        let otherPath = paths[i];
+                        let otherWaypointIndex = otherPath.getWaypointIndexByName(name);
+
+                        if (otherWaypointIndex !== undefined) {
+                            let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
+                            otherWaypoint.name = newName;
+                        }
+                    }
+                }
+
+                // Update button
+                let buttonList = $(".sharedWaypoint");
+                buttonList.each(function(index) {
+                    let oldName = $(this).text();
+                    if (oldName === name) {
+                        $(this).text(newName);
+                    }
+                });
+
+            }
+        }
     }
 }
 
@@ -349,7 +383,7 @@ function autonCreatorDrawLoop() {
     // Draw ghost of other path if the changing point is shared
     if (waypointAction !== WaypointAction.NONE && selectedWaypoint.shared && waypointSelected) {
         let sharedIndex = -1;
-        sharedWaypoints.forEach(function(point, index) {
+        sharedWaypoints.forEach(function (point, index) {
             if (selectedWaypoint.name === point.name) {
                 sharedIndex = index;
             }
@@ -361,7 +395,7 @@ function autonCreatorDrawLoop() {
 
                 if (otherWaypointIndex !== undefined) {
                     let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
-                    
+
                     otherWaypoint.x = selectedWaypoint.x;
                     otherWaypoint.y = selectedWaypoint.y;
                     otherWaypoint.angle = selectedWaypoint.angle;
@@ -449,7 +483,7 @@ function loadPath(path) {
     isTank = json.robot.savedIsTank;
     savedIsTank = json.robot.savedIsTank;
     sharedWaypoints = json.sharedWaypoints;
-    loadConfig ();
+    loadConfig();
     for (let path of json.paths) {
         addPath(Path.fromJson(path));
     }
