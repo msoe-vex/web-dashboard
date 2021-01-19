@@ -35,6 +35,10 @@ let lastSelectedPath = -1;
 
 let waypointAction = WaypointAction.NONE;
 
+/**
+ * Adds new path to the path selector
+ * @param path
+ */
 function addPath(path) {
     paths.push(path);
     $('#pathSelector').append($('<option/>', {
@@ -42,10 +46,16 @@ function addPath(path) {
     }).text(path.name));
 }
 
+/**
+ * Allows user to change the selected path
+ */
 $('#pathSelector').on('change', function () {
     selectedPath = this.value;
 });
 
+/**
+ * Creates a new path
+ */
 function newPath() {
     let name = prompt("Name the Path");
     let path = new Path(name, 100, 50, 6);
@@ -54,6 +64,10 @@ function newPath() {
     addPath(path);
 }
 
+/**
+ * Switches the drive mode of all paths
+ * Toggle button in the config menu
+ */
 function setSwerve() {
     if (isTank) {
         $("#swerveTankToggle").text("Swerve Drive");
@@ -63,11 +77,21 @@ function setSwerve() {
     isTank = !isTank;
 }
 
+/**
+ * Creates a new waypoint in the current path
+ * Called when the 'New Waypoint' button is pressed
+ * @param x - starting x position
+ * @param y - starting y position
+ * @param angle - starting angle of robot
+ * @param spline_angle - starting angle of spline
+ * @param name - name of the waypoint
+ * @param shared - true if waypoint is shared
+ */
 function newWaypoint(x, y, angle, spline_angle, name, shared) {
     path.newWaypoint(x, y, angle, spline_angle, name, shared);
 }
 
-/*
+/**
  * Creates a new shared waypoint
  * Called when the 'New Shared Waypoint' button is pressed
  */
@@ -81,8 +105,9 @@ function newSharedWaypoint() {
     }
 }
 
-/*
-* Creates a new button for a shared waypoint
+/**
+ * Creates a new button for a shared waypoint
+ * @param name - name of the new button
  */
 function newSharedButton(name) {
     let buttonList = $("#waypointsList");
@@ -111,7 +136,7 @@ function newSharedButton(name) {
     buttonList.append(button);
 }
 
-/*
+/**
  * Loads in all shared waypoints when a JSON file is added
  */
 function loadSharedButtons() {
@@ -120,7 +145,7 @@ function loadSharedButtons() {
     })
 }
 
-/*
+/**
  * Removes the selected by waypoint
  * Called when the 'Remove Waypoint' button is pressed
  */
@@ -140,8 +165,11 @@ function removeWaypoint() {
     }
 }
 
+/**
+ * Initialized the first path and images
+ */
 function autonCreatorInit() {
-    connectToRobot();
+    //connectToRobot();
     let firstPath = new Path("TestPath", 100, 50, 6); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
     addPath(firstPath);
     fieldImage.src = "images/field.png";
@@ -151,6 +179,9 @@ function autonCreatorInit() {
     selectedPath = 0;
 }
 
+/**
+ * Loads the configuration data into the popup
+ */
 function loadConfig() {
     $("#robotLength").val(robotLength);
     $("#robotWidth").val(robotWidth);
@@ -159,6 +190,9 @@ function loadConfig() {
     $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
 }
 
+/**
+ * Saves the new configurations
+ */
 function saveConfig() {
     robotLength = $("#robotLength").val();
     robotWidth = $("#robotWidth").val();
@@ -167,6 +201,9 @@ function saveConfig() {
     $("#myModal").modal("hide");
 }
 
+/**
+ * Updates the selected path when actions are done to the selected waypoint
+ */
 function autonCreatorDataLoop() {
     let fieldHeightPxl = windowHeight;
 
@@ -243,6 +280,9 @@ function autonCreatorDataLoop() {
     }
 }
 
+/**
+ * Names the currently selected waypoint
+ */
 function nameRobot() {
     if (waypointSelected) {
         let name = selectedWaypoint.name;
@@ -299,6 +339,10 @@ function perc2color(perc) {
     return '#' + ('000000' + h.toString(16)).slice(-6);
 }
 
+/**
+ * Draws the updated path when actions are done to the selected waypoint
+ * Also draws ghosts of any shared waypoints being changed
+ */
 function autonCreatorDrawLoop() {
     let robotWidthPxl = robotWidthIn * ratio;
     let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
@@ -447,6 +491,10 @@ function autonCreatorDrawLoop() {
     }
 }
 
+/**
+ * Outputs every path in current window to json format
+ * @returns {string} - all path data in json format
+ */
 function pathAsText(pretty) {
     let output = {
         sharedWaypoints: sharedWaypoints,
@@ -464,6 +512,9 @@ function pathAsText(pretty) {
     return json;
 }
 
+/**
+ * Exports the path to json and saves it
+ */
 function exportPath() {
     var file = new File([pathAsText(true)], "path.json", {type: "text/plain;charset=utf-8"});
     saveAs(file);
@@ -473,6 +524,10 @@ function sendPath() {
     ws.send(pathAsText());
 }
 
+/**
+ * Loads a path from a json file
+ * @param path - json path data
+ */
 function loadPath(path) {
     let json = JSON.parse(path);
     paths = [];
@@ -512,6 +567,11 @@ function connectToRobot() {
     }
 }
 
+/**
+ * Converts the field inches to pixels on the screen
+ * @param pointInInches - point in inches
+ * @returns {point} - new point in pixels
+ */
 function inchesToPixels(pointInInches) {
     function in2pxX(fieldInches) {
         return (fieldInches + (fieldWidthIn / 2)) * ratio;
@@ -524,6 +584,11 @@ function inchesToPixels(pointInInches) {
     return new point(in2pxY(pointInInches.y), in2pxX(pointInInches.x));
 }
 
+/**
+ * Converts number of pixels to field inches
+ * @param pointInPixels - point in pixels
+ * @returns {point} - new point in inches
+ */
 function pixelsToInches(pointInPixels) {
     function px2inY(px) {
         return px / ratio;
