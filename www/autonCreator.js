@@ -4,12 +4,12 @@ const robotImage = new Image();
 //properties
 const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
-let robotCenterIn = 6;
+let robotCenterIn = 11;
 
 //constants
-const maxVel = 100;
-const maxAccel = 50;
-const k = 6;
+const maxVel = 41.9;
+const maxAccel = 41.9;
+const k = 2;
 
 let ratio = 1;
 
