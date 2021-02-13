@@ -6,6 +6,11 @@ const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
 let robotCenterIn = 6;
 
+//constants
+const maxVel = 100;
+const maxAccel = 50;
+const k = 6;
+
 let ratio = 1;
 
 let ws;
@@ -21,7 +26,7 @@ const WaypointAction = {
     NONE: 4
 };
 
-let path = new Path();
+let path = null;
 let paths = [];
 let sharedWaypoints = [];
 let robotWidth = 0;
@@ -41,9 +46,11 @@ let waypointAction = WaypointAction.NONE;
  */
 function addPath(path) {
     paths.push(path);
+    let index = paths.length - 1;
     $('#pathSelector').append($('<option/>', {
-        value: paths.length - 1
-    }).text(path.name));
+        value: index
+    }).text(path.name).attr('selected','selected'));
+    return index;
 }
 
 /**
@@ -58,10 +65,10 @@ $('#pathSelector').on('change', function () {
  */
 function newPath() {
     let name = prompt("Name the Path");
-    let path = new Path(name, 100, 50, 6);
+    let path = new Path(name, maxVel, maxAccel, k);
     path.newWaypoint(20, 10, 0, 0, "start");
     path.newWaypoint(30, 70, 0, 0, "end");
-    addPath(path);
+    selectedPath = addPath(path);
 }
 
 /**
@@ -170,7 +177,7 @@ function removeWaypoint() {
  */
 function autonCreatorInit() {
     //connectToRobot();
-    let firstPath = new Path("TestPath", 100, 50, 6); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
+    let firstPath = new Path("TestPath", maxVel, maxAccel, k); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
