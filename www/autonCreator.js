@@ -446,6 +446,10 @@ function autonCreatorDrawLoop() {
                     sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
                     sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
                     sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
+                    if (isTank) {
+                        otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
+                        sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
+                    }
 
                     if (otherPath.getNumWaypoints() > 0) {
                         // Draw waypoints
