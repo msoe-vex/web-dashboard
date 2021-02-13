@@ -60,7 +60,7 @@ p.statusBarText {
     position: fixed;
     z-index: 1;
     right: 0;
-    border-width:1px;
+    border-width: 1px;
     border-color: black;
     overflow-x: hidden;
     transition: 0.5s;
@@ -69,15 +69,29 @@ p.statusBarText {
 .sidebar {
     position: absolute;
     right: 300px;
-    box-shadow:none;
+    box-shadow: none;
 }
 
 .popover {
-    width:100px;
-    height:100px;
-    overflow:visible;
+    width: 100px;
+    height: 100px;
+    overflow: visible;
 }
 
 #swerveTankToggle {
     width: 466px;
+}
+
+.waypointInfo {
+    width: 125px;
+    background-color: black;
+}
+
+.location-form {
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.location-input {
+    width: 80px;
 }
