@@ -213,6 +213,8 @@ function saveConfig() {
  */
 function autonCreatorDataLoop() {
     let fieldHeightPxl = windowHeight;
+    const xinput = $("#x-value");
+    const yinput = $("#y-value");
 
     ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
@@ -235,20 +237,24 @@ function autonCreatorDataLoop() {
             //Select a waypoint
             selectedWaypointIndex = selectedIndex;
             waypointSelected = true;
+            selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
+            xinput.prop("disabled", false);
+            yinput.prop("disabled", false);
+            xinput.val(selectedWaypoint.x);
+            yinput.val(selectedWaypoint.y);
         } else {
             //Deselect waypoint
             selectedWaypointIndex = undefined;
             waypointSelected = false;
+            selectedWaypoint = undefined;
+            xinput.val("");
+            yinput.val("");
+            xinput.prop("disabled", true);
+            yinput.prop("disabled", true);
         }
         waypointAction = WaypointAction.NONE;
     } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
         waypointAction = WaypointAction.NONE;
-    }
-
-    if (waypointSelected) {
-        selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
-    } else {
-        selectedWaypoint = undefined;
     }
 
     // update data
@@ -258,6 +264,8 @@ function autonCreatorDataLoop() {
         case WaypointAction.MOVE:
             selectedWaypoint.x = mousePos.x;
             selectedWaypoint.y = mousePos.y;
+            xinput.val(selectedWaypoint.x);
+            yinput.val(selectedWaypoint.y);
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:

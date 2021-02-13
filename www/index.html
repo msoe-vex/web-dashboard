@@ -11,13 +11,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="main.css"/>
 </head>
 
 <body onload="initialize()">
 <nav class="navbar-vertical navbar-expand-sm bg-light p-0">
     <form class="form-inline py-0">
-            <select name="pathSelector" class="custom-select" id="pathSelector"></select>
+        <select name="pathSelector" class="custom-select" id="pathSelector"></select>
         <button type="button" class="btn btn-success" onclick=newPath()>New Path</button>
         <button type="button" class="btn btn-success" onclick=newWaypoint()>New Waypoint</button>
         <button type="button" class="btn btn-success" onclick=newSharedWaypoint()>New Shared Waypoint</button>
@@ -25,7 +25,9 @@
         <button type="button" class="btn btn-primary" onclick=nameRobot()>Name Waypoint</button>
         <button type="button" class="btn btn-primary" onclick=exportPath()>Export Path</button>
         <button type="button" class="btn btn-primary" onclick=sendPath()>Send Path</button>
-        <button type="button" class="btn btn-danger" id="connect-to-robot-button" onclick=connectToRobot()>Connect to Robot</button>
+        <button type="button" class="btn btn-danger" id="connect-to-robot-button" onclick=connectToRobot()>Connect to
+            Robot
+        </button>
         <button type="button" class="btn btn-info ml-auto" data-toggle="modal" data-target="#myModal">
             <i class="fas fa-cog"></i> Config
         </button>
@@ -34,12 +36,23 @@
 
 <div class="d-flex" style="flex: 1 1 auto;">
 
+    <form class="waypointInfo flex-column form-inline">
+        <div class="form-group mt-auto location-form">
+            <label class="location-label m-1" for="x-value">X:</label>
+            <input class="location-input m-1 rounded-lg" type="text" id="x-value">
+        </div>
+        <div class="form-group location-form mb-4">
+            <label class="location-label m-1" for="y-value">Y:</label>
+            <input class="location-input m-1 rounded-lg" type="text" id="y-value">
+        </div>
+    </form>
+
     <div class="bg-light sidenav" id="mySidenav">
         <a class="navbar-brand px-3">Shared Waypoints</a>
-            <div class="bg-light" id="waypointsList"></div>
+        <div class="bg-light" id="waypointsList"></div>
     </div>
 
-    <div class="sidebar d-flex align-self-center" id="thing" style=" transition: 0.5s; flex: 1 1 auto;" >
+    <div class="sidebar d-flex align-self-center" id="thing" style=" transition: 0.5s; flex: 1 1 auto;">
         <a onclick="openNav()" style="cursor:pointer; writing-mode: vertical-rl; color: white;">
             <i class="fas fa-chevron-left"></i>
             Expand Sidebar
@@ -47,13 +60,15 @@
         </a>
     </div>
 
-    <div class="windowDivClass d-flex justify-content-center align-content-center" style="flex: 1 1 auto;" id="windowDiv">
+    <div class="windowDivClass d-flex justify-content-center align-content-center" style="flex: 1 1 auto;"
+         id="windowDiv">
         <canvas class="windowClass" id="windowCanvas"></canvas>
     </div>
 </div>
 
 <script>
     let open = true;
+
     function openNav() {
         if (!open) {
             document.getElementById("mySidenav").style.width = "300px";
