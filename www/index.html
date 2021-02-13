@@ -39,11 +39,11 @@
     <form class="waypointInfo flex-column form-inline">
         <div class="form-group mt-auto location-form">
             <label class="location-label m-1" for="x-value">X:</label>
-            <input class="location-input m-1 rounded-lg" type="text" id="x-value">
+            <input class="location-input m-1 rounded-lg" type="text" id="x-value" disabled>
         </div>
         <div class="form-group location-form mb-4">
             <label class="location-label m-1" for="y-value">Y:</label>
-            <input class="location-input m-1 rounded-lg" type="text" id="y-value">
+            <input class="location-input m-1 rounded-lg" type="text" id="y-value" disabled>
         </div>
     </form>
 
@@ -52,11 +52,11 @@
         <div class="bg-light" id="waypointsList"></div>
     </div>
 
-    <div class="sidebar d-flex align-self-center" id="thing" style=" transition: 0.5s; flex: 1 1 auto;">
-        <a onclick="openNav()" style="cursor:pointer; writing-mode: vertical-rl; color: white;">
-            <i class="fas fa-chevron-left"></i>
-            Expand Sidebar
-            <i class="fas fa-chevron-left"></i>
+    <div class="sidebar d-flex align-self-center" id="sharedWaypointsBar" style=" transition: 0.5s; flex: 1 1 auto;">
+        <a onclick="openNav()" id="sidebarText" style="cursor:pointer; writing-mode: vertical-rl; color: white;">
+            <i class="fas fa-chevron-right"></i>
+            Hide Sidebar
+            <i class="fas fa-chevron-right"></i>
         </a>
     </div>
 
@@ -72,12 +72,12 @@
     function openNav() {
         if (!open) {
             document.getElementById("mySidenav").style.width = "300px";
-            document.getElementById("thing").style.right = "300px";
-
+            document.getElementById("sharedWaypointsBar").style.right = "300px";
+            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-right\"></i> Hide Sidebar <i class=\"fas fa-chevron-right\"></i>"
         } else {
             document.getElementById("mySidenav").style.width = "0";
-            document.getElementById("thing").style.right = "0";
-
+            document.getElementById("sharedWaypointsBar").style.right = "0";
+            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-left\"></i> Expand Sidebar <i class=\"fas fa-chevron-left\"></i>"
         }
         open = !open;
 

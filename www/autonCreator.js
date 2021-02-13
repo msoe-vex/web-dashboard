@@ -184,6 +184,24 @@ function autonCreatorInit() {
     firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint");
     firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint");
     selectedPath = 0;
+    $("#x-value").keyup(function(){
+        let x = this.value;
+        if(!isNaN(x)) {
+            const num = parseFloat(x);
+            if (num >= -70 && num <= 70) {
+                selectedWaypoint.x = num;
+            }
+        }
+    });
+    $("#y-value").keyup(function(){
+        let y = this.value;
+        if(!isNaN(y)) {
+            const num = parseFloat(y);
+            if (num >= 0 && num <= 140) {
+                selectedWaypoint.y = num;
+            }
+        }
+    });
 }
 
 /**
