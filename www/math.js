@@ -1,5 +1,3 @@
-const { abs } = require("mathjs");
-
 function hypot(x1, y1, x2, y2) {
 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
@@ -32,5 +30,5 @@ function shortestRotationTo (target, current) {
 	let clockwiseMove = target - current;
 	clockwiseMove += (clockwiseMove < 0 ? 360 : 0);
 	counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0);
-	return (abs(clockwiseMove) < abs(counterClockwiseMove) ? clockwiseMove : -counterClockwiseMove);
+	return (Math.abs(clockwiseMove) < Math.abs(counterClockwiseMove) ? clockwiseMove : -counterClockwiseMove);
 }

@@ -270,16 +270,7 @@ class Path {
             return closestWaypoint;
         };
 
-        this.toJSON = function () {
-            return {
-                name: this.name,
-                maxAccel: this.maxAccel,
-                maxVel: this.maxVel,
-                k: this.k,
-                waypoints: waypoints,
-                points: this.getPoints()
-            }
-        };
+
     }
 
     static fromJson(json) {

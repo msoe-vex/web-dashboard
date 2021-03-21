@@ -3,48 +3,23 @@
  * Contains the coordinates (x, y) and the speed of the robot
  */
 function point(x, y, speed, time, theta, omega) {
-	let _x = x;
-	let _y = y;
-	let _speed = speed || 0;
-	let _time = time;
-	let _theta = theta;
-	let _omega = omega;
+	this.x = x;
+	this.y = y;
+	this.speed = speed || 0;
+	this.time = time;
+	this.theta = theta;
+	this.omega = omega;
 
-	Object.defineProperty(this, "x", {
-		enumerable: true,
-		get: function(){ return parseFloat(_x.toFixed(2)) },
-		set: function(value){ _x = value }
-	});
-
-	Object.defineProperty(this, "y", {
-		enumerable: true,
-		get: function(){ return parseFloat(_y.toFixed(2)) },
-		set: function(value){ _y = value }
-	});
-
-    Object.defineProperty(this, "speed", {
-        enumerable: true,
-        get: function(){ return parseFloat(_speed.toFixed(2)) },
-        set: function(value){ _speed = value }
-	});
-	
-	Object.defineProperty(this, "time", {
-		enumerable: true,
-		get: function(){ return parseFloat(_time.toFixed(2)) },
-		set: function(value){ _time = value }
-	});
-
-	Object.defineProperty(this, "theta", {
-		enumerable: true,
-		get: function(){ return parseFloat(_theta.toFixed(2)) },
-		set: function(value){ _theta = value }
-	});
-
-	Object.defineProperty(this, "omega", {
-		enumerable: true,
-		get: function(){ return parseFloat(_omega.toFixed(2)) },
-		set: function(value){ _omega = value }
-	});
+	this.toJSON = function () {
+		return {
+			x: x === undefined ? 0 : x.toFixed(2),
+			y: y === undefined ? 0 : y.toFixed(2),
+			speed: speed === undefined ? 0 : speed.toFixed(2),
+			time: time === undefined ? 0 : time.toFixed(2),
+			theta: theta === undefined ? 0 : theta.toFixed(2),
+			omega: omega === undefined ? 0 : omega.toFixed(2)
+		}
+	};
 }
 /*
  * Function takes two waypoints and returns generated points in a spline between the two given waypoints
