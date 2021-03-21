@@ -166,6 +166,7 @@ class Path {
                     });
                     
                     this.calculateSpeed();
+                    this.calculateTime();
                     regenerate = false;
                 }
             }
@@ -207,9 +208,11 @@ class Path {
 
         this.calculateTime = function () {
             this.points[0].time = 0;
+            let totalTime = 0;
             for (let i = 1; i < this.points.length; i++) {
-                let deltaDist = hypot(this.points[i].x, this.points[i-1].x, this.points[i].y, this.points[i-1].y);
-                let deltaTime = deltaDist / this.points[i].speed;
+                let deltaDist = hypot(this.points[i].x, this.points[i].y, this.points[i-1].x, this.points[i-1].y);
+                let deltaTime = this.points[i].speed !== 0 ? deltaDist / this.points[i].speed : 0;
+
                 totalTime += deltaTime;
                 this.points[i].time = totalTime;
             }
