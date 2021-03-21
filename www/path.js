@@ -170,19 +170,21 @@ class Path {
                     if (curvature === 0 || isNaN(curvature)) {
                         //points[i].speed = this.maxVel; TODO remove - will be done in the spline
                     } else {
-                        points[i].speed = Math.min(this.maxVel, (this.k * this.maxVel) / (curvature * this.maxVel));
+                        points[i].speed = Math.min(this.maxVel, (this.k / curvature));
                         // Additional min comparison against the max speed of the point (to make sure it isn't exceeded if user defined)
                     }
                 }
             }
 
             //points[0].speed = this.maxVel; TODO remove
+            // points[0].speed = 0;
+            // points[points.length - 1].speed = 0;
 
             //Limit acceleration
-            // for (let i = 1; i < points.length; i++) {
-            //     let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
-            //     points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * this.maxAccel * distance));
-            // }
+            for (let i = 1; i < points.length; i++) {
+                let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
+                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * this.maxAccel * distance));
+            }
 
             //Limit deceleration
             for (let i = points.length - 2; i >= 0; i--) {
@@ -190,6 +192,7 @@ class Path {
                 points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i + 1].speed**2 + 2 * this.maxAccel * distance));
             }
 
+            //Limit turning
         };
 
         this.getWaypoints = function () {
