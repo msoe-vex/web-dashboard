@@ -16,12 +16,12 @@ function toCamelCase(str) {
  * Paths also contain path and robot specific data used in some calculations
  */
 class Path {
-    constructor(pathName, maxVel, maxAccel, k, totatlTime) {
+    constructor(pathName, maxVel, maxAccel, k, totalTime) {
         this.name = toCamelCase(pathName);
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.k = (k === undefined) ? 1.6 : k;
-        this.totatlTime = totatlTime || 0;
+        this.totalTime = totalTime || 0;
         let waypoints = [];
         let splines = [];
         this.points = [];
@@ -202,8 +202,8 @@ class Path {
             for (let i = 1; i < this.points.length; i++) {
                 let deltaDist = hypot(this.points[i].x, this.points[i-1].x, this.points[i].y, this.points[i-1].y);
                 let deltaTime = deltaDist / this.points[i].speed;
-                totatlTime += deltaTime;
-                this.points[i].time = totatlTime;
+                totalTime += deltaTime;
+                this.points[i].time = totalTime;
             }
         };
 
