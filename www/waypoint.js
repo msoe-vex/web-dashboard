@@ -21,6 +21,8 @@ function Waypoint(x, y, angle, spline_angle, name, shared) {
         set: function(value){ _name = value }
     });
 
+    // TODO add a property here
+
     Object.defineProperty(this, "angle", {
         enumerable: true,
         get: function(){ return parseFloat(_angle.toFixed(2)) },

@@ -321,8 +321,11 @@ function nameRobot() {
         let name = selectedWaypoint.name;
         let newName = prompt("Name the Waypoint");
 
+        // TODO add speed parameter as well - change to a div
+
         if (newName !== null) {
             selectedWaypoint.name = newName;
+            // Change the speed parameter of the waypoint (if it exists)
             if (selectedWaypoint.shared) {
                 // Update global shared waypoint
                 sharedWaypoints.forEach(function (point) {

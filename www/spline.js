@@ -78,6 +78,8 @@ function Spline(w1, w2) {
 		let y = (this.a * x + this.b) * (x * x) + getA0(this) * x;
 		let cosTheta = Math.cos(this.angleOff);
 		let sinTheta = Math.sin(this.angleOff);
-		return new point(x * cosTheta - y * sinTheta + w1.x, x * sinTheta + y * cosTheta + w1.y)
+		return new point(x * cosTheta - y * sinTheta + w1.x, x * sinTheta + y * cosTheta + w1.y) 
+		// If percentage is 0 or 1, return the velocity of the beginning or end of the spline
+		// If not, return max velocity
 	}
 }

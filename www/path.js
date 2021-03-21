@@ -164,18 +164,19 @@ class Path {
             //Limit speed around curves based on curvature
             for (let i in points) {
                 if (parseInt(i) === 0 || parseInt(i) >= (points.length - 1)) {
-                    points[i].speed = this.maxVel;
+                    points[i].speed = this.maxVel; // Remove and replace with logic in spline
                 } else {
                     let curvature = calculateCurvature(points[parseInt(i) - 1], points[parseInt(i)], points[parseInt(i) + 1]);
                     if (curvature === 0 || isNaN(curvature)) {
-                        points[i].speed = this.maxVel;
+                        //points[i].speed = this.maxVel; TODO remove - will be done in the spline
                     } else {
                         points[i].speed = Math.min(this.maxVel, (this.k * this.maxVel) / (curvature * this.maxVel));
+                        // Additional min comparison against the max speed of the point (to make sure it isn't exceeded if user defined)
                     }
                 }
             }
 
-            points[0].speed = this.maxVel;
+            //points[0].speed = this.maxVel; TODO remove
 
             //Limit acceleration
             // for (let i = 1; i < points.length; i++) {
