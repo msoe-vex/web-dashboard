@@ -24,7 +24,7 @@ class Path {
         this.totatlTime = totatlTime || 0;
         let waypoints = [];
         let splines = [];
-        let points = [];
+        this.points = [];
 
 
         let regenerate = true;
@@ -118,7 +118,7 @@ class Path {
             }
 
             if (regenerate) {
-                points = [];
+                this.points = [];
 
                 for (let i in waypoints) {
                     let leftSpline = i === 0 ? undefined : splines[i - 1];
@@ -150,44 +150,44 @@ class Path {
                             }
                         }
 
-                        points.push(spline.spline.get(0));
+                        this.points.push(spline.spline.get(0));
                         for (let i = stepSize; i < 1; i += stepSize) {
-                            points.push(spline.spline.get(i));
+                            this.points.push(spline.spline.get(i));
                         }
-                        points.push(spline.spline.get(1));
+                        this.points.push(spline.spline.get(1));
                     }
                     this.calculateSpeed();
                     regenerate = false;
                 }
             }
-            return points;
+            return this.points;
         };
 
         this.calculateSpeed = function () {
             //Limit speed around curves based on curvature
-            for (let i in points) {
-                if (parseInt(i) !== 0 && parseInt(i) < (points.length - 1)) {
-                    let curvature = calculateCurvature(points[parseInt(i) - 1], points[parseInt(i)], points[parseInt(i) + 1]);
-                    let current_speed = points[i].speed || this.maxVel;
+            for (let i in this.points) {
+                if (parseInt(i) !== 0 && parseInt(i) < (this.points.length - 1)) {
+                    let curvature = calculateCurvature(this.points[parseInt(i) - 1], this.points[parseInt(i)], this.points[parseInt(i) + 1]);
+                    let current_speed = this.points[i].speed || this.maxVel;
                     if (curvature === 0 || isNaN(curvature)) {
-                        points[i].speed = Math.min(current_speed, this.maxVel);
+                        this.points[i].speed = Math.min(current_speed, this.maxVel);
                     } else {
-                        points[i].speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
+                        this.points[i].speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
                         // Additional min comparison against the max speed of the point (to make sure it isn't exceeded if user defined)
                     }
                 }
             }
 
             //Limit acceleration
-            for (let i = 1; i < points.length; i++) {
-                let distance = hypot(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
-                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i - 1].speed**2 + 2 * this.maxAccel * distance));
+            for (let i = 1; i < this.points.length; i++) {
+                let distance = hypot(this.points[i - 1].x, this.points[i - 1].y, this.points[i].x, this.points[i].y);
+                this.points[i].speed = Math.min(this.points[i].speed, Math.sqrt(this.points[i - 1].speed**2 + 2 * this.maxAccel * distance));
             }
 
             //Limit deceleration
-            for (let i = points.length - 2; i >= 0; i--) {
-                let distance = hypot(points[i + 1].x, points[i + 1].y, points[i].x, points[i].y);
-                points[i].speed = Math.min(points[i].speed, Math.sqrt(points[i + 1].speed**2 + 2 * this.maxAccel * distance));
+            for (let i = this.points.length - 2; i >= 0; i--) {
+                let distance = hypot(this.points[i + 1].x, this.points[i + 1].y, this.points[i].x, this.points[i].y);
+                this.points[i].speed = Math.min(this.points[i].speed, Math.sqrt(this.points[i + 1].speed**2 + 2 * this.maxAccel * distance));
             }
 
             // TODO add another block to limit turning (copy both blocks above)
@@ -198,28 +198,28 @@ class Path {
         };
 
         this.calculateTime = function () {
-            points[0].time = 0;
-            for (let i = 1; i < points.length; i++) {
-                let deltaDist = hypot(points[i].x, points[i-1].x, points[i].y, points[i-1].y);
-                let deltaTime = deltaDist / points[i].speed;
+            this.points[0].time = 0;
+            for (let i = 1; i < this.points.length; i++) {
+                let deltaDist = hypot(this.points[i].x, this.points[i-1].x, this.points[i].y, this.points[i-1].y);
+                let deltaTime = deltaDist / this.points[i].speed;
                 totatlTime += deltaTime;
-                points[i].time = totatlTime;
+                this.points[i].time = totatlTime;
             }
         };
 
         this.calculateThetas = function () { // TODO: Create waypointIndicies that hols the points indicies where waypoints are
             for (let i = 1; i < waypointsIndecies.length; i++) {
-                let deltaTime = points[i].time - points[i-1].time;
-                let aveOmega = shortestRotationTo(points[i].theta, points[i-1].theta) / deltaTime;
+                let deltaTime = this.points[i].time - this.points[i-1].time;
+                let aveOmega = shortestRotationTo(this.points[i].theta, this.points[i-1].theta) / deltaTime;
                 let alpha = (2 * aveOmega) / (0.5 * deltaTime);
                 for (k = waypointsIndecies[i-1]; k < waypointsIndecies[i]; k++) {
-                    let relTime = points[k].time - points[i-1].time
+                    let relTime = this.points[k].time - this.points[i-1].time
                     if (relTime > (0.5 * deltaTime)) {
-                        points[k].omega = alpha * relTime + points[i-1].omega;
-                        points[k].theta = points[k].omega * relTime + points[i-1].theta;
+                        this.points[k].omega = alpha * relTime + this.points[i-1].omega;
+                        this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;
                     } else {
-                        points[k].omega = -alpha * relTime + points[i-1].omega + 2 * aveOmega;
-                        points[k].theta = points[k].omega * relTime + points[i-1].theta;    
+                        this.points[k].omega = -alpha * relTime + this.points[i-1].omega + 2 * aveOmega;
+                        this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;    
                     }
                 }
             }
@@ -269,8 +269,6 @@ class Path {
             }
             return closestWaypoint;
         };
-
-
     }
 
     static fromJson(json) {
