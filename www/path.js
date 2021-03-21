@@ -111,9 +111,12 @@ class Path {
         };
 
         this.getPoints = function (waypointToSimplify) {
-            if ((waypointToSimplify === undefined) !== simplified) {
+            // Regenerate path if switching between simplified and non simplified representations
+            if ((waypointToSimplify === undefined) === simplified) {
                 regenerate = true;
+                simplified = !simplified;
             }
+
             if (regenerate) {
                 points = [];
 
