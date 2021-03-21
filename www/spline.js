@@ -2,10 +2,13 @@
  * Represents a location of the robot on the field
  * Contains the coordinates (x, y) and the speed of the robot
  */
-function point(x, y, speed) {
+function point(x, y, speed, time, theta, omega) {
 	let _x = x;
 	let _y = y;
 	let _speed = speed || 0;
+	let _time = time;
+	let _theta = theta;
+	let _omega = omega;
 
 	Object.defineProperty(this, "x", {
 		enumerable: true,
@@ -23,7 +26,25 @@ function point(x, y, speed) {
         enumerable: true,
         get: function(){ return parseFloat(_speed.toFixed(2)) },
         set: function(value){ _speed = value }
-    });
+	});
+	
+	Object.defineProperty(this, "time", {
+		enumerable: true,
+		get: function(){ return parseFloat(_time.toFixed(2)) },
+		set: function(value){ _time = value }
+	});
+
+	Object.defineProperty(this, "theta", {
+		enumerable: true,
+		get: function(){ return parseFloat(_theta.toFixed(2)) },
+		set: function(value){ _theta = value }
+	});
+
+	Object.defineProperty(this, "omega", {
+		enumerable: true,
+		get: function(){ return parseFloat(_omega.toFixed(2)) },
+		set: function(value){ _omega = value }
+	});
 }
 /*
  * Function takes two waypoints and returns generated points in a spline between the two given waypoints

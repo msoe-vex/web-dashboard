@@ -16,11 +16,12 @@ function toCamelCase(str) {
  * Paths also contain path and robot specific data used in some calculations
  */
 class Path {
-    constructor(pathName, maxVel, maxAccel, k) {
+    constructor(pathName, maxVel, maxAccel, k, totatlTime) {
         this.name = toCamelCase(pathName);
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.k = (k === undefined) ? 1.6 : k;
+        this.totatlTime = totatlTime || 0;
         let waypoints = [];
         let splines = [];
         let points = [];
@@ -193,6 +194,34 @@ class Path {
             }
 
             //Limit turning
+        };
+
+        this.calculateTime = function () {
+            points[0].time = 0;
+            for (let i = 1; i < points.length; i++) {
+                let deltaDist = hypot(points[i].x, points[i-1].x, points[i].y, points[i-1].y);
+                let deltaTime = deltaDist / points[i].speed;
+                totatlTime += deltaTime;
+                points[i].time = totatlTime;
+            }
+        };
+
+        this.calculateThetas = function () { // TODO: Create waypointIndicies that hols the points indicies where waypoints are
+            for (let i = 1; i < waypointsIndecies.length; i++) {
+                let deltaTime = points[i].time - points[i-1].time;
+                let aveOmega = shortestRotationTo(points[i].theta, points[i-1].theta) / deltaTime;
+                let alpha = (2 * aveOmega) / (0.5 * deltaTime);
+                for (k = waypointsIndecies[i-1]; k < waypointsIndecies[i]; k++) {
+                    let relTime = points[k].time - points[i-1].time
+                    if (relTime > (0.5 * deltaTime)) {
+                        points[k].omega = alpha * relTime + points[i-1].omega;
+                        points[k].theta = points[k].omega * relTime + points[i-1].theta;
+                    } else {
+                        points[k].omega = -alpha * relTime + points[i-1].omega + 2 * aveOmega;
+                        points[k].theta = points[k].omega * relTime + points[i-1].theta;    
+                    }
+                }
+            }
         };
 
         this.getWaypoints = function () {
