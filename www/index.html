@@ -22,7 +22,7 @@
         <button type="button" class="btn btn-success" onclick=newWaypoint()>New Waypoint</button>
         <button type="button" class="btn btn-success" onclick=newSharedWaypoint()>New Shared Waypoint</button>
         <button type="button" class="btn btn-danger" onclick=removeWaypoint()>Remove Waypoint</button>
-        <button type="button" class="btn btn-primary" onclick=nameRobot()>Name Waypoint</button>
+        <button type="button" class="btn btn-primary" disabled="true" data-toggle="modal" data-target="#waypointSettingsModal" id="nameWaypointButton">Name Waypoint</button>
         <button type="button" class="btn btn-primary" onclick=exportPath()>Export Path</button>
         <button type="button" class="btn btn-primary" onclick=sendPath()>Send Path</button>
         <button type="button" class="btn btn-danger" id="connect-to-robot-button" onclick=connectToRobot()>Connect to
@@ -127,10 +127,37 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-default" data-dismiss="modal" type="button" onclick=loadConfig()>Close</button>
-                <button class="btn btn-primary" type="button" onclick=saveConfig()>Save changes</button>
+                <button class="btn btn-primary" data-dismiss="modal" type="button" onclick=saveConfig()>Save</button>
             </div>
         </div>
 
+    </div>
+</div>
+
+<div class="modal fade" id="waypointSettingsModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Waypoint Settings</h3>
+                <button class="close" data-dismiss="modal" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="form">
+                    <div class="form-group">
+                        <label for="waypointName">Waypoint name:</label>
+                        <input class="form-control" id="waypointName" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="waypointSpeed">Waypoint speed:</label>
+                        <input class="form-control" id="waypointSpeed" type="number">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+                <button class="btn btn-primary" data-dismiss="modal" type="button" onclick=saveWaypointConfig()>Save</button>
+            </div>
+        </div>
     </div>
 </div>
 

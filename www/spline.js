@@ -2,26 +2,24 @@
  * Represents a location of the robot on the field
  * Contains the coordinates (x, y) and the speed of the robot
  */
-class point {
-	constructor(x, y, speed, time, theta, omega) {
-		this.x = x;
-		this.y = y;
-		this.speed = speed || 0;
-		this.time = time;
-		this.theta = theta;
-		this.omega = omega;
+function point(x, y, speed, time, theta, omega) {
+	this.x = x;
+	this.y = y;
+	this.speed = speed;
+	this.time = time;
+	this.theta = theta;
+	this.omega = omega;
 
-		this.toJSON = function () {
-			return {
-				x: x === undefined ? 0 : x.toFixed(2),
-				y: y === undefined ? 0 : y.toFixed(2),
-				speed: speed === undefined ? 0 : speed.toFixed(2),
-				time: time === undefined ? 0 : time.toFixed(2),
-				theta: theta === undefined ? 0 : theta.toFixed(2),
-				omega: omega === undefined ? 0 : omega.toFixed(2)
-			};
-		};
-	}
+	this.toJSON = function () {
+		return {
+			x: this.x === undefined ? 0 : Number.parseFloat(this.x.toFixed(2)),
+			y: this.y === undefined ? 0 : Number.parseFloat(this.y.toFixed(2)),
+			speed: this.speed === undefined ? 0 : Number.parseFloat(this.speed.toFixed(2)),
+			time: this.time === undefined ? 0 : Number.parseFloat(this.time.toFixed(2)),
+			theta: this.theta === undefined ? 0 : Number.parseFloat(this.theta.toFixed(2)),
+			omega: this.omega === undefined ? 0 : Number.parseFloat(this.omega.toFixed(2))
+		}
+	};
 }
 
 /*
@@ -78,9 +76,16 @@ class Spline {
 			let y = (this.a * x + this.b) * (x * x) + getA0(this) * x;
 			let cosTheta = Math.cos(this.angleOff);
 			let sinTheta = Math.sin(this.angleOff);
-			return new point(x * cosTheta - y * sinTheta + w1.x, x * sinTheta + y * cosTheta + w1.y);
-			// If percentage is 0 or 1, return the velocity of the beginning or end of the spline
-			// If not, return max velocity
+
+			let speedAtPoint = undefined;
+
+			if (percentage === 0) {
+				speedAtPoint = w1.speed;
+			} else if (percentage === 1) {
+				speedAtPoint = w2.speed;
+			} 
+
+			return new point(x * cosTheta - y * sinTheta + w1.x, x * sinTheta + y * cosTheta + w1.y, speedAtPoint);
 		};
 	}
 }

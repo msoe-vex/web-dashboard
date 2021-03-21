@@ -31,6 +31,10 @@ class Path {
 
         let simplified = false;
 
+        this.regeneratePath = function() {
+            regenerate = true;
+        }
+
         this.setMaxVel = function (maxVel) {
             this.maxVel = maxVel;
         };
@@ -47,7 +51,7 @@ class Path {
             return this.maxAccel;
         };
 
-        this.newWaypoint = function (x, y, angle, spline_angle, name, shared, index) {
+        this.newWaypoint = function (x, y, angle, spline_angle, name, speed, shared, index) {
             if (index === undefined) {
                 index = waypoints.length - 1;
             }
@@ -69,7 +73,9 @@ class Path {
                 angle = (angle === undefined) ? 0 : angle;
                 spline_angle = (spline_angle === undefined) ? 0 : spline_angle;
             }
-            let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, shared);
+
+            speed = speed ?? this.maxVel;
+            let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, speed, shared);
             waypoints.push(newWaypoint);
             if (lastWaypoint) {
                 let newSpline = new Spline(lastWaypoint, newWaypoint);
@@ -131,14 +137,13 @@ class Path {
                     }
                 }
                 if (splines.length !== 0) {
-                    for (let s in splines) {
-                        let spline = splines[s];
+                    splines.forEach((spline, i) => {
                         let stepSize = 1 / spline.samples;
                         spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
                             spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
 
                         if (waypointToSimplify !== undefined &&
-                            (parseInt(s) === waypointToSimplify || parseInt(s) === waypointToSimplify - 1)) {
+                            (i === waypointToSimplify || i === waypointToSimplify - 1)) {
                             spline.samples = 7;
                             stepSize = 1 / spline.samples;
                         } else {
@@ -154,8 +159,12 @@ class Path {
                         for (let i = stepSize; i < 1; i += stepSize) {
                             this.points.push(spline.spline.get(i));
                         }
-                        this.points.push(spline.spline.get(1));
-                    }
+
+                        if (i === (splines.length - 1)) {
+                            this.points.push(spline.spline.get(1));
+                        }
+                    });
+                    
                     this.calculateSpeed();
                     regenerate = false;
                 }
@@ -165,18 +174,17 @@ class Path {
 
         this.calculateSpeed = function () {
             //Limit speed around curves based on curvature
-            for (let i in this.points) {
-                if (parseInt(i) !== 0 && parseInt(i) < (this.points.length - 1)) {
-                    let curvature = calculateCurvature(this.points[parseInt(i) - 1], this.points[parseInt(i)], this.points[parseInt(i) + 1]);
-                    let current_speed = this.points[i].speed || this.maxVel;
+            this.points.forEach((point, i) => {
+                if (i !== 0 && i < (this.points.length - 1)) {
+                    let curvature = calculateCurvature(this.points[i - 1], this.points[i], this.points[i + 1]);
+                    let current_speed = point.speed || this.maxVel;
                     if (curvature === 0 || isNaN(curvature)) {
-                        this.points[i].speed = Math.min(current_speed, this.maxVel);
+                        point.speed = Math.min(current_speed, this.maxVel);
                     } else {
-                        this.points[i].speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
-                        // Additional min comparison against the max speed of the point (to make sure it isn't exceeded if user defined)
+                        point.speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
                     }
                 }
-            }
+            });
 
             //Limit acceleration
             for (let i = 1; i < this.points.length; i++) {
@@ -273,9 +281,9 @@ class Path {
 
     static fromJson(json) {
         let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
-        for (let waypoint of json.waypoints) {
-            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.shared);
-        }
+        json.waypoints.forEach((waypoint) => {
+            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.speed, waypoint.shared);
+        });
         return path;
     }
 }
