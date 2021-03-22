@@ -13,7 +13,7 @@ import {
     saveConfig,
     saveWaypointConfig,
     setSwerve,
-} from "./AutonManager.js";
+} from "./autonCreator.js";
 
 export type IAppProps = {
 

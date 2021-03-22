@@ -22,7 +22,6 @@ export class Point {
 		this.omega = 0;
 	}
 		
-
 	toJSON () {
 		return {
 			x: this.x === undefined ? 0 : Number.parseFloat(this.x.toFixed(2)),
@@ -44,7 +43,7 @@ export class Spline {
 	endAngle: number;
 	knot: number;
 
-	constructor(w1, w2) {
+	constructor(w1: Waypoint, w2: Waypoint) {
 		this.w1 = w1;
 		this.w2 = w2;
 		this.startAngle = w1.spline_angle;
@@ -73,7 +72,7 @@ export class Spline {
 	 * @returns Relatopship between startAngle and angleOff
 	 */
 	getA0(spline: Spline) {
-		let a0 = -toRadians(spline.startAngle + 90) - spline.angleOff;
+		let a0 = -toRadians(spline.startAngle + 90) - spline.getAngleOff();
 		while (a0 > Math.PI * 2) {
 			a0 -= Math.PI * 2;
 		}
@@ -81,46 +80,45 @@ export class Spline {
 		return a0;
 	};
 
-		// represents relationship between endAngle and the angleOff
-		let getA1 = function (spline) {
-			let a1 = -toRadians(spline.endAngle + 90) - spline.angleOff;
-			while (a1 > Math.PI * 2) {
-				a1 -= Math.PI * 2;
-			}
-			a1 = Math.tan(a1);
-			return a1;
-		};
+	// represents relationship between endAngle and the angleOff
+	getA1(spline: Spline) {
+		let a1 = -toRadians(spline.endAngle + 90) - spline.getAngleOff();
+		while (a1 > Math.PI * 2) {
+			a1 -= Math.PI * 2;
+		}
+		a1 = Math.tan(a1);
+		return a1;
+	};
 
-		// a = relationship 1 between angles and the distance of the waypoints
-		// Used in calculating the point locations in the spline
-		Object.defineProperty(this, "a", { enumerable: true, get: function () { return (getA0(this) + getA1(this)) / (this.knot * this.knot); } });
-		// b = relationship 2 between angles and the distance of the waypoints
-		// Used in calculating the point locations in the spline
-		Object.defineProperty(this, "b", { enumerable: true, get: function () { return -(2 * getA0(this) + getA1(this)) / this.knot; } });
+	// a = relationship 1 between angles and the distance of the waypoints
+	// Used in calculating the point locations in the spline
+	getA() {
+		return (this.getA0(this) + this.getA1(this)) / (this.knot * this.knot);
+	}
 
-		// function returns the point in the spline based on the location percentage given
-		this.get = function (percentage) {
-			// Console logs used for testing
-			//console.log('a0 = ' + getA0(this));
-			//console.log('a1 = ' + getA1(this));
-			//console.log('Start angle = ' + this.startAngle);
-			//console.log('End Angle = ' + this.endAngle);
-			//console.log('Angle Off = ' + this.angleOff)
-			percentage = Math.max(Math.min(percentage, 1), 0);
-			let x = percentage * this.knot;
-			let y = (this.a * x + this.b) * (x * x) + getA0(this) * x;
-			let cosTheta = Math.cos(this.angleOff);
-			let sinTheta = Math.sin(this.angleOff);
+		
+	// b = relationship 2 between angles and the distance of the waypoints
+	// Used in calculating the point locations in the spline
+	getB() {
+		return -(2 * this.getA0(this) + this.getA1(this)) / this.knot;
+	}
 
-			let speedAtPoint = undefined;
+	// function returns the point in the spline based on the location percentage given
+	get(percentage: number) {
+		percentage = Math.max(Math.min(percentage, 1), 0);
+		let x = percentage * this.knot;
+		let y = (this.getA() * x + this.getB()) * (x * x) + this.getA0(this) * x;
+		let cosTheta = Math.cos(this.getAngleOff());
+		let sinTheta = Math.sin(this.getAngleOff());
 
-			if (percentage === 0) {
-				speedAtPoint = w1.speed;
-			} else if (percentage === 1) {
-				speedAtPoint = w2.speed;
-			} 
+		let speedAtPoint = undefined;
 
-			return new point(x * cosTheta - y * sinTheta + w1.x, x * sinTheta + y * cosTheta + w1.y, speedAtPoint);
-		};
+		if (percentage === 0) {
+			speedAtPoint = this.w1.speed;
+		} else if (percentage === 1) {
+			speedAtPoint = this.w2.speed;
+		} 
+
+		return new Point(x * cosTheta - y * sinTheta + this.w1.x, x * sinTheta + y * cosTheta + this.w1.y, speedAtPoint);
 	}
 }

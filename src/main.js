@@ -1,17 +1,21 @@
-import { autonCreatorInit, autonCreatorDataLoop } from "./AutonManager.js";
+import { autonCreatorInit, autonCreatorDataLoop } from "./autonCreator.js";
+
+// load assets
+function requireAll(r) { r.keys().forEach(r); }
+requireAll(require.context('src/images/', true));
 
 $(function() {
-    let fieldCanvas = document.getElementById('windowCanvas');
-    let fieldContext = fieldCanvas.getContext('2d');
+    fieldCanvas = document.getElementById('windowCanvas');
+    fieldContext = fieldCanvas.getContext('2d');
 
     createEventListeners(fieldCanvas);
 
-    let windowDiv = document.getElementById('windowDiv');
+    windowDiv = document.getElementById('windowDiv');
     windowDiv.addEventListener('dragover', handleDragOver, false);
     windowDiv.addEventListener('drop', handleFileSelect, false);
 
-    let windowWidth = $("#windowCanvas").width();
-    let windowHeight = $("#windowCanvas").height();
+    windowWidth = $("#windowCanvas").width();
+    windowHeight = $("#windowCanvas").height();
 
     autonCreatorInit();
     loop();

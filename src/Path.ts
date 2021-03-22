@@ -1,7 +1,7 @@
-import { Waypoint } from "./Waypoint.ts";
-import { Point, Spline } from "./Spline.js";
-import { hypot, calculateCurvature, shortestRotationTo } from "./Math.js";
-import { pixelsToInches, getFieldMousePos } from "./AutonManager.js"
+import { Waypoint } from "./Waypoint";
+import { Point, Spline } from "./Spline";
+import { hypot, calculateCurvature, shortestRotationTo } from "./Math";
+import { pixelsToInches, getFieldMousePosVar } from "./autonCreator.js"
 
 const toCamelCase = (str: string) => {
     if(str !== undefined) {
@@ -289,7 +289,7 @@ export class Path {
     };
 
     getClosestWaypoint(radius: number) {
-        let mousePosInInches = pixelsToInches(getFieldMousePos());
+        let mousePosInInches: any = pixelsToInches(getFieldMousePosVar());
         let closestWaypoint = -1;
         let currentLeastDistance = radius;
         for (let i in this.waypoints) {
