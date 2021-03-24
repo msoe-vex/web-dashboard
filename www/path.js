@@ -180,7 +180,7 @@ class Path {
                     let curvature = calculateCurvature(this.points[i - 1], this.points[i], this.points[i + 1]);
                     let current_speed = point.speed || this.maxVel;
                     if (curvature === 0 || isNaN(curvature)) {
-                        point.speed = Math.min(current_speed, this.maxVel);
+                        point.speed = current_speed;
                     } else {
                         point.speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
                     }
