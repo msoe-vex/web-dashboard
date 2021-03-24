@@ -23,6 +23,7 @@ class Path {
         this.k = (k === undefined) ? 1.6 : k;
         this.totalTime = totalTime || 0;
         let waypoints = [];
+        let waypointIndicies = [];
         let splines = [];
         this.points = [];
 
@@ -79,15 +80,11 @@ class Path {
             waypoints.push(newWaypoint);
             if (lastWaypoint) {
                 let newSpline = new Spline(lastWaypoint, newWaypoint);
-                let lastSpline = splines.length > 0 ? splines[splines.length - 1].spline : undefined;
+                let lastSpline = splines.length > 0 ? splines[splines.length - 1] : undefined;
                 if (lastSpline) {
                     newSpline.startAngle = lastSpline.endAngle;
                 }
-                splines.push({
-                    spline: newSpline,
-                    samples: 7,
-                    length: 0
-                });
+                splines.push(newSpline);
             }
 
             regenerate = true;
@@ -106,7 +103,7 @@ class Path {
                     let newSpline = new Spline(waypoints[index - 1], waypoints[index]);
                     newSpline.startAngle = waypoints[index - 1].angle;
                     newSpline.endAngle = waypoints[index].angle;
-                    splines[index - 1].spline = newSpline;
+                    splines[index - 1] = newSpline;
                 }
             } else {
                 waypoints.pop();
@@ -129,44 +126,48 @@ class Path {
                 for (let i in waypoints) {
                     let leftSpline = i === 0 ? undefined : splines[i - 1];
                     if (leftSpline) {
-                        leftSpline.spline.endAngle = waypoints[i].spline_angle;
+                        leftSpline.endAngle = waypoints[i].spline_angle;
                     }
                     let rightSpline = i === splines.length ? undefined : splines[i];
                     if (rightSpline) {
-                        rightSpline.spline.startAngle = waypoints[i].spline_angle;
+                        rightSpline.startAngle = waypoints[i].spline_angle;
                     }
                 }
                 if (splines.length !== 0) {
                     splines.forEach((spline, i) => {
                         let stepSize = 1 / spline.samples;
-                        spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
-                            spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
+                        let length = hypot(spline.get(0).x, spline.get(0).y,
+                            spline.get(stepSize).x, spline.get(stepSize).y);
 
                         if (waypointToSimplify !== undefined &&
                             (i === waypointToSimplify || i === waypointToSimplify - 1)) {
                             spline.samples = 7;
                             stepSize = 1 / spline.samples;
                         } else {
-                            while (spline.length > 4) { //Increase samples until <4 in between first and second points
+                            while (length > 4) { //Increase samples until <4 in between first and second points
                                 spline.samples++;
                                 stepSize = 1 / spline.samples;
-                                spline.length = hypot(spline.spline.get(0).x, spline.spline.get(0).y,
-                                    spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
+                                length = hypot(spline.get(0).x, spline.get(0).y,
+                                    spline.get(stepSize).x, spline.get(stepSize).y);
                             }
                         }
 
-                        this.points.push(spline.spline.get(0));
-                        for (let i = stepSize; i < 1; i += stepSize) {
-                            this.points.push(spline.spline.get(i));
-                        }
-
-                        if (i === (splines.length - 1)) {
-                            this.points.push(spline.spline.get(1));
-                        }
+                        // iterates through each spline in splines
+                        let self = this;
+                        splines.forEach((spline, i) => {
+                            spline.generatePoints();
+                            // iterates through each point in spline.points
+                            spline.points.forEach((point, j) => {
+                                self.points.push(spline.point);
+                            });
+                            // handles edge case of the inital time of the path
+                            let initialTime = i !== 0 ? splines[i-1].points[splines[i-1].points.length] : 0
+                            // passes in the final time of the previous spline as the inital of the current
+                            spline.calculateTime(initialTime);
+                            spline.calculateThetas();
+                        });
+                        this.calculateSpeed();
                     });
-                    
-                    this.calculateSpeed();
-                    this.calculateTime();
                     regenerate = false;
                 }
             }
@@ -204,36 +205,6 @@ class Path {
             // Figure out the time of each point based on the velocity and distance
             // Step through previous points and use their velocity and distance to determine time
             // Add the time to each point
-        };
-
-        this.calculateTime = function () {
-            this.points[0].time = 0;
-            let totalTime = 0;
-            for (let i = 1; i < this.points.length; i++) {
-                let deltaDist = hypot(this.points[i].x, this.points[i].y, this.points[i-1].x, this.points[i-1].y);
-                let deltaTime = this.points[i].speed !== 0 ? deltaDist / this.points[i].speed : 0;
-
-                totalTime += deltaTime;
-                this.points[i].time = totalTime;
-            }
-        };
-
-        this.calculateThetas = function () { // TODO: Create waypointIndicies that hols the points indicies where waypoints are
-            for (let i = 1; i < waypointsIndecies.length; i++) {
-                let deltaTime = this.points[i].time - this.points[i-1].time;
-                let aveOmega = shortestRotationTo(this.points[i].theta, this.points[i-1].theta) / deltaTime;
-                let alpha = (2 * aveOmega) / (0.5 * deltaTime);
-                for (k = waypointsIndecies[i-1]; k < waypointsIndecies[i]; k++) {
-                    let relTime = this.points[k].time - this.points[i-1].time
-                    if (relTime > (0.5 * deltaTime)) {
-                        this.points[k].omega = alpha * relTime + this.points[i-1].omega;
-                        this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;
-                    } else {
-                        this.points[k].omega = -alpha * relTime + this.points[i-1].omega + 2 * aveOmega;
-                        this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;    
-                    }
-                }
-            }
         };
 
         this.getWaypoints = function () {
