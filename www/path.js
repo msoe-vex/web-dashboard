@@ -199,12 +199,6 @@ class Path {
                 let distance = hypot(this.points[i + 1].x, this.points[i + 1].y, this.points[i].x, this.points[i].y);
                 this.points[i].speed = Math.min(this.points[i].speed, Math.sqrt(this.points[i + 1].speed**2 + 2 * this.maxAccel * distance));
             }
-
-            // TODO add another block to limit turning (copy both blocks above)
-
-            // Figure out the time of each point based on the velocity and distance
-            // Step through previous points and use their velocity and distance to determine time
-            // Add the time to each point
         };
 
         this.getWaypoints = function () {

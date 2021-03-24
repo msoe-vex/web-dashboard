@@ -37,14 +37,18 @@ class Spline {
 		// endAngle = angle of waypoint 2 in degrees
 		this.endAngle = endWaypoint.spline_angle;
 		// knot = distance between the two waypoints
-		Object.defineProperty(this, "knot", { enumerable: true, get: function () { return Math.sqrt((endWaypoint.x - startWaypoint.x) * (endWaypoint.x - startWaypoint.x) + (endWaypoint.y - startWaypoint.y) * (endWaypoint.y - startWaypoint.y)); } });
+		this.getKnot = function() {
+			return Math.sqrt((w2.x - w1.x) * (w2.x - w1.x) + (w2.y - w1.y) * (w2.y - w1.y));
+		}
 		// angleOff = angle between the starting waypoint and the ending waypoint in radians
 		// angleOff has nothing to do with rotation of robot
-		Object.defineProperty(this, "angleOff", { enumerable: true, get: function () { return Math.atan2(endWaypoint.y - startWaypoint.y, endWaypoint.x - startWaypoint.x); } });
+		this.getAngleOff = function() {
+			return Math.atan2(w2.y - w1.y, w2.x - w1.x);
+		}
 
 		// represents relationship between startAngle and the angleOff
 		let getA0 = function (spline) {
-			let a0 = -toRadians(spline.startAngle + 90) - spline.angleOff;
+			let a0 = -toRadians(spline.startAngle + 90) - spline.getAngleOff();
 			while (a0 > Math.PI * 2) {
 				a0 -= Math.PI * 2;
 			}
@@ -54,7 +58,7 @@ class Spline {
 
 		// represents relationship between endAngle and the angleOff
 		let getA1 = function (spline) {
-			let a1 = -toRadians(spline.endAngle + 90) - spline.angleOff;
+			let a1 = -toRadians(spline.endAngle + 90) - spline.getAngleOff();
 			while (a1 > Math.PI * 2) {
 				a1 -= Math.PI * 2;
 			}
@@ -64,10 +68,15 @@ class Spline {
 
 		// a = relationship 1 between angles and the distance of the waypoints
 		// Used in calculating the point locations in the spline
-		Object.defineProperty(this, "a", { enumerable: true, get: function () { return (getA0(this) + getA1(this)) / (this.knot * this.knot); } });
+		this.getA = function() {
+			return (getA0(this) + getA1(this)) / (this.getKnot() * this.getKnot());
+		};
+	
 		// b = relationship 2 between angles and the distance of the waypoints
 		// Used in calculating the point locations in the spline
-		Object.defineProperty(this, "b", { enumerable: true, get: function () { return -(2 * getA0(this) + getA1(this)) / this.knot; } });
+		this.getB = function() {
+			return -(2 * getA0(this) + getA1(this)) / this.getKnot();
+		}
 
 		// function returns the point in the spline based on the location percentage given
 		this.get = function (percentage) {
@@ -78,10 +87,10 @@ class Spline {
 			//console.log('End Angle = ' + this.endAngle);
 			//console.log('Angle Off = ' + this.angleOff)
 			percentage = Math.max(Math.min(percentage, 1), 0);
-			let x = percentage * this.knot;
-			let y = (this.a * x + this.b) * (x * x) + getA0(this) * x;
-			let cosTheta = Math.cos(this.angleOff);
-			let sinTheta = Math.sin(this.angleOff);
+			let x = percentage * this.getKnot();
+			let y = (this.getA() * x + this.getB()) * (x * x) + getA0(this) * x;
+			let cosTheta = Math.cos(this.getAngleOff());
+			let sinTheta = Math.sin(this.getAngleOff());
 
 			let speedAtPoint = undefined;
 
