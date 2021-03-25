@@ -23,9 +23,9 @@ class Path {
         this.k = (k === undefined) ? 1.6 : k;
         this.totalTime = totalTime || 0;
         let waypoints = [];
-        let waypointIndicies = [];
         let splines = [];
         this.points = [];
+        let self = this;
 
 
         let regenerate = true;
@@ -153,12 +153,11 @@ class Path {
                         }
 
                         // iterates through each spline in splines
-                        let self = this;
                         splines.forEach((spline, i) => {
                             spline.generatePoints();
                             // iterates through each point in spline.points
                             spline.points.forEach((point, j) => {
-                                self.points.push(spline.point);
+                                self.points.push(point);
                             });
                             // handles edge case of the inital time of the path
                             let initialTime = i !== 0 ? splines[i-1].points[splines[i-1].points.length] : 0
@@ -177,13 +176,13 @@ class Path {
         this.calculateSpeed = function () {
             //Limit speed around curves based on curvature
             this.points.forEach((point, i) => {
-                if (i !== 0 && i < (this.points.length - 1)) {
-                    let curvature = calculateCurvature(this.points[i - 1], this.points[i], this.points[i + 1]);
-                    let current_speed = point.speed || this.maxVel;
+                if (i !== 0 && i < (self.points.length - 1)) {
+                    let curvature = calculateCurvature(self.points[i - 1], self.points[i], self.points[i + 1]);
+                    let current_speed = point.speed || self.maxVel;
                     if (curvature === 0 || isNaN(curvature)) {
-                        point.speed = Math.min(current_speed, this.maxVel);
+                        point.speed = Math.min(current_speed, self.maxVel);
                     } else {
-                        point.speed = Math.min(current_speed, Math.min(this.maxVel, (this.k / curvature)));
+                        point.speed = Math.min(current_speed, Math.min(self.maxVel, (self.k / curvature)));
                     }
                 }
             });

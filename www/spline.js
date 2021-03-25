@@ -38,12 +38,12 @@ class Spline {
 		this.endAngle = endWaypoint.spline_angle;
 		// knot = distance between the two waypoints
 		this.getKnot = function() {
-			return Math.sqrt((w2.x - w1.x) * (w2.x - w1.x) + (w2.y - w1.y) * (w2.y - w1.y));
+			return Math.sqrt((endWaypoint.x - startWaypoint.x) * (endWaypoint.x - startWaypoint.x) + (endWaypoint.y - startWaypoint.y) * (endWaypoint.y - startWaypoint.y));
 		}
 		// angleOff = angle between the starting waypoint and the ending waypoint in radians
 		// angleOff has nothing to do with rotation of robot
 		this.getAngleOff = function() {
-			return Math.atan2(w2.y - w1.y, w2.x - w1.x);
+			return Math.atan2(endWaypoint.y - startWaypoint.y, endWaypoint.x - startWaypoint.x);
 		}
 
 		// represents relationship between startAngle and the angleOff
