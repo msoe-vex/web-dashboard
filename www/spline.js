@@ -104,6 +104,7 @@ class Spline {
 		};
 
 		this.generatePoints = function () { // TODO: Every spline should hold only the first and not last point, excpet for the last spline
+			this.points = [];
 			let stepSize = 1 / this.samples; // Sets the stepSize based on the samples
 
 			this.points.push(this.get(0)); 
