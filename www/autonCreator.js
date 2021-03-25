@@ -182,8 +182,8 @@ function autonCreatorInit() {
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
-    firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint", 0);
-    firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint", undefined);
+    firstPath.newWaypoint(10, 7.5, 90, 90, "startWaypoint", 0);
+    firstPath.newWaypoint(0, 71, 180, 90, "endWaypoint", undefined);
     selectedPath = 0;
     $("#x-value").keyup(function(){
         let x = this.value;
@@ -351,7 +351,7 @@ function autonCreatorDataLoop() {
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:
-            let angle1 = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
+            let angle1 = toDegrees(Math.atan2((mousePos.y - selectedWaypoint.y), (mousePos.x - selectedWaypoint.x)));
 
             if (fieldKeyboard.control) {
                 angle1 = Math.round(angle1 / 15) * 15;
@@ -441,7 +441,7 @@ function autonCreatorDrawLoop() {
             let waypointRotation = waypoint.angle;
             fieldContext.save();
             fieldContext.translate(waypointPos.x, waypointPos.y);
-            fieldContext.rotate(toRadians(waypointRotation + 90));
+            fieldContext.rotate(toRadians(-waypointRotation + 180));
 
             // Add highlight to currently selected waypoint
             if (parseInt(i) === selectedWaypointIndex) {

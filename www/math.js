@@ -30,5 +30,5 @@ function shortestRotationTo (target, current) {
 	let clockwiseMove = target - current;
 	clockwiseMove += (clockwiseMove < 0 ? 360 : 0);
 	counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0);
-	return (Math.abs(clockwiseMove) < Math.abs(counterClockwiseMove) ? clockwiseMove : -counterClockwiseMove);
+	return (Math.abs(clockwiseMove) < Math.abs(counterClockwiseMove) ? -clockwiseMove : counterClockwiseMove);
 }

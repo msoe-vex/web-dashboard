@@ -160,14 +160,19 @@ class Path {
                         spline.points.forEach((point, j) => {
                             self.points.push(point);
                         });
+                    });
+                    this.calculateSpeed();
+                    regenerate = false;
+                    waypoints[0].omega = 0;
+                    // this is here because calculateSpeed can only be done on the complete points array and 
+                    // calculateTime and calulateThetas depend on speed and time
+                    splines.forEach((spline, i) => {
                         // handles edge case of the inital time of the path
                         let initialTime = i !== 0 ? splines[i-1].points[splines[i-1].points.length] : 0
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
                     });
-                    this.calculateSpeed();
-                    regenerate = false;
                 }
             }
             return this.points;

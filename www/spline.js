@@ -1,3 +1,5 @@
+//const { i } = require("mathjs"); 
+
 /*
  * Represents a location of the robot on the field
  * Contains the coordinates (x, y) and the speed of the robot
@@ -48,7 +50,7 @@ class Spline {
 
 		// represents relationship between startAngle and the angleOff
 		let getA0 = function (spline) {
-			let a0 = -toRadians(spline.startAngle + 90) - spline.getAngleOff();
+			let a0 = toRadians(spline.startAngle) - spline.getAngleOff();
 			while (a0 > Math.PI * 2) {
 				a0 -= Math.PI * 2;
 			}
@@ -58,7 +60,7 @@ class Spline {
 
 		// represents relationship between endAngle and the angleOff
 		let getA1 = function (spline) {
-			let a1 = -toRadians(spline.endAngle + 90) - spline.getAngleOff();
+			let a1 = toRadians(spline.endAngle) - spline.getAngleOff();
 			while (a1 > Math.PI * 2) {
 				a1 -= Math.PI * 2;
 			}
@@ -131,19 +133,22 @@ class Spline {
 		};
 
 		this.calculateThetas = function () { 
+			this.points[0].omega = startWaypoint.omega;
 			let deltaTime = this.points[this.points.length - 1].time - this.points[0].time;
 			let aveOmega = shortestRotationTo(startWaypoint.angle, endWaypoint.angle) / deltaTime;
-			let alpha = (2 * aveOmega) / (0.5 * deltaTime);
+			let alpha = (aveOmega) / (0.5 * deltaTime);
 			for (let i = 1; i < this.points.length; i++) {
 				let relTime = this.points[i].time - this.points[0].time
-				if (relTime > (0.5 * deltaTime)) {
-					this.points[k].omega = alpha * relTime + this.points[i-1].omega;
-					this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;
+				if (relTime < (0.5 * deltaTime)) {
+					this.points[i].omega = alpha * relTime + this.points[0].omega;
+					this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;
 				} else {
-					this.points[k].omega = -alpha * relTime + this.points[i-1].omega + 2 * aveOmega;
-					this.points[k].theta = this.points[k].omega * relTime + this.points[i-1].theta;    
+					this.points[i].omega = -alpha * relTime + this.points[0].omega + 4 * aveOmega;
+					this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;    
 				}
 			}
+			endWaypoint.omega = this.points[this.points.length-1].omega;
+
         };
 	}
 }
