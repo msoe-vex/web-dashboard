@@ -126,7 +126,7 @@ class Spline {
 
 		this.calculateTime = function (initialTime) {
 			this.points[0].time = initialTime;
-            let totalTime = 0;
+            let totalTime = initialTime;
             for (let i = 1; i < this.points.length; i++) {
                 let deltaDist = hypot(this.points[i].x, this.points[i].y, this.points[i-1].x, this.points[i-1].y);
                 let deltaTime = this.points[i].speed !== 0 ? deltaDist / this.points[i].speed : 0;
@@ -137,7 +137,7 @@ class Spline {
 		};
 
 		this.calculateThetas = function () { 
-			this.points[0].omega = startWaypoint.omega;
+			this.points[0].omega = 0;
 			let deltaTime = this.points[this.points.length - 1].time - this.points[0].time;
 			let aveOmega = shortestRotationTo(startWaypoint.angle, endWaypoint.angle) / deltaTime;
 			let alpha = (aveOmega) / (0.5 * deltaTime);
