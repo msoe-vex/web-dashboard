@@ -22,7 +22,7 @@ class Path {
         this.maxAccel = maxAccel;
         this.k = (k === undefined) ? 1.6 : k;
         this.totalTime = totalTime || 0;
-        let waypoints = [];
+        this.waypoints = [];
         let splines = [];
         this.points = [];
         let self = this;
@@ -54,7 +54,7 @@ class Path {
 
         this.newWaypoint = function (x, y, angle, spline_angle, name, speed, shared, index) {
             if (index === undefined) {
-                index = waypoints.length - 1;
+                index = this.waypoints.length - 1;
             }
 
             if (shared === undefined) {
@@ -62,8 +62,8 @@ class Path {
             }
 
             let lastWaypoint;
-            if (waypoints.length !== 0) {
-                lastWaypoint = waypoints[waypoints.length - 1];
+            if (this.waypoints.length !== 0) {
+                lastWaypoint = this.waypoints[this.waypoints.length - 1];
                 x = (x === undefined) ? lastWaypoint.x + 15 : x;
                 y = (y === undefined) ? lastWaypoint.y + 15 : y;
                 angle = (angle === undefined) ? lastWaypoint.angle : angle;
@@ -77,7 +77,7 @@ class Path {
 
             speed = speed ?? this.maxVel;
             let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, speed, shared);
-            waypoints.push(newWaypoint);
+            this.waypoints.push(newWaypoint);
             if (lastWaypoint) {
                 let newSpline = new Spline(lastWaypoint, newWaypoint);
                 let lastSpline = splines.length > 0 ? splines[splines.length - 1] : undefined;
@@ -93,20 +93,20 @@ class Path {
 
         this.removeWaypoint = function (index) {
             if (index !== undefined) {
-                waypoints.splice(index, 1);
-                if(waypoints.length === index) {
+                this.waypoints.splice(index, 1);
+                if(this.waypoints.length === index) {
                     splines.splice(index - 1, 1);
                 }  else if (index === 0) {
                     splines.splice(index, 1);
                 } else {
                     splines.splice(index, 1);
-                    let newSpline = new Spline(waypoints[index - 1], waypoints[index]);
-                    newSpline.startAngle = waypoints[index - 1].angle;
-                    newSpline.endAngle = waypoints[index].angle;
+                    let newSpline = new Spline(this.waypoints[index - 1], this.waypoints[index]);
+                    newSpline.startAngle = this.waypoints[index - 1].angle;
+                    newSpline.endAngle = this.waypoints[index].angle;
                     splines[index - 1] = newSpline;
                 }
             } else {
-                waypoints.pop();
+                this.waypoints.pop();
                 splines.pop();
             }
 
@@ -123,14 +123,14 @@ class Path {
             if (regenerate) {
                 this.points = [];
 
-                for (let i in waypoints) {
+                for (let i in this.waypoints) {
                     let leftSpline = i === 0 ? undefined : splines[i - 1];
                     if (leftSpline) {
-                        leftSpline.endAngle = waypoints[i].spline_angle;
+                        leftSpline.endAngle = this.waypoints[i].spline_angle;
                     }
                     let rightSpline = i === splines.length ? undefined : splines[i];
                     if (rightSpline) {
-                        rightSpline.startAngle = waypoints[i].spline_angle;
+                        rightSpline.startAngle = this.waypoints[i].spline_angle;
                     }
                 }
                 if (splines.length !== 0) {
@@ -163,7 +163,7 @@ class Path {
                     });
                     this.calculateSpeed();
                     regenerate = false;
-                    waypoints[0].omega = 0;
+                    this.waypoints[0].omega = 0;
                     // this is here because calculateSpeed can only be done on the complete points array and 
                     // calculateTime and calulateThetas depend on speed and time
                     splines.forEach((spline, i) => {
@@ -225,18 +225,18 @@ class Path {
         };
 
         this.getWaypoints = function () {
-            return waypoints;
+            return this.waypoints;
         };
 
         this.getNumWaypoints = function () {
-          return waypoints.length;
+          return this.waypoints.length;
         };
 
         this.getWaypoint = function (waypointIndex) {
-            if (waypointIndex >= waypoints.length) {
+            if (waypointIndex >= this.waypoints.length) {
                 return undefined;
             }
-            const obj = waypoints[waypointIndex];
+            const obj = this.waypoints[waypointIndex];
             return new Proxy(obj, {
                 set(target, prop, value, receiver) {
                     regenerate = true;
@@ -247,8 +247,8 @@ class Path {
         };
 
         this.getWaypointIndexByName = function (name) {
-            for (let i in waypoints) {
-                if (name === waypoints[i].name) {
+            for (let i in this.waypoints) {
+                if (name === this.waypoints[i].name) {
                     return i;
                 }
             }
@@ -259,8 +259,8 @@ class Path {
             let mousePosInInches = pixelsToInches(fieldMousePos);
             let closestWaypoint = -1;
             let currentLeastDistance = radius;
-            for (let i in waypoints) {
-                let distance = hypot(mousePosInInches.x, mousePosInInches.y, waypoints[i].x, waypoints[i].y);
+            for (let i in this.waypoints) {
+                let distance = hypot(mousePosInInches.x, mousePosInInches.y, this.waypoints[i].x, this.waypoints[i].y);
                 if (distance < currentLeastDistance) {
                     closestWaypoint = parseInt(i);
                     currentLeastDistance = distance;
