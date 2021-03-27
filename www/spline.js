@@ -11,6 +11,8 @@ function point(x, y, speed, time, theta, omega) {
 	this.time = time;
 	this.theta = theta;
 	this.omega = omega;
+	this.vx = 0;
+	this.vy = 0;
 
 	this.toJSON = function () {
 		return {
@@ -19,7 +21,9 @@ function point(x, y, speed, time, theta, omega) {
 			speed: this.speed === undefined ? 0 : Number.parseFloat(this.speed.toFixed(2)),
 			time: this.time === undefined ? 0 : Number.parseFloat(this.time.toFixed(2)),
 			theta: this.theta === undefined ? 0 : Number.parseFloat(this.theta.toFixed(2)),
-			omega: this.omega === undefined ? 0 : Number.parseFloat(this.omega.toFixed(2))
+			omega: this.omega === undefined ? 0 : Number.parseFloat(this.omega.toFixed(2)),
+			vx: this.vx === undefined ? 0 : Number.parseFloat(this.vx.toFixed(2)),
+			vy: this.vy === undefined ? 0 : Number.parseFloat(this.vy.toFixed(2))
 		}
 	};
 }

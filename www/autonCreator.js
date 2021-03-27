@@ -8,7 +8,7 @@ let robotCenterIn = 11;
 
 //constants
 const maxVel = 41.9;
-const maxAccel = 41.9;
+const maxAccel = 30;
 const k = 2;
 
 let ratio = 1;

@@ -173,10 +173,29 @@ class Path {
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
                     });
+
+                    this.calculateSpeedComponents();
                 }
             }
             return this.points;
         };
+        
+        this.calculateSpeedComponents = function() {
+            this.points[0].vx = 0;
+            this.points[0].vy = 0;
+            this.points.forEach((point, i) => {
+                if(i !== 0) {
+                    let delta_time = this.points[i].time - this.points[i-1].time;
+                    if(delta_time === 0) {
+                        this.points[i].vx = 0;
+                        this.points[i].vy = 0;
+                    } else {
+                        this.points[i].vx = (this.points[i].x - this.points[i-1].x) / delta_time;
+                        this.points[i].vy = (this.points[i].y - this.points[i-1].y) / delta_time;
+                    }
+                }
+            });
+        }
 
         this.calculateSpeed = function () {
             //Limit speed around curves based on curvature
