@@ -22,6 +22,12 @@ function Waypoint(x, y, angle, spline_angle, name, speed, shared) {
         set: function(value){ _name = value }
     });
 
+    Object.defineProperty(this, "omega", {
+        enumerable: true,
+        get: function(){ return _omega },
+        set: function(value){ _omega = value }
+    });
+
     Object.defineProperty(this, "angle", {
         enumerable: true,
         get: function(){ return parseFloat(_angle.toFixed(2)) },
