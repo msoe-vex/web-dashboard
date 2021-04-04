@@ -161,14 +161,14 @@ class Path {
                             self.points.push(point);
                         });
                     });
+                    // this is here because calculateSpeed can only be done on the complete points array and 
                     this.calculateSpeed();
                     regenerate = false;
                     this.waypoints[0].omega = 0;
-                    // this is here because calculateSpeed can only be done on the complete points array and 
                     // calculateTime and calulateThetas depend on speed and time
                     splines.forEach((spline, i) => {
                         // handles edge case of the inital time of the path
-                        let initialTime = i !== 0 ? splines[i-1].points[splines[i-1].points.length - 1].time : 0
+                        let initialTime = i !== 0 ? self.calculateInitalTime(spline, splines[i-1]) : 0
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
@@ -180,6 +180,13 @@ class Path {
             return this.points;
         };
         
+        this.calculateInitalTime = function(thisSpline, prevSpline) {
+            let finalIndex = prevSpline.points.length - 1; //final index of prevSpline
+            let deltaDist = hypot(thisSpline.points[0].x, thisSpline.points[0].y, prevSpline.points[finalIndex].x, prevSpline.points[finalIndex].y);
+            let deltaTime = thisSpline.points[0].speed !== 0 ? deltaDist / thisSpline.points[0].speed : 0;
+            return prevSpline.points[finalIndex].time + deltaTime;
+        };
+
         this.calculateSpeedComponents = function() {
             this.points[0].vx = 0;
             this.points[0].vy = 0;
@@ -195,7 +202,7 @@ class Path {
                     }
                 }
             });
-        }
+        };
 
         this.calculateSpeed = function () {
             //Limit speed around curves based on curvature
