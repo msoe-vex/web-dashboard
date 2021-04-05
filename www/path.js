@@ -26,6 +26,7 @@ class Path {
         let splines = [];
         this.points = [];
         let self = this;
+        let duplicateIndices = [];
 
 
         let regenerate = true;
@@ -153,9 +154,6 @@ class Path {
                         }
                         //generates points in the current spline
                         spline.generatePoints();
-                        if (i !== splines.length - 1) {
-                            spline.points.pop();
-                        }
                         // iterates through each point in spline.points
                         spline.points.forEach((point, j) => {
                             self.points.push(point);
@@ -168,13 +166,20 @@ class Path {
                     // calculateTime and calulateThetas depend on speed and time
                     splines.forEach((spline, i) => {
                         // handles edge case of the inital time of the path
-                        let initialTime = i !== 0 ? self.calculateInitalTime(spline, splines[i-1]) : 0
+                        let initialTime = i !== 0 ? splines[i-1].points[splines[i-1].points.length - 1].time : 0
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
+                        if (i !== splines.length - 1) {
+                            duplicateIndices.push(spline.points.length); // records the index (in terms of path.points[]) of the first element in each spline
+                        }
                     });
 
                     this.calculateSpeedComponents();
+                    duplicateIndices.forEach((index, i) => {
+                        self.points.splice(index, 1); // removes the element at index
+                    })
+                    duplicateIndices = [];
                 }
             }
             return this.points;
