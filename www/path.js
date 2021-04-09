@@ -171,7 +171,13 @@ class Path {
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
                         if (i !== splines.length - 1) {
-                            duplicateIndices.push(spline.points.length); // records the index (in terms of path.points[]) of the first element in each spline
+                            if (duplicateIndices.length === 0) {
+                                duplicateIndices.push(spline.points.length);
+                            }
+                            else {
+                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1); // records the index (in terms of path.points[]) of the first element in each spline
+                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 2); // dont ask me why this works, i dont know
+                            }
                         }
                     });
 
