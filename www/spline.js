@@ -13,7 +13,7 @@ function point(x, y, speed, time, theta, omega, lastPoint) {
 	this.omega = omega;
 	this.vx = 0;
 	this.vy = 0;
-	this.lastPoint = "";
+	this.lastPoint = lastPoint;
 
 	this.toJSON = function () {
 		return {
