@@ -174,18 +174,23 @@ class Path {
                             if (duplicateIndices.length === 0) {
                                 duplicateIndices.push(spline.points.length);
                             }
+                            else if (duplicateIndices.length === 1) {
+                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1); // records the index (in terms of path.points[]) of the first element in each spline
+                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 2); // dont ask me why this works, i dont know
+                            }
                             else {
                                 duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1); // records the index (in terms of path.points[]) of the first element in each spline
                                 duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 2); // dont ask me why this works, i dont know
+                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 3); // dont ask me why this works, i dont know
                             }
                         }
                     });
 
                     this.calculateSpeedComponents();
-                    duplicateIndices.forEach((index, i) => {
-                        self.points.splice(index, 1); // removes the element at index
-                    })
-                    duplicateIndices = [];
+                    // duplicateIndices.forEach((index, i) => {
+                    //     self.points.splice(index, 1); // removes the element at index
+                    // })
+                    // duplicateIndices = [];
                 }
             }
             return this.points;
