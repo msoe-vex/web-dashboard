@@ -27,6 +27,7 @@ class Path {
         this.points = [];
         let self = this;
         let duplicateIndices = [];
+        let debugMode = true;
 
 
         let regenerate = true;
@@ -170,6 +171,9 @@ class Path {
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
+                        if (debugMode === true) {
+                            spline.points[spline.points.length-1].lastPoint = "end";
+                        }
                         if (i !== splines.length - 1) {
                             if (duplicateIndices.length === 0) {
                                 duplicateIndices.push(spline.points.length);

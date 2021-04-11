@@ -4,7 +4,7 @@
  * Represents a location of the robot on the field
  * Contains the coordinates (x, y) and the speed of the robot
  */
-function point(x, y, speed, time, theta, omega) {
+function point(x, y, speed, time, theta, omega, lastPoint) {
 	this.x = x;
 	this.y = y;
 	this.speed = speed;
@@ -13,6 +13,7 @@ function point(x, y, speed, time, theta, omega) {
 	this.omega = omega;
 	this.vx = 0;
 	this.vy = 0;
+	this.lastPoint = "";
 
 	this.toJSON = function () {
 		return {
@@ -23,7 +24,8 @@ function point(x, y, speed, time, theta, omega) {
 			theta: this.theta === undefined ? 0 : Number.parseFloat(this.theta.toFixed(2)),
 			omega: this.omega === undefined ? 0 : Number.parseFloat(this.omega.toFixed(2)),
 			vx: this.vx === undefined ? 0 : Number.parseFloat(this.vx.toFixed(2)),
-			vy: this.vy === undefined ? 0 : Number.parseFloat(this.vy.toFixed(2))
+			vy: this.vy === undefined ? 0 : Number.parseFloat(this.vy.toFixed(2)),
+			lastPoint: this.lastPoint === "end" ? "********************************" : undefined
 		}
 	};
 }
