@@ -158,6 +158,9 @@ class Path {
                         // iterates through each point in spline.points
                         spline.points.forEach((point, j) => {
                             self.points.push(point);
+                            if (debugMode === true) {
+                                point.splineNum = i;
+                            }
                         });
                     });
                     // this is here because calculateSpeed can only be done on the complete points array and 
@@ -171,9 +174,6 @@ class Path {
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
-                        if (debugMode === true) {
-                            spline.points[spline.points.length-1].lastPoint = "end";
-                        }
                         if (i !== splines.length - 1) {
                             if (duplicateIndices.length === 0) {
                                 duplicateIndices.push(spline.points.length);
