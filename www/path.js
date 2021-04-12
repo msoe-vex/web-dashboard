@@ -191,10 +191,10 @@ class Path {
                     });
 
                     this.calculateSpeedComponents();
-                    // duplicateIndices.forEach((index, i) => {
-                    //     self.points.splice(index, 1); // removes the element at index
-                    // })
-                    // duplicateIndices = [];
+                    duplicateIndices.forEach((index, i) => {
+                        self.points.splice(index, 1); // removes the element at index
+                    })
+                    duplicateIndices = [];
                 }
             }
             return this.points;
