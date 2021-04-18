@@ -1,7 +1,7 @@
 # Typescript/React Web Application Toolchain
 
 ### **Getting Started**
-To start with this template, make a new repository and clone it to your local machine. In a terminal within the project folder, run *npm update* to pull down the latest versions of all packages into your project. From there, make sure the project builds with one of the commands outlined below, and start coding!
+To start with this template, make a new repository and clone it to your local machine. In a terminal within the project folder, run *npm install* to pull down the latest versions of all packages into your project. From there, make sure the project builds with one of the commands outlined below, and start coding!
 
 ### **Package Management**
 This project utilizes Npm for package management. For more information on Npm, please visit [https://www.npmjs.com/](https://www.npmjs.com/).
