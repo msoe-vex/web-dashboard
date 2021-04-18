@@ -1,6 +1,14 @@
-import { Path } from "./Path.js";
-import { Point } from "./Spline.js";
-import { Waypoint } from "./Waypoint.js";
+import { Path } from "./Path";
+import { Point } from "./Point";
+import { Waypoint } from "./Waypoint";
+import { toDegrees, toRadians } from "./Math";
+import { inchesToPixels, percentToColor, pixelsToInches } from "./Utility";
+import * as Constants from "./Constants";
+import { saveAs } from "./filesaver/FileSaver";
+import { CursorTypes, InputState } from "./Input";
+import { FieldCanvas } from "./FieldCanvas";
+import Field from "./images/field.png"
+import Robot from "./images/robot.png"
 
 export enum WaypointAction {
     MOVE,
@@ -9,15 +17,28 @@ export enum WaypointAction {
     NONE
 };
 
+export type RobotConfig = {
+    name: string;
+    width: number;
+    length: number;
+    isTankDrive: boolean;
+}
+
+export type JSONPathExport = {
+    sharedWaypoints: Waypoint[];
+    robotConfig: RobotConfig;
+    paths: Path[];
+}
+
 export class AutonCreator {
-    fieldImage: HTMLImageElement;
-    robotImage: HTMLImageElement;
+    fieldImage: HTMLImageElement = new Image();
+    robotImage: HTMLImageElement = new Image();
     ratio: number;
     ws: WebSocket;
     selectedWaypointIndex: number;
     selectedWaypoint: Waypoint;
     isWaypointSelected: boolean;
-    path: Path?;
+    activePath?: Path;
     paths: Path[];
     sharedWaypoints: Waypoint[];
     robotWidth: number;
@@ -25,14 +46,14 @@ export class AutonCreator {
     robotName: string;
     isTank: boolean;
     savedIsTank: boolean;
-    selectedPath: number?;
-    lastSelectedPath: number?;
+    selectedPath?: number;
+    lastSelectedPath?: number;
     waypointAction: WaypointAction;
 
     constructor() {
         this.ratio = 1;
         this.isWaypointSelected = false;
-        this.path = null;
+        this.activePath = null;
         this.robotWidth = 0;
         this.robotLength = 0;
         this.robotName = "";
@@ -64,33 +85,29 @@ export class AutonCreator {
         return index;
     }
 
-    getFieldMousePos () {
-        return this.fieldMousePos;
-    }
-
     /**
      * Creates a new path
      */
-    export const newPath = () => {
+    createNewPath() {
         let name = prompt("Name the Path");
-        let path = new Path(name, maxVel, maxAccel, k);
+        let path = new Path(name, Constants.MAX_VELOCITY, Constants.MAX_ACCELERATION, Constants.K);
         path.newWaypoint(20, 10, 0, 0, "start", 0);
         path.newWaypoint(30, 70, 0, 0, "end", undefined);
-        selectedPath = addPath(path);
-    }
+        this.selectedPath = this.addPath(path);
+    };
 
     /**
      * Switches the drive mode of all paths
      * Toggle button in the config menu
      */
-    export const setSwerve = () => {
-        if (isTank) {
+    setSwerve() {
+        if (this.isTank) {
             $("#swerveTankToggle").text("Swerve Drive");
         } else {
             $("#swerveTankToggle").text("Tank Drive");
         }
-        isTank = !isTank;
-    }
+        this.isTank = !this.isTank;
+    };
 
     /**
      * Creates a new waypoint in the current path
@@ -103,43 +120,43 @@ export class AutonCreator {
      * @param speed - speed of the waypoint
      * @param shared - true if waypoint is shared
      */
-    export const newWaypoint = () => {
-        path.newWaypoint();
-    }
+    newWaypoint() {
+        this.activePath.newWaypoint();
+    };
 
     /**
      * Creates a new shared waypoint
      * Called when the 'New Shared Waypoint' button is pressed
      */
-    export const newSharedWaypoint = () => {
+    newSharedWaypoint() {
         // Creates new shared waypoint with button
         let name = prompt("Shared Waypoint Name");
         if (name !== null) {
-            let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
-            sharedWaypoints.push(newShared);
-            newSharedButton(name);
+            let newShared = this.activePath.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
+            this.sharedWaypoints.push(newShared);
+            this.newSharedButton(name);
         }
-    }
+    };
 
     /**
      * Creates a new button for a shared waypoint
      * @param name - name of the new button
      */
-    export const newSharedButton = (name) => {
+    newSharedButton(name: string) {
         let buttonList = $("#waypointsList");
         let button = $("<button>" + name + "</button>");
         // Function runs if dynamically created shared waypoint button is pressed
-        const clickShared = (name)  => {
+        const clickShared = (name: string)  => {
             let inPath = false;
-            path.getWaypoints().forEach(function(point) {
+            this.activePath.getWaypoints().forEach((point) => {
                 if (point.name === name && point.shared) {
                     inPath = true;
                 }
             })
             if (inPath === false) {
-                sharedWaypoints.forEach(function(point) {
+                this.sharedWaypoints.forEach((point) => {
                     if (name === point.name) {
-                        path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, undefined, true);
+                        this.activePath.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, undefined, true);
                     }
                 })
             }
@@ -148,124 +165,122 @@ export class AutonCreator {
         button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
         button.attr("data-trigger", "hover");
         button.attr("data-toggle", "popover");
-        button.click(() => clickShared(name));
+        button.trigger("click", () => clickShared(name));
         buttonList.append(button);
-    }
+    };
 
     /**
      * Loads in all shared waypoints when a JSON file is added
      */
-    export const loadSharedButtons = () => {
-        sharedWaypoints.forEach(function (point) {
-            newSharedButton(point.name);
+    loadSharedButtons() {
+        this.sharedWaypoints.forEach((point) => {
+            this.newSharedButton(point.name);
         })
-    }
+    };
 
     /**
      * Removes the selected by waypoint
      * Called when the 'Remove Waypoint' button is pressed
      */
-    export const removeWaypoint = () => {
-        if (path.getNumWaypoints() > 0) {
-            if (isWaypointSelected) {
-                path.removeWaypoint(selectedWaypointIndex);
-                if (path.getNumWaypoints() === 0) {
-                    selectedWaypointIndex = -1;
-                    isWaypointSelected = false;
-                } else if (path.getNumWaypoints() === selectedWaypointIndex) {
-                    selectedWaypointIndex--;
+    removeWaypoint() {
+        if (this.activePath.getNumWaypoints() > 0) {
+            if (this.isWaypointSelected) {
+                this.activePath.removeWaypoint(this.selectedWaypointIndex);
+                if (this.activePath.getNumWaypoints() === 0) {
+                    this.selectedWaypointIndex = -1;
+                    this.isWaypointSelected = false;
+                } else if (this.activePath.getNumWaypoints() === this.selectedWaypointIndex) {
+                    this.selectedWaypointIndex--;
                 }
             } else {
-                path.removeWaypoint();
+                this.activePath.removeWaypoint();
             }
         }
-    }
+    };
 
     /**
      * Initialized the first path and images
      */
-    export const autonCreatorInit = () => {
+    autonCreatorInit() {
         //connectToRobot();
-        let firstPath = new Path("TestPath", maxVel, maxAccel, k); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
-        addPath(firstPath);
-        fieldImage.src = "images/field.png";
-        robotImage.src = "images/robot.png";
+        let firstPath = new Path("TestPath", Constants.MAX_VELOCITY, Constants.MAX_ACCELERATION, Constants.K); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
+        this.addPath(firstPath);
+        this.fieldImage.src = Field;
+        this.robotImage.src = Robot;
         firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint", 0);
         firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint", undefined);
-        selectedPath = 0;
-        $("#x-value").keyup(function(){
-            let x = this.value;
-            if(!isNaN(x)) {
-                const num = parseFloat(x);
-                if (num >= -70 && num <= 70) {
-                    selectedWaypoint.x = num;
-                }
+        this.selectedPath = 0;
+
+        $("#x-value").trigger("keyup", (event: KeyboardEvent) => {
+            let x = parseFloat($("#x-value").val().toString());
+
+            if (x >= -70 && x <= 70) {
+                this.selectedWaypoint.x = x;
             }
         });
-        $("#y-value").keyup(function(){
-            let y = this.value;
-            if(!isNaN(y)) {
-                const num = parseFloat(y);
-                if (num >= 0 && num <= 140) {
-                    selectedWaypoint.y = num;
-                }
+
+        $("#y-value").trigger("keyup", (event: KeyboardEvent) => {
+            let y = parseFloat($("#y-value").val().toString());
+
+            if (y >= 0 && y <= 140) {
+                this.selectedWaypoint.y = y;
             }
         });
-    }
+    };
 
     /**
      * Loads the configuration data into the popup
      */
-    export const loadConfig = () => {
-        $("#robotLength").val(robotLength);
-        $("#robotWidth").val(robotWidth);
-        $("#robotName").val(robotName);
-        isTank = savedIsTank;
-        $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
-    }
+    loadConfig() {
+        $("#robotLength").val(this.robotLength);
+        $("#robotWidth").val(this.robotWidth);
+        $("#robotName").val(this.robotName);
+        this.isTank = this.savedIsTank;
+        $("#swerveTankToggle").text(this.isTank ? "Tank Drive" : "Swerve Drive");
+    };
 
     /**
      * Saves the new configurations
      */
-    export const saveConfig = () => {
-        robotLength = $("#robotLength").val();
-        robotWidth = $("#robotWidth").val();
-        robotName = $("#robotName").val();
-        savedIsTank = isTank;
+    saveConfig() {
+        this.robotLength = parseFloat($("#robotLength").val().toString());
+        this.robotWidth = parseFloat($("#robotWidth").val().toString());
+        this.robotName = $("#robotName").val().toString();
+        this.savedIsTank = this.isTank;
         $("#myModal").modal("hide");
-    }
+    };
 
     /**
      * This function loads the waypoint configuration into the interface
      */
-    export const loadWaypointConfig = () => {
-        $("#waypointName").val(selectedWaypoint.name);
-        $("#waypointSpeed").val(selectedWaypoint.speed);
-    }
+    loadWaypointConfig() {
+        $("#waypointName").val(this.selectedWaypoint.name);
+        $("#waypointSpeed").val(this.selectedWaypoint.speed);
+    };
 
     /**
      * This function saves a new waypoint configuration to the current waypoint
      */
-    export const saveWaypointConfig = () => {
-        let previousName = selectedWaypoint.name;
-        let newName = $("#waypointName").val();
-        let newSpeed = $("#waypointSpeed").val();
+    saveWaypointConfig() {
+        let previousName = this.selectedWaypoint.name;
+        let newName = $("#waypointName").val().toString();
+        let newSpeed = parseFloat($("#waypointSpeed").val().toString());
 
         if (newName) {
-            selectedWaypoint.name = newName;
+            this.selectedWaypoint.name = newName;
 
-            if (selectedWaypoint.shared) {
+            if (this.selectedWaypoint.shared) {
                 // Update global shared waypoint
-                sharedWaypoints.forEach(function (point) {
+                this.sharedWaypoints.forEach((point) => {
                     if (previousName === point.name) {
                         point.name = newName;
                     }
                 })
 
                 // Update shared waypoints in every path
-                for (let i in paths) {
-                    if (i !== selectedPath) {
-                        let otherPath = paths[i];
+                this.paths.forEach((path, i) => {
+                    if (i !== this.selectedPath) {
+                        let otherPath = path;
                         let otherWaypointIndex = otherPath.getWaypointIndexByName(previousName);
 
                         if (otherWaypointIndex !== undefined) {
@@ -273,11 +288,11 @@ export class AutonCreator {
                             otherWaypoint.name = newName;
                         }
                     }
-                }
+                })
 
                 // Update button
                 let buttonList = $(".sharedWaypoint");
-                buttonList.each(function(index) {
+                buttonList.each((index) => {
                     let oldName = $(this).text();
                     if (oldName === previousName) {
                         $(this).text(newName);
@@ -287,381 +302,338 @@ export class AutonCreator {
         }
 
         if (newSpeed) {
-            selectedWaypoint.speed = parseFloat(newSpeed);
+            this.selectedWaypoint.speed = newSpeed;
         } else {
-            selectedWaypoint.speed = undefined;
+            this.selectedWaypoint.speed = undefined;
         }
 
-        paths[selectedPath].regeneratePath();
-    }
+        this.paths[this.selectedPath].regeneratePath();
+    };
 
     /**
      * Updates the selected path when actions are done to the selected waypoint
      */
-    export const autonCreatorDataLoop = () => {
-        let fieldHeightPxl = windowHeight;
+    autonCreatorDataLoop(fieldCanvas: FieldCanvas) {
         const xinput = $("#x-value");
         const yinput = $("#y-value");
 
-        ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
+        this.ratio = fieldCanvas.getHeight() / Constants.FIELD_WIDTH_IN * (this.fieldImage.height / this.fieldImage.width);
 
-        if (lastSelectedPath !== selectedPath) {
-            path = paths[selectedPath];
-            selectedWaypointIndex = -1;
-            isWaypointSelected = false;
-            waypointAction = WaypointAction.NONE;
+        if (this.lastSelectedPath !== this.selectedPath) {
+            this.activePath = this.paths[this.selectedPath];
+            this.selectedWaypointIndex = -1;
+            this.isWaypointSelected = false;
+            this.waypointAction = WaypointAction.NONE;
         }
 
-        lastSelectedPath = selectedPath;
+        this.lastSelectedPath = this.selectedPath;
 
-        if (fieldMouseRising.l && isWaypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
-            waypointAction = WaypointAction.MOVE;
-        } else if (fieldMouseRising.r && isWaypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
-            waypointAction = WaypointAction.ROTATE;
-        } else if (fieldMouseRising.l) {
-            let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
+        if (InputState.fieldMouseRising.l && 
+                this.isWaypointSelected && 
+                this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2) === this.selectedWaypointIndex) {
+                this.waypointAction = WaypointAction.MOVE;
+        } else if (InputState.fieldMouseRising.r && 
+                this.isWaypointSelected && 
+                this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2) === this.selectedWaypointIndex) {
+            this.waypointAction = WaypointAction.ROTATE;
+        } else if (InputState.fieldMouseRising.l) {
+            let selectedIndex = this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2);
             if (selectedIndex >= 0) {
                 //Select a waypoint
-                selectedWaypointIndex = selectedIndex;
-                isWaypointSelected = true;
-                selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
+                this.selectedWaypointIndex = selectedIndex;
+                this.isWaypointSelected = true;
+                this.selectedWaypoint = this.activePath.getWaypoint(this.selectedWaypointIndex);
                 xinput.prop("disabled", false);
                 yinput.prop("disabled", false);
-                xinput.val(selectedWaypoint.x);
-                yinput.val(selectedWaypoint.y);
-                loadWaypointConfig();
+                xinput.val(this.selectedWaypoint.x);
+                yinput.val(this.selectedWaypoint.y);
+                this.loadWaypointConfig();
                 $("#nameWaypointButton").prop("disabled", false);
             } else {
                 //Deselect waypoint
-                selectedWaypointIndex = undefined;
-                isWaypointSelected = false;
-                selectedWaypoint = undefined;
+                this.selectedWaypointIndex = undefined;
+                this.isWaypointSelected = false;
+                this.selectedWaypoint = undefined;
                 xinput.val("");
                 yinput.val("");
                 xinput.prop("disabled", true);
                 yinput.prop("disabled", true);
                 $("#nameWaypointButton").prop("disabled", true);
             }
-            waypointAction = WaypointAction.NONE;
-        } else if (fieldMouseFalling.l || fieldMouseFalling.r || !isWaypointSelected) {
-            waypointAction = WaypointAction.NONE;
+            this.waypointAction = WaypointAction.NONE;
+        } else if (InputState.fieldMouseFalling.l || InputState.fieldMouseFalling.r || !this.isWaypointSelected) {
+            this.waypointAction = WaypointAction.NONE;
         }
 
         // update data
-        let mousePos = pixelsToInches(fieldMousePos);
+        let mousePos = pixelsToInches(InputState.fieldMousePos, this.ratio);
 
-        switch (waypointAction) {
+        switch (this.waypointAction) {
             case WaypointAction.MOVE:
-                selectedWaypoint.x = mousePos.x;
-                selectedWaypoint.y = mousePos.y;
-                xinput.val(selectedWaypoint.x);
-                yinput.val(selectedWaypoint.y);
-                fieldCanvas.style.cursor = cursors.move;
+                this.selectedWaypoint.x = mousePos.x;
+                this.selectedWaypoint.y = mousePos.y;
+                xinput.val(this.selectedWaypoint.x);
+                yinput.val(this.selectedWaypoint.y);
+                fieldCanvas.setCursor(CursorTypes.MOVE);
                 break;
             case WaypointAction.ROTATE:
-                let angle1 = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
+                let angle1 = toDegrees(Math.atan2((mousePos.x - this.selectedWaypoint.x), (mousePos.y - this.selectedWaypoint.y)));
 
-                if (fieldKeyboard.control) {
+                if (InputState.fieldKeyboard.control) {
                     angle1 = Math.round(angle1 / 15) * 15;
                 }
 
                 // Move spline only
-                if (fieldKeyboard.shift && !savedIsTank) {
+                if (InputState.fieldKeyboard.shift && !this.savedIsTank) {
                     // Swerve - Update spline only with right click shift
-                    selectedWaypoint.spline_angle = angle1;
-                } else if (!savedIsTank) {
+                    this.selectedWaypoint.spline_angle = angle1;
+                } else if (!this.savedIsTank) {
                     // Swerve - Update Robot only with right click
-                    selectedWaypoint.angle = angle1;
+                    this.selectedWaypoint.angle = angle1;
                 } else {
                     // Tank - Update both spine and robot angles
-                    selectedWaypoint.angle = angle1;
-                    selectedWaypoint.spline_angle = angle1;
+                    this.selectedWaypoint.angle = angle1;
+                    this.selectedWaypoint.spline_angle = angle1;
                 }
-                fieldCanvas.style.cursor = cursors.crosshair;
+                fieldCanvas.setCursor(CursorTypes.CROSSHAIR);
                 break;
             case WaypointAction.NONE:
-                fieldCanvas.style.cursor = cursors.default;
+                fieldCanvas.setCursor(CursorTypes.DEFAULT);
                 break;
         }
-    }
-
-    export const perc2color = (perc) => {
-        perc *= 100;
-        let r, g, b = 0;
-        if (perc < 50) {
-            r = 255;
-            g = Math.round(5.1 * perc);
-        } else {
-            g = 255;
-            r = Math.round(510 - 5.10 * perc);
-        }
-        let h = r * 0x10000 + g * 0x100 + b * 0x1;
-        return '#' + ('000000' + h.toString(16)).slice(-6);
-    }
+    };
 
     /**
      * Draws the updated path when actions are done to the selected waypoint
      * Also draws ghosts of any shared waypoints being changed
      */
-    export const autonCreatorDrawLoop = () => {
-        let robotWidthPxl = robotWidthIn * ratio;
-        let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
-        let robotCenterPxl = robotCenterIn * ratio;
-        let fieldWidthPxl = fieldWidthIn * ratio;
-        let fieldHeightPxl = fieldWidthPxl * (fieldImage.height / fieldImage.width);
+    autonCreatorDrawLoop(fieldCanvas: FieldCanvas) {
+        let robotWidthPxl = Constants.ROBOT_WIDTH_IN * this.ratio;
+        let robotHeightPxl = robotWidthPxl * (this.robotImage.height / this.robotImage.width);
+        let robotCenterPxl = Constants.ROBOT_CENTER_IN * this.ratio;
+        let fieldWidthPxl = Constants.FIELD_WIDTH_IN * this.ratio;
+        let fieldHeightPxl = fieldWidthPxl * (this.fieldImage.height / this.fieldImage.width);
 
-        fieldContext.canvas.width = fieldWidthPxl;
-        fieldContext.canvas.height = fieldHeightPxl;
+        fieldCanvas.getFieldContext().canvas.width = fieldWidthPxl;
+        fieldCanvas.getFieldContext().canvas.height = fieldHeightPxl;
 
-        let smallScreen = parseInt(windowWidth) < fieldWidthPxl;
+        let smallScreen = fieldCanvas.getWidth() < fieldWidthPxl;
         $("#windowDiv").toggleClass("justify-content-center", !smallScreen).toggleClass("justify-content-start", smallScreen);
 
-        fieldContext.drawImage(fieldImage, 0, 0, fieldWidthPxl, fieldHeightPxl);
+        fieldCanvas.getFieldContext().drawImage(this.fieldImage, 0, 0, fieldWidthPxl, fieldHeightPxl);
 
-        if (isWaypointSelected) {
+        if (this.isWaypointSelected) {
             // document.getElementById("statusBarXY").innerText = "X: " + selectedWaypoint.x.toFixed(1)
             //     + " Y: " + selectedWaypoint.y.toFixed(1) + " Angle: " + selectedWaypoint.angle.toFixed(2)
             //     + " Name: " + selectedWaypoint.name;
         } else {
-            let mousePos = pixelsToInches(fieldMousePos);
+            let mousePos = pixelsToInches(InputState.fieldMousePos, this.ratio);
             // document.getElementById("statusBarXY").innerText = "X: " + mousePos.x.toFixed(1)
             //     + " Y: " + mousePos.y.toFixed(1);
         }
 
-        if (waypointAction === WaypointAction.ROTATE) {
-            fieldContext.fillStyle = "#ffffff";
-            if (fieldKeyboard.shift) {
-                fieldContext.fillText((selectedWaypoint.spline_angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
-                    fieldMousePos.y - 8);
+        if (this.waypointAction === WaypointAction.ROTATE) {
+            fieldCanvas.getFieldContext().fillStyle = "#ffffff";
+            if (InputState.fieldKeyboard.shift) {
+                fieldCanvas.getFieldContext().fillText((this.selectedWaypoint.spline_angle.toFixed(1) + "\xB0"), InputState.fieldMousePos.x + 8,
+                InputState.fieldMousePos.y - 8);
             } else {
-                fieldContext.fillText((selectedWaypoint.angle.toFixed(1) + "\xB0"), fieldMousePos.x + 8,
-                    fieldMousePos.y - 8);
+                fieldCanvas.getFieldContext().fillText((this.selectedWaypoint.angle.toFixed(1) + "\xB0"), InputState.fieldMousePos.x + 8,
+                InputState.fieldMousePos.y - 8);
             }
         }
 
-        if (path.getNumWaypoints() > 0) {
+        if (this.activePath.getNumWaypoints() > 0) {
             // Draw waypoints
-            let waypoints = path.getWaypoints();
+            let waypoints = this.activePath.getWaypoints();
 
-            for (let i in waypoints) {
-                let waypoint = waypoints[i];
-                let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+            waypoints.forEach((waypoint, i) => {
+                let waypointPos = inchesToPixels(new Point(waypoint.x, waypoint.y), this.ratio);
                 let waypointRotation = waypoint.angle;
-                fieldContext.save();
-                fieldContext.translate(waypointPos.x, waypointPos.y);
-                fieldContext.rotate(toRadians(waypointRotation + 90));
+                fieldCanvas.getFieldContext().save();
+                fieldCanvas.getFieldContext().translate(waypointPos.x, waypointPos.y);
+                fieldCanvas.getFieldContext().rotate(toRadians(waypointRotation + 90));
 
                 // Add highlight to currently selected waypoint
-                if (parseInt(i) === selectedWaypointIndex) {
-                    fieldContext.shadowBlur = 10;
-                    fieldContext.shadowColor = 'white';
+                if (i === this.selectedWaypointIndex) {
+                    fieldCanvas.getFieldContext().shadowBlur = 10;
+                    fieldCanvas.getFieldContext().shadowColor = 'white';
                 }
 
-                fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
-                fieldContext.restore();
-            }
+                fieldCanvas.getFieldContext().drawImage(this.robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+                fieldCanvas.getFieldContext().restore();
+            });
         }
 
         // Draw spline
         let points;
-        if (waypointAction !== WaypointAction.NONE) {
-            points = path.getPoints(selectedWaypointIndex);
+        if (this.waypointAction !== WaypointAction.NONE) {
+            points = this.activePath.getPoints(this.selectedWaypointIndex);
         } else {
-            points = path.getPoints();
+            points = this.activePath.getPoints();
         }
 
         if (points.length !== 0) {
-            fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
+            fieldCanvas.getFieldContext().lineWidth = Math.floor(robotWidthPxl * .05);
 
             for (let i = 1; i < points.length; i++) {
-                let lastPointInPixels = inchesToPixels(points[i - 1]);
-                let currentPointInPixels = inchesToPixels(points[i]);
-                fieldContext.beginPath();
-                fieldContext.strokeStyle = perc2color(points[i].speed / path.getMaxVel());
-                fieldContext.moveTo(lastPointInPixels.x, lastPointInPixels.y);
-                fieldContext.lineTo(currentPointInPixels.x, currentPointInPixels.y);
-                fieldContext.stroke();
+                let lastPointInPixels = inchesToPixels(points[i - 1], this.ratio);
+                let currentPointInPixels = inchesToPixels(points[i], this.ratio);
+                fieldCanvas.getFieldContext().beginPath();
+                fieldCanvas.getFieldContext().strokeStyle = percentToColor(points[i].speed / this.activePath.getMaxVel());
+                fieldCanvas.getFieldContext().moveTo(lastPointInPixels.x, lastPointInPixels.y);
+                fieldCanvas.getFieldContext().lineTo(currentPointInPixels.x, currentPointInPixels.y);
+                fieldCanvas.getFieldContext().stroke();
             }
         }
 
         // Draw ghost of other path if the changing point is shared
-        if (waypointAction !== WaypointAction.NONE && selectedWaypoint.shared && isWaypointSelected) {
+        if (this.waypointAction !== WaypointAction.NONE && this.selectedWaypoint.shared && this.isWaypointSelected) {
             let sharedIndex = -1;
-            sharedWaypoints.forEach(function (point, index) {
-                if (selectedWaypoint.name === point.name) {
+            this.sharedWaypoints.forEach((point, index) => {
+                if (this.selectedWaypoint.name === point.name) {
                     sharedIndex = index;
                 }
             })
-            for (let i in paths) {
-                if (i !== selectedPath) {
-                    let otherPath = paths[i];
-                    let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
+
+            this.paths.forEach((otherPath, i) => {
+                if (i !== this.selectedPath) {
+                    let otherWaypointIndex = otherPath.getWaypointIndexByName(this.selectedWaypoint.name);
 
                     if (otherWaypointIndex !== undefined) {
                         let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
 
-                        otherWaypoint.x = selectedWaypoint.x;
-                        otherWaypoint.y = selectedWaypoint.y;
-                        otherWaypoint.angle = selectedWaypoint.angle;
-                        sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
-                        sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
-                        sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
-                        if (isTank) {
-                            otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
-                            sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
+                        otherWaypoint.x = this.selectedWaypoint.x;
+                        otherWaypoint.y = this.selectedWaypoint.y;
+                        otherWaypoint.angle = this.selectedWaypoint.angle;
+                        this.sharedWaypoints[sharedIndex].x = this.selectedWaypoint.x;
+                        this.sharedWaypoints[sharedIndex].y = this.selectedWaypoint.y;
+                        this.sharedWaypoints[sharedIndex].angle = this.selectedWaypoint.angle;
+                        if (this.isTank) {
+                            otherWaypoint.spline_angle = this.selectedWaypoint.spline_angle;
+                            this.sharedWaypoints[sharedIndex].spline_angle = this.selectedWaypoint.spline_angle;
                         }
 
                         if (otherPath.getNumWaypoints() > 0) {
                             // Draw waypoints
                             let waypoints = otherPath.getWaypoints();
 
-                            for (let waypoint of waypoints) {
-                                let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+                            waypoints.forEach((waypoint, i) => {
+                                let waypointPos = inchesToPixels(new Point(waypoint.x, waypoint.y), this.ratio);
                                 let waypointRotation = waypoint.angle;
-                                fieldContext.save();
-                                fieldContext.translate(waypointPos.x, waypointPos.y);
-                                fieldContext.rotate(toRadians(waypointRotation + 90));
-                                fieldContext.globalAlpha = 0.5;
-                                fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
-                                fieldContext.restore();
-                            }
+                                fieldCanvas.getFieldContext().save();
+                                fieldCanvas.getFieldContext().translate(waypointPos.x, waypointPos.y);
+                                fieldCanvas.getFieldContext().rotate(toRadians(waypointRotation + 90));
+                                fieldCanvas.getFieldContext().globalAlpha = 0.5;
+                                fieldCanvas.getFieldContext().drawImage(this.robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+                                fieldCanvas.getFieldContext().restore();
+                            });
                         }
 
                         // Draw spline
                         let points = otherPath.getPoints(otherWaypointIndex);
 
-                        fieldContext.save();
+                        fieldCanvas.getFieldContext().save();
 
                         if (points.length !== 0) {
-                            fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
-                            fieldContext.strokeStyle = "#d9d9d9";
-                            fieldContext.globalAlpha = 0.5;
+                            fieldCanvas.getFieldContext().lineWidth = Math.floor(robotWidthPxl * .05);
+                            fieldCanvas.getFieldContext().strokeStyle = "#d9d9d9";
+                            fieldCanvas.getFieldContext().globalAlpha = 0.5;
 
-                            let pointInPixels = inchesToPixels(points[0]);
-                            fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
-                            fieldContext.beginPath();
+                            let pointInPixels = inchesToPixels(points[0], this.ratio);
+                            fieldCanvas.getFieldContext().moveTo(pointInPixels.x, pointInPixels.y);
+                            fieldCanvas.getFieldContext().beginPath();
 
                             for (let point of points) {
-                                let pointInPixels = inchesToPixels(point);
-                                fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+                                let pointInPixels = inchesToPixels(point, this.ratio);
+                                fieldCanvas.getFieldContext().lineTo(pointInPixels.x, pointInPixels.y);
                             }
 
-                            fieldContext.stroke();
+                            fieldCanvas.getFieldContext().stroke();
                         }
-                        fieldContext.restore();
+                        fieldCanvas.getFieldContext().restore();
                     }
                 }
-            }
+            });
         }
-    }
+    };
 
     /**
      * Outputs every path in current window to json format
      */
-    export const pathAsText = () => {
-        let output = {
-            sharedWaypoints: sharedWaypoints,
-            robot: {
-                robotName,
-                robotWidth,
-                robotLength,
-                savedIsTank
+    pathAsText() {
+        let pathOutput: JSONPathExport = {
+            sharedWaypoints: this.sharedWaypoints,
+            robotConfig: {
+                name: this.robotName,
+                width: this.robotWidth,
+                length: this.robotLength,
+                isTankDrive: this.savedIsTank
             },
-            paths: paths
+            paths: this.paths
         };
-        let json = JSON.stringify(output, null, 4);
+        let json = JSON.stringify(pathOutput, null, 4);
         console.log("Path: ");
         console.log(json);
         return json;
-    }
+    };
 
     /**
      * Exports the path to json and saves it
      */
-    export const exportPath = () => {
-        var file = new File([pathAsText(true)], "path.json", {type: "text/plain;charset=utf-8"});
+    exportPath = () => {
+        var file = new File([this.pathAsText()], "path.json", {type: "text/plain;charset=utf-8"});
         saveAs(file);
-    }
+    };
 
-    export const sendPath = () => {
-        ws.send(pathAsText());
-    }
+    sendPath = () => {
+        this.ws.send(this.pathAsText());
+    };
 
     /**
      * Loads a path from a json file
      * @param path - json path data
      */
-    export const loadPath = (path) => {
+    loadPath(path: string) {
         let json = JSON.parse(path);
-        paths = [];
+        this.paths = [];
         $('#pathSelector').empty();
-        robotLength = json.robot.robotWidth;
-        robotWidth = json.robot.robotWidth;
-        robotName = json.robot.robotName;
-        isTank = json.robot.savedIsTank;
-        savedIsTank = json.robot.savedIsTank;
-        sharedWaypoints = json.sharedWaypoints;
-        loadConfig();
+        this.robotLength = json.robot.robotWidth;
+        this.robotWidth = json.robot.robotWidth;
+        this.robotName = json.robot.robotName;
+        this.isTank = json.robot.savedIsTank;
+        this.savedIsTank = json.robot.savedIsTank;
+        this.sharedWaypoints = json.sharedWaypoints;
+        this.loadConfig();
         for (let path of json.paths) {
-            addPath(Path.fromJson(path));
+            this.addPath(Path.fromJSON(path));
         }
-        loadSharedButtons();
+        this.loadSharedButtons();
         //console.log("Loaded paths: ");
         //console.log(paths);
-        lastSelectedPath = -1;
-    }
+        this.lastSelectedPath = -1;
+    };
 
-    export const connectedToRobot = () => {
-        if (ws) {
-            return ws.readyState === ws.OPEN;
+    connectedToRobot() {
+        if (this.ws) {
+            return this.ws.readyState === this.ws.OPEN;
         } else {
             return false;
         }
 
-    }
+    };
 
-    export const connectToRobot = () => {
+    connectToRobot() {
         if (location.protocol !== 'https:') {
-            ws = new WebSocket('ws://' + document.location.host + '/path');
-            if (!(ws.readyState === ws.CONNECTING || ws.readyState === ws.OPEN)) {
+            this.ws = new WebSocket('ws://' + document.location.host + '/path');
+            if (!(this.ws.readyState === this.ws.CONNECTING || this.ws.readyState === this.ws.OPEN)) {
                 console.log("Can not connect to: " + 'ws://' + document.location.host + '/path');
-                ws = new WebSocket('ws://10.20.62.2:5810/path');
+                this.ws = new WebSocket('ws://10.20.62.2:5810/path');
             }
         }
-    }
+    };
 }
 
+let activeAutonCreator = new AutonCreator();
 
-/**
- * Converts the field inches to pixels on the screen
- * @param pointInInches - point in inches
- * @returns {point} - new point in pixels
- */
- export const inchesToPixels = (pointInInches) => {
-    function in2pxX(fieldInches) {
-        return (fieldInches + (fieldWidthIn / 2)) * ratio;
-    }
-
-    function in2pxY(fieldInches) {
-        return fieldInches * ratio;
-    }
-
-    return new Point(in2pxY(pointInInches.y), in2pxX(pointInInches.x));
-}
-
-/**
- * Converts number of pixels to field inches
- * @param pointInPixels - point in pixels
- * @returns {point} - new point in inches
- */
- export const pixelsToInches = (pointInPixels) => {
-    function px2inY(px) {
-        return px / ratio;
-    }
-
-    function px2inX(px) {
-        return (px / ratio) - (fieldWidthIn / 2);
-    }
-
-    return new Point(px2inX(pointInPixels.y), px2inY(pointInPixels.x));
-}
+export { activeAutonCreator };

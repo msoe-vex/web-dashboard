@@ -1,19 +1,7 @@
 import * as React from "react";
-import {hot} from "react-hot-loader";
+import { hot } from "react-hot-loader";
 import "./App.scss";
-import { 
-    newPath, 
-    newWaypoint, 
-    newSharedWaypoint, 
-    removeWaypoint, 
-    exportPath, 
-    sendPath, 
-    connectToRobot,
-    loadConfig,
-    saveConfig,
-    saveWaypointConfig,
-    setSwerve,
-} from "./AutonManager.js";
+import { activeAutonCreator, AutonCreator } from "./AutonManager";
 
 export type IAppProps = {
 
@@ -21,12 +9,13 @@ export type IAppProps = {
 
 export type IAppState = {
     open: boolean
+    autonCreator: AutonCreator
 }
 
 class App extends React.Component<IAppProps, IAppState> {
     constructor(props: IAppProps) {
         super(props);
-        this.state = { open: true };
+        this.state = { open: true, autonCreator: new AutonCreator() };
     }
 
     openNav() {
@@ -51,14 +40,14 @@ class App extends React.Component<IAppProps, IAppState> {
                 <nav className="navbar-vertical navbar-expand-sm bg-light p-0">
                     <form className="form-inline py-0">
                         <select name="pathSelector" className="custom-select" id="pathSelector"></select>
-                        <button type="button" className="btn btn-success" onClick={newPath}>New Path</button>
-                        <button type="button" className="btn btn-success" onClick={newWaypoint}>New Waypoint</button>
-                        <button type="button" className="btn btn-success" onClick={newSharedWaypoint}>New Shared Waypoint</button>
-                        <button type="button" className="btn btn-danger" onClick={removeWaypoint}>Remove Waypoint</button>
+                        <button type="button" className="btn btn-success" onClick={this.state.autonCreator.createNewPath}>New Path</button>
+                        <button type="button" className="btn btn-success" onClick={this.state.autonCreator.newWaypoint}>New Waypoint</button>
+                        <button type="button" className="btn btn-success" onClick={this.state.autonCreator.newSharedWaypoint}>New Shared Waypoint</button>
+                        <button type="button" className="btn btn-danger" onClick={this.state.autonCreator.removeWaypoint}>Remove Waypoint</button>
                         <button type="button" className="btn btn-primary" disabled={true} data-toggle="modal" data-target="#waypointSettingsModal" id="nameWaypointButton">Name Waypoint</button>
-                        <button type="button" className="btn btn-primary" onClick={exportPath}>Export Path</button>
-                        <button type="button" className="btn btn-primary" onClick={sendPath}>Send Path</button>
-                        <button type="button" className="btn btn-danger" id="connect-to-robot-button" onClick={connectToRobot}>Connect to
+                        <button type="button" className="btn btn-primary" onClick={this.state.autonCreator.exportPath}>Export Path</button>
+                        <button type="button" className="btn btn-primary" onClick={this.state.autonCreator.sendPath}>Send Path</button>
+                        <button type="button" className="btn btn-danger" id="connect-to-robot-button" onClick={this.state.autonCreator.connectToRobot}>Connect to
                             Robot
                         </button>
                         <button type="button" className="btn btn-info ml-auto" data-toggle="modal" data-target="#myModal">
@@ -102,7 +91,7 @@ class App extends React.Component<IAppProps, IAppState> {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h3 className="modal-title">Configuration Settings</h3>
-                                <button className="close" data-dismiss="modal" type="button" onClick={loadConfig}>&times;</button>
+                                <button className="close" data-dismiss="modal" type="button" onClick={this.state.autonCreator.loadConfig}>&times;</button>
                             </div>
                             <div className="modal-body">
                                 <form className="form">
@@ -122,15 +111,15 @@ class App extends React.Component<IAppProps, IAppState> {
                                         <div>
                                             <label htmlFor="swerveTankToggle">Drive Mode:</label>
                                         </div>
-                                        <button type="button" className="btn btn-primary" id="swerveTankToggle" onClick={setSwerve}>
+                                        <button type="button" className="btn btn-primary" id="swerveTankToggle" onClick={this.state.autonCreator.setSwerve}>
                                             Tank Drive
                                         </button>
                                     </div>
                                 </form>
                             </div>
                             <div className="modal-footer">
-                                <button className="btn btn-default" data-dismiss="modal" type="button" onClick={loadConfig}>Close</button>
-                                <button className="btn btn-primary" data-dismiss="modal" type="button" onClick={saveConfig}>Save</button>
+                                <button className="btn btn-default" data-dismiss="modal" type="button" onClick={this.state.autonCreator.loadConfig}>Close</button>
+                                <button className="btn btn-primary" data-dismiss="modal" type="button" onClick={this.state.autonCreator.saveConfig}>Save</button>
                             </div>
                         </div>
 
@@ -158,7 +147,7 @@ class App extends React.Component<IAppProps, IAppState> {
                             </div>
                             <div className="modal-footer">
                                 <button className="btn btn-default" data-dismiss="modal" type="button">Close</button>
-                                <button className="btn btn-primary" data-dismiss="modal" type="button" onClick={saveWaypointConfig}>Save</button>
+                                <button className="btn btn-primary" data-dismiss="modal" type="button" onClick={this.state.autonCreator.saveWaypointConfig}>Save</button>
                             </div>
                         </div>
                     </div>

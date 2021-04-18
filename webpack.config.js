@@ -22,11 +22,15 @@ module.exports = {
       {
         test: /\.s[ac]ss$/,
         use: ["style-loader", "css-loader", "sass-loader"]
+      },
+      {
+        test: /\.(png|jpe?g|gif|jp2|webp)$/,
+        type: "asset/resource"
       }
     ]
   },
   resolve: { 
-    extensions: ["*", ".js", ".jsx", ".tx", ".tsx"],
+    extensions: ["*", ".js", ".jsx", ".ts", ".tsx"],
     alias: {
       "react-dom": "@hot-loader/react-dom"
     } 
@@ -37,7 +41,7 @@ module.exports = {
   },
   devServer: {
     contentBase: path.join(__dirname, "dist/"),
-    compress: true,
+    compress: false,
     port: 3400,
     hotOnly: true
   },

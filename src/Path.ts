@@ -1,21 +1,22 @@
-import { Waypoint } from "./Waypoint.ts";
-import { Point, Spline } from "./Spline.js";
-import { hypot, calculateCurvature, shortestRotationTo } from "./Math.js";
-import { pixelsToInches, getFieldMousePos } from "./AutonManager.js"
-
-const toCamelCase = (str: string) => {
-    if(str !== undefined) {
-        return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
-            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
-            return match.toUpperCase();
-        });
-    }
-}
+import { Waypoint } from "./Waypoint";
+import { Spline } from "./Spline";
+import { Point } from "./Point"
+import { hypot, calculateCurvature, shortestRotationTo } from "./Math";
+import { toCamelCase, pixelsToInches } from "./Utility"
 
 export type SplineDetails = {
     spline: Spline;
     samples: number;
     length: number;
+}
+
+export type PathJSONBlob = {
+    name: string;
+    maxAccel: number;
+    maxVel: number;
+    k: number;
+    waypoints: Waypoint[];
+    points: Point[];
 }
 
 /*
@@ -51,6 +52,14 @@ export class Path {
         this.points = [];
         this.regenerate = true;
         this.simplified = false;
+    }
+
+    static fromJSON(json: any) {
+        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
+        json.waypoints.forEach((waypoint: Waypoint) => {
+            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.speed, waypoint.shared);
+        });
+        return path;
     }
 
     regeneratePath() {
@@ -116,7 +125,7 @@ export class Path {
         return newWaypoint;
     };
 
-    removeWaypoint(index: number) {
+    removeWaypoint(index?: number) {
         if (index !== undefined) {
             this.waypoints.splice(index, 1);
             if(this.waypoints.length === index) {
@@ -138,7 +147,7 @@ export class Path {
         this.regenerate = true;
     };
 
-    getPoints(waypointToSimplify: number) {
+    getPoints(waypointToSimplify?: number) {
         // Regenerate path if switching between simplified and non simplified representations
         if ((waypointToSimplify === undefined) === this.simplified) {
             this.regenerate = true;
@@ -279,17 +288,18 @@ export class Path {
         });
     };
 
-    getWaypointIndexByName(name: string) {
-        for (let i in this.waypoints) {
-            if (name === this.waypoints[i].name) {
+    getWaypointIndexByName(name: string): number | undefined {
+        this.waypoints.forEach((waypoint, i) => {
+            if (name === waypoint.name) {
                 return i;
             }
-        }
+        });
+
         return undefined;
     };
 
-    getClosestWaypoint(radius: number) {
-        let mousePosInInches = pixelsToInches(getFieldMousePos());
+    getClosestWaypoint(point: Point, ratio: number, radius: number) {
+        let mousePosInInches = pixelsToInches(point, ratio);
         let closestWaypoint = -1;
         let currentLeastDistance = radius;
         for (let i in this.waypoints) {
@@ -302,11 +312,14 @@ export class Path {
         return closestWaypoint;
     };
 
-    static fromJson(json: any) {
-        let path = new Path(json.name, json.maxVel, json.maxAccel, json.k);
-        json.waypoints.forEach((waypoint: Waypoint) => {
-            path.newWaypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.speed, waypoint.shared);
-        });
-        return path;
+    toJSON(): PathJSONBlob {
+        return {
+            name: this.name,
+            maxAccel: this.maxAccel,
+            maxVel: this.maxVel,
+            k: this.k,
+            waypoints: this.waypoints,
+            points: this.getPoints()
+        }
     }
 }

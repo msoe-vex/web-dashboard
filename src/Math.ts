@@ -1,6 +1,6 @@
-import { Point } from "./Spline";
+import { Point } from "./Point";
 
-export const hypot = (x1: number, y1: number, x2: number, y2: number) => {
+export function hypot(x1: number, y1: number, x2: number, y2: number) {
 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
@@ -9,7 +9,7 @@ export const hypot = (x1: number, y1: number, x2: number, y2: number) => {
  * @param radians Angle to convert in radians
  * @returns The angle in degrees
  */
-export const toDegrees = (radians: number) => {
+export function toDegrees(radians: number) {
 	return radians * (180 / Math.PI);
 }
 
@@ -18,7 +18,7 @@ export const toDegrees = (radians: number) => {
  * @param degrees Angle to convert in degrees
  * @returns The angle in radians
  */
-export const toRadians = (degrees: number) => {
+export function toRadians(degrees: number) {
 	return degrees * (Math.PI / 180);
 }
 
@@ -30,7 +30,7 @@ export const toRadians = (degrees: number) => {
  * @param point3 Last point on the curve
  * @returns Curvature of the path as a float
  */
-export const calculateCurvature = (point1: Point, point2: Point, point3: Point) => {
+export function calculateCurvature(point1: Point, point2: Point, point3: Point) {
 	if (point1.x === point2.x) {
 		point1.x += 0.000001;
 	}
@@ -50,7 +50,7 @@ export const calculateCurvature = (point1: Point, point2: Point, point3: Point) 
  * @param current Second angle position in degrees
  * @returns Shortest angle between the two angles provided
  */
-export const shortestRotationTo = (target: number, current: number) => {
+export function shortestRotationTo(target: number, current: number) {
 	let counterClockwiseMove = current - target;
 	let clockwiseMove = target - current;
 	clockwiseMove += (clockwiseMove < 0 ? 360 : 0);
