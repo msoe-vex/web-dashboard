@@ -1,5 +1,5 @@
 function toCamelCase(str) {
-    if(str !== undefined) {
+    if(str !== null) {
         return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
             if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
             return match.toUpperCase();
@@ -26,7 +26,7 @@ class Path {
         let splines = [];
         this.points = [];
         let self = this;
-        let duplicateIndices = [];
+        //let duplicateIndices = [];
         let debugMode = true;
 
 
@@ -115,7 +115,7 @@ class Path {
             regenerate = true;
         };
 
-        this.getPoints = function (waypointToSimplify) {
+        this.getPoints = function (waypointToSimplify) { //TODO: Remove any code handling duplicate points as the issue lies elsewhere
             // Regenerate path if switching between simplified and non simplified representations
             if ((waypointToSimplify === undefined) === simplified) {
                 regenerate = true;
@@ -174,27 +174,29 @@ class Path {
                         // passes in the final time of the previous spline as the inital of the current
                         spline.calculateTime(initialTime);
                         spline.calculateThetas();
-                        if (i !== splines.length - 1) {
-                            if (duplicateIndices.length === 0) {
-                                duplicateIndices.push(spline.points.length);
-                            }
-                            else if (duplicateIndices.length === 1) {
-                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1); // records the index (in terms of path.points[]) of the first element in each spline
-                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 2); // dont ask me why this works, i dont know
-                            }
-                            else {
-                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1); // records the index (in terms of path.points[]) of the first element in each spline
-                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 2); // dont ask me why this works, i dont know
-                                duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 3); // dont ask me why this works, i dont know
-                            }
-                        }
+                        // if (i !== splines.length - 1) {
+                        //     if (i !== 1) {
+                        //         duplicateIndices.push(spline.points.length);
+                        //         duplicateIndices.push(duplicateIndices[duplicateIndices.length - 1] + spline.points.length - 1);
+                        //     }
+                        //     else {
+                        //         duplicateIndices.push(spline.points.length);
+                        //     }
+                        // }
                     });
 
                     this.calculateSpeedComponents();
-                    duplicateIndices.forEach((index, i) => {
-                        self.points.splice(index, 1); // removes the element at index
-                    })
-                    duplicateIndices = [];
+                    this.points.forEach((point, i) => {
+                        if (i !== 0) {
+                            if (self.points[i-1].time === point.time) {
+                                self.points.splice(i, 1);
+                            }
+                        }
+                    });
+                    // duplicateIndices.forEach((index, i) => {
+                    //     self.points.splice(index, 1); // removes the element at index
+                    // })
+                    // duplicateIndices = [];
                 }
             }
             return this.points;

@@ -111,7 +111,7 @@ class Spline {
 			return new point(x * cosTheta - y * sinTheta + startWaypoint.x, x * sinTheta + y * cosTheta + startWaypoint.y, speedAtPoint);
 		};
 
-		this.generatePoints = function () { // TODO: Every spline should hold only the first and not last point, excpet for the last spline
+		this.generatePoints = function () { 
 			this.points = [];
 			let stepSize = 1 / this.samples; // Sets the stepSize based on the samples
 
