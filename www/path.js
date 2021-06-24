@@ -297,6 +297,22 @@ class Path {
             }
             return closestWaypoint;
         };
+
+        this.toJSON = function() {
+            regenerate = true;
+
+            this.getPoints();
+
+            return {
+                "name": this.name,
+                "maxVel": this.maxVel,
+                "maxAccel": this.maxAccel,
+                "k": this.k,
+                "totalTime": this.totalTime,
+                "waypoints": this.waypoints,
+                "points": this.points
+            };
+        };
     }
 
     static fromJson(json) {

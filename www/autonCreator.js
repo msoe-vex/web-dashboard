@@ -7,9 +7,9 @@ let robotWidthIn = 14.5;
 let robotCenterIn = 11;
 
 //constants
-const maxVel = 41.9;
-const maxAccel = 30;
-const k = 2;
+const maxVel = 50;
+const maxAccel = 100;
+const k = 3;
 
 let ratio = 1;
 
@@ -563,8 +563,8 @@ function pathAsText(pretty) {
         paths: paths
     };
     let json = JSON.stringify(output, null, 4);
-    console.log("Path: ");
-    console.log(json);
+    // console.log("Path: ");
+    // console.log(json);
     return json;
 }
 
@@ -587,7 +587,9 @@ function sendPath() {
 function loadPath(path) {
     let json = JSON.parse(path);
     paths = [];
+    sharedWaypoints = [];
     $('#pathSelector').empty();
+    $('#waypointsList').empty();
     robotLength = json.robot.robotWidth;
     robotWidth = json.robot.robotWidth;
     robotName = json.robot.robotName;
