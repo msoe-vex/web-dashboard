@@ -7,9 +7,9 @@ let robotWidthIn = 14.5;
 let robotCenterIn = 11;
 
 //constants
-const maxVel = 41.9;
-const maxAccel = 41.9;
-const k = 2;
+const maxVel = 50;
+const maxAccel = 100;
+const k = 3;
 
 let ratio = 1;
 
@@ -66,8 +66,8 @@ $('#pathSelector').on('change', function () {
 function newPath() {
     let name = prompt("Name the Path");
     let path = new Path(name, maxVel, maxAccel, k);
-    path.newWaypoint(20, 10, 0, 0, "start");
-    path.newWaypoint(30, 70, 0, 0, "end");
+    path.newWaypoint(20, 10, 0, 0, "start", 0);
+    path.newWaypoint(30, 70, 0, 0, "end", undefined);
     selectedPath = addPath(path);
 }
 
@@ -92,10 +92,11 @@ function setSwerve() {
  * @param angle - starting angle of robot
  * @param spline_angle - starting angle of spline
  * @param name - name of the waypoint
+ * @param speed - speed of the waypoint
  * @param shared - true if waypoint is shared
  */
-function newWaypoint(x, y, angle, spline_angle, name, shared) {
-    path.newWaypoint(x, y, angle, spline_angle, name, shared);
+function newWaypoint(x, y, angle, spline_angle, name, speed, shared) {
+    path.newWaypoint(x, y, angle, spline_angle, name, speed, shared);
 }
 
 /**
@@ -106,7 +107,7 @@ function newSharedWaypoint() {
     // Creates new shared waypoint with button
     let name = prompt("Shared Waypoint Name");
     if (name !== null) {
-        let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, true);
+        let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
         sharedWaypoints.push(newShared);
         newSharedButton(name);
     }
@@ -130,7 +131,7 @@ function newSharedButton(name) {
         if (inPath === false) {
             sharedWaypoints.forEach(function(point) {
                 if (name === point.name) {
-                    path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, true);
+                    path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, undefined, true);
                 }
             })
         }
@@ -181,8 +182,8 @@ function autonCreatorInit() {
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
-    firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint");
-    firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint");
+    firstPath.newWaypoint(10, 7.5, 90, 90, "startWaypoint", 0);
+    firstPath.newWaypoint(0, 71, 180, 90, "endWaypoint", undefined);
     selectedPath = 0;
     $("#x-value").keyup(function(){
         let x = this.value;
@@ -227,6 +228,66 @@ function saveConfig() {
 }
 
 /**
+ * This function loads the waypoint configuration into the interface
+ */
+function loadWaypointConfig() {
+    $("#waypointName").val(selectedWaypoint.name);
+    $("#waypointSpeed").val(selectedWaypoint.speed);
+}
+
+/**
+ * This function saves a new waypoint configuration to the current waypoint
+ */
+function saveWaypointConfig() {
+    let previousName = selectedWaypoint.name;
+    let newName = $("#waypointName").val();
+    let newSpeed = $("#waypointSpeed").val();
+
+    if (newName) {
+        selectedWaypoint.name = newName;
+
+        if (selectedWaypoint.shared) {
+            // Update global shared waypoint
+            sharedWaypoints.forEach(function (point) {
+                if (previousName === point.name) {
+                    point.name = newName;
+                }
+            })
+
+            // Update shared waypoints in every path
+            for (let i in paths) {
+                if (i !== selectedPath) {
+                    let otherPath = paths[i];
+                    let otherWaypointIndex = otherPath.getWaypointIndexByName(previousName);
+
+                    if (otherWaypointIndex !== undefined) {
+                        let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
+                        otherWaypoint.name = newName;
+                    }
+                }
+            }
+
+            // Update button
+            let buttonList = $(".sharedWaypoint");
+            buttonList.each(function(index) {
+                let oldName = $(this).text();
+                if (oldName === previousName) {
+                    $(this).text(newName);
+                }
+            });
+        }
+    }
+
+    if (newSpeed) {
+        selectedWaypoint.speed = parseFloat(newSpeed);
+    } else {
+        selectedWaypoint.speed = undefined;
+    }
+
+    paths[selectedPath].regeneratePath();
+}
+
+/**
  * Updates the selected path when actions are done to the selected waypoint
  */
 function autonCreatorDataLoop() {
@@ -260,6 +321,8 @@ function autonCreatorDataLoop() {
             yinput.prop("disabled", false);
             xinput.val(selectedWaypoint.x);
             yinput.val(selectedWaypoint.y);
+            loadWaypointConfig();
+            $("#nameWaypointButton").prop("disabled", false);
         } else {
             //Deselect waypoint
             selectedWaypointIndex = undefined;
@@ -269,6 +332,7 @@ function autonCreatorDataLoop() {
             yinput.val("");
             xinput.prop("disabled", true);
             yinput.prop("disabled", true);
+            $("#nameWaypointButton").prop("disabled", true);
         }
         waypointAction = WaypointAction.NONE;
     } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
@@ -287,7 +351,7 @@ function autonCreatorDataLoop() {
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:
-            let angle1 = toDegrees(Math.atan2((mousePos.x - selectedWaypoint.x), (mousePos.y - selectedWaypoint.y)));
+            let angle1 = toDegrees(Math.atan2((mousePos.y - selectedWaypoint.y), (mousePos.x - selectedWaypoint.x)));
 
             if (fieldKeyboard.control) {
                 angle1 = Math.round(angle1 / 15) * 15;
@@ -310,51 +374,6 @@ function autonCreatorDataLoop() {
         case WaypointAction.NONE:
             fieldCanvas.style.cursor = cursors.default;
             break;
-    }
-}
-
-/**
- * Names the currently selected waypoint
- */
-function nameRobot() {
-    if (waypointSelected) {
-        let name = selectedWaypoint.name;
-        let newName = prompt("Name the Waypoint");
-
-        if (newName !== null) {
-            selectedWaypoint.name = newName;
-            if (selectedWaypoint.shared) {
-                // Update global shared waypoint
-                sharedWaypoints.forEach(function (point) {
-                    if (name === point.name) {
-                        point.name = newName;
-                    }
-                })
-
-                // Update shared waypoints in every path
-                for (let i in paths) {
-                    if (i !== selectedPath) {
-                        let otherPath = paths[i];
-                        let otherWaypointIndex = otherPath.getWaypointIndexByName(name);
-
-                        if (otherWaypointIndex !== undefined) {
-                            let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
-                            otherWaypoint.name = newName;
-                        }
-                    }
-                }
-
-                // Update button
-                let buttonList = $(".sharedWaypoint");
-                buttonList.each(function(index) {
-                    let oldName = $(this).text();
-                    if (oldName === name) {
-                        $(this).text(newName);
-                    }
-                });
-
-            }
-        }
     }
 }
 
@@ -422,7 +441,7 @@ function autonCreatorDrawLoop() {
             let waypointRotation = waypoint.angle;
             fieldContext.save();
             fieldContext.translate(waypointPos.x, waypointPos.y);
-            fieldContext.rotate(toRadians(waypointRotation + 90));
+            fieldContext.rotate(toRadians(-waypointRotation + 180));
 
             // Add highlight to currently selected waypoint
             if (parseInt(i) === selectedWaypointIndex) {
@@ -544,8 +563,8 @@ function pathAsText(pretty) {
         paths: paths
     };
     let json = JSON.stringify(output, null, 4);
-    console.log("Path: ");
-    console.log(json);
+    // console.log("Path: ");
+    // console.log(json);
     return json;
 }
 
@@ -568,7 +587,9 @@ function sendPath() {
 function loadPath(path) {
     let json = JSON.parse(path);
     paths = [];
+    sharedWaypoints = [];
     $('#pathSelector').empty();
+    $('#waypointsList').empty();
     robotLength = json.robot.robotWidth;
     robotWidth = json.robot.robotWidth;
     robotName = json.robot.robotName;

@@ -24,3 +24,11 @@ function calculateCurvature(point1, point2, point3) {
 	let r = Math.sqrt((point1.x - a)**2 + (point1.y - b)**2);
 	return 1 / r;
 }
+
+function shortestRotationTo (target, current) {
+	let counterClockwiseMove = current - target;
+	let clockwiseMove = target - current;
+	clockwiseMove += (clockwiseMove < 0 ? 360 : 0);
+	counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0);
+	return (Math.abs(clockwiseMove) < Math.abs(counterClockwiseMove) ? -clockwiseMove : counterClockwiseMove);
+}

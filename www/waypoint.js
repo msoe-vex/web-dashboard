@@ -7,18 +7,25 @@
  * name - given name of the waypoint (default: "wp")
  * shared - whether or not the waypoint is shared (default: False)
  */
-function Waypoint(x, y, angle, spline_angle, name, shared) {
+function Waypoint(x, y, angle, spline_angle, name, speed, shared) {
     let _name = name || "wp";
     let _x = parseFloat(x);
     let _y = parseFloat(y);
     let _angle = parseFloat(angle);
     let _spline_angle = parseFloat(spline_angle);
     let _shared = shared || false;
+    let _speed = parseFloat(speed);
 
     Object.defineProperty(this, "name", {
         enumerable: true,
         get: function(){ return _name },
         set: function(value){ _name = value }
+    });
+
+    Object.defineProperty(this, "omega", {
+        enumerable: true,
+        get: function(){ return _omega },
+        set: function(value){ _omega = value }
     });
 
     Object.defineProperty(this, "angle", {
@@ -69,5 +76,11 @@ function Waypoint(x, y, angle, spline_angle, name, shared) {
         enumerable: true,
         get: function(){ return _shared },
         set: function(value){ _shared = value }
+    });
+
+    Object.defineProperty(this, "speed", {
+        enumerable: true,
+        get: function() { return _speed },
+        set: function(speed){ _speed = speed }
     });
 }
