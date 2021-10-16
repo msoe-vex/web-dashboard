@@ -78,6 +78,11 @@ class Path {
             }
 
             speed = speed ?? this.maxVel;
+
+            // Field bounds checks
+            x = Math.min(Math.max(x, -70), 70)
+            y = Math.min(Math.max(y, 0), 140)
+
             let newWaypoint = new Waypoint(x, y, angle, spline_angle, name, speed, shared);
             this.waypoints.push(newWaypoint);
             if (lastWaypoint) {
