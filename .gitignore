@@ -1,2 +1,4 @@
 /.idea
 /www/.idea
+node_modules/
+*Thumbs.db
