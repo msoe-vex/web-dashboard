@@ -38,6 +38,10 @@ let savedIsTank = isTank;
 let selectedPath = -1;
 let lastSelectedPath = -1;
 
+let historyStack = [];
+let tempMousePos = null;
+let tempSelected = null;
+
 let waypointAction = WaypointAction.NONE;
 
 /**
@@ -97,6 +101,7 @@ function setSwerve() {
  */
 function newWaypoint(x, y, angle, spline_angle, name, speed, shared) {
     path.newWaypoint(x, y, angle, spline_angle, name, speed, shared);
+    historyStack.push({"Action":"NewWaypoint", "Name":name})
 }
 
 /**
@@ -110,6 +115,7 @@ function newSharedWaypoint() {
         let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
         sharedWaypoints.push(newShared);
         newSharedButton(name);
+        historyStack.push({"Action":"NewWaypoint", "Name":name})
     }
 }
 
@@ -161,6 +167,7 @@ function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
             path.removeWaypoint(selectedWaypointIndex);
+            historyStack.push({"Action":"DeleteWaypoint", "Name":path.getWaypoint(selectedWaypointIndex).name})
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
                 waypointSelected = false;
@@ -169,6 +176,7 @@ function removeWaypoint() {
             }
         } else {
             path.removeWaypoint();
+            historyStack.push({"Action":"DeleteWaypoint", "Name":path.getWaypoint(path.getNumWaypoints()-1).name})
         }
     }
 }
@@ -308,8 +316,12 @@ function autonCreatorDataLoop() {
 
     if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
     } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
     } else if (fieldMouseRising.l) {
         let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
         if (selectedIndex >= 0) {
@@ -337,6 +349,12 @@ function autonCreatorDataLoop() {
         waypointAction = WaypointAction.NONE;
     } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
         waypointAction = WaypointAction.NONE;
+        if (fieldMouseFalling.l && waypointSelected && tempMousePos != fieldMousePos && tempSelected == waypointSelected) {
+            historyStack.push({"Action":"AddMove", "x":selectedWaypoint.x, "y":selectedWaypoint.y})
+        }
+        if (fieldMouseFalling.r && waypointSelected && tempMousePos != fieldMousePos && tempSelected == waypointSelected) {
+            historyStack.push({"Action":"AddRotate", "angle":selectedWaypoint.angle})
+        }
     }
 
     // update data

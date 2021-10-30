@@ -275,6 +275,7 @@ class Path {
             });
         };
 
+        // TODO: use for history stack
         this.getWaypointIndexByName = function (name) {
             for (let i in this.waypoints) {
                 if (name === this.waypoints[i].name) {
