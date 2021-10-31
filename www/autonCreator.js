@@ -523,7 +523,7 @@ function autonCreatorDrawLoop() {
                         let waypointRotation = waypoint.angle;
                         fieldContext.save();
                         fieldContext.translate(waypointPos.x, waypointPos.y);
-                        fieldContext.rotate(toRadians(waypointRotation + 90));
+                        fieldContext.rotate(toRadians(-waypointRotation + 180)); // same logic as above
                         fieldContext.globalAlpha = 0.5;
                         fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
                         fieldContext.restore();
