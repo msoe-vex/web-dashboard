@@ -496,7 +496,8 @@ function autonCreatorDrawLoop() {
             if (i !== selectedPath) {
                 let otherPath = paths[i];
                 let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
-
+                
+                // continue if the shared waypoint does not exist in other paths
                 if (otherWaypointIndex === undefined) {
                     continue;
                 }
@@ -579,7 +580,7 @@ function pathAsText(pretty) {
 }
 
 /**
- * Exports the path to json and saves it
+ * Exports the path to json and saves it.
  */
 function exportPath() {
     var file = new File([pathAsText(true)], "path.json", { type: "text/plain;charset=utf-8" });
