@@ -492,7 +492,7 @@ function autonCreatorDrawLoop() {
             }
         })
         for (let i in paths) {
-            if (i === selectedPath) {
+            if (parseInt(i) === selectedPath) {
                 continue;
             }
 
