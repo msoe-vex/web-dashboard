@@ -161,11 +161,13 @@ function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
             path.removeWaypoint(selectedWaypointIndex);
+
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
                 waypointSelected = false;
             } else if (path.getNumWaypoints() === selectedWaypointIndex) {
                 selectedWaypointIndex--;
+                selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
             }
         } else {
             path.removeWaypoint();
