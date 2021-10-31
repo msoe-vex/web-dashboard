@@ -169,6 +169,11 @@ function removeWaypoint() {
                 selectedWaypointIndex--;
                 selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
             }
+            else
+            {
+                // current index is now next index
+                selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
+            }
         } else {
             path.removeWaypoint();
         }
