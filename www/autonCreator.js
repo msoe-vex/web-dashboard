@@ -22,8 +22,7 @@ let waypointSelected = false;
 const WaypointAction = {
     MOVE: 1,
     ROTATE: 2,
-    SPLINE_ROTATE: 3, // Still needs implementation
-    NONE: 4
+    NONE: 3
 };
 
 let path = null;
