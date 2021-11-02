@@ -49,7 +49,7 @@ function addPath(path) {
     let index = paths.length - 1;
     $('#pathSelector').append($('<option/>', {
         value: index
-    }).text(path.name).attr('selected','selected'));
+    }).text(path.name).attr('selected', 'selected'));
     return index;
 }
 
@@ -121,15 +121,15 @@ function newSharedButton(name) {
     let buttonList = $("#waypointsList");
     let button = $("<button>" + name + "</button>");
     // Function runs if dynamically created shared waypoint button is pressed
-    const clickShared = (name)  => {
+    const clickShared = (name) => {
         let inPath = false;
-        path.getWaypoints().forEach(function(point) {
+        path.getWaypoints().forEach(function (point) {
             if (point.name === name && point.shared) {
                 inPath = true;
             }
         })
         if (inPath === false) {
-            sharedWaypoints.forEach(function(point) {
+            sharedWaypoints.forEach(function (point) {
                 if (name === point.name) {
                     path.newWaypoint(point.x, point.y, point.angle, point.spline_angle, name, undefined, true);
                 }
@@ -161,11 +161,16 @@ function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
             path.removeWaypoint(selectedWaypointIndex);
+
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
                 waypointSelected = false;
-            } else if (path.getNumWaypoints() === selectedWaypointIndex) {
-                selectedWaypointIndex--;
+            } else {
+                // if index exceeds num waypoints, decrease index
+                if (path.getNumWaypoints() === selectedWaypointIndex) {
+                    selectedWaypointIndex--;
+                }
+                selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
             }
         } else {
             path.removeWaypoint();
@@ -185,18 +190,18 @@ function autonCreatorInit() {
     firstPath.newWaypoint(10, 7.5, 90, 90, "startWaypoint", 0);
     firstPath.newWaypoint(0, 71, 180, 90, "endWaypoint", undefined);
     selectedPath = 0;
-    $("#x-value").keyup(function(){
+    $("#x-value").keyup(function () {
         let x = this.value;
-        if(!isNaN(x)) {
+        if (!isNaN(x)) {
             const num = parseFloat(x);
             if (num >= -70 && num <= 70) {
                 selectedWaypoint.x = num;
             }
         }
     });
-    $("#y-value").keyup(function(){
+    $("#y-value").keyup(function () {
         let y = this.value;
-        if(!isNaN(y)) {
+        if (!isNaN(y)) {
             const num = parseFloat(y);
             if (num >= 0 && num <= 140) {
                 selectedWaypoint.y = num;
@@ -269,7 +274,7 @@ function saveWaypointConfig() {
 
             // Update button
             let buttonList = $(".sharedWaypoint");
-            buttonList.each(function(index) {
+            buttonList.each(function (index) {
                 let oldName = $(this).text();
                 if (oldName === previousName) {
                     $(this).text(newName);
@@ -572,7 +577,7 @@ function pathAsText(pretty) {
  * Exports the path to json and saves it
  */
 function exportPath() {
-    var file = new File([pathAsText(true)], "path.json", {type: "text/plain;charset=utf-8"});
+    var file = new File([pathAsText(true)], "path.json", { type: "text/plain;charset=utf-8" });
     saveAs(file);
 }
 
