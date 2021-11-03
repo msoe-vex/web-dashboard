@@ -22,7 +22,7 @@ let waypointSelected = false;
 const WaypointAction = {
     MOVE: 1,
     ROTATE: 2,
-    SPLINE_ROTATE: 3,
+    SPLINE_ROTATE: 3, // Still needs implementation
     NONE: 4
 };
 
@@ -41,7 +41,7 @@ let lastSelectedPath = -1;
 let waypointAction = WaypointAction.NONE;
 
 /**
- * Adds new path to the path selector
+ * Adds new path to the path selector and sets it as the selected path.
  * @param path
  */
 function addPath(path) {
@@ -64,7 +64,7 @@ $('#pathSelector').on('change', function () {
  * Creates a new path
  */
 function newPath() {
-    let name = prompt("Name the Path");
+    let name = prompt("Name the path");
     let path = new Path(name, maxVel, maxAccel, k);
     path.newWaypoint(20, 10, 0, 0, "start", 0);
     path.newWaypoint(30, 70, 0, 0, "end", undefined);
@@ -105,7 +105,7 @@ function newWaypoint(x, y, angle, spline_angle, name, speed, shared) {
  */
 function newSharedWaypoint() {
     // Creates new shared waypoint with button
-    let name = prompt("Shared Waypoint Name");
+    let name = prompt("Shared waypoint name");
     if (name !== null) {
         let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
         sharedWaypoints.push(newShared);
@@ -145,7 +145,7 @@ function newSharedButton(name) {
 }
 
 /**
- * Loads in all shared waypoints when a JSON file is added
+ * When a JSON file is added, loads in all of the shared waypoints.
  */
 function loadSharedButtons() {
     sharedWaypoints.forEach(function (point) {
@@ -154,8 +154,8 @@ function loadSharedButtons() {
 }
 
 /**
- * Removes the selected by waypoint
- * Called when the 'Remove Waypoint' button is pressed
+ * Removes the currently selected waypoint.
+ * Called when the 'Remove Waypoint' button is pressed.
  */
 function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
@@ -233,7 +233,8 @@ function saveConfig() {
 }
 
 /**
- * This function loads the waypoint configuration into the interface
+ * Loads the waypoint configuration into the interface.
+ * In particular, sets the shown path to the first selected path.
  */
 function loadWaypointConfig() {
     $("#waypointName").val(selectedWaypoint.name);
@@ -241,7 +242,7 @@ function loadWaypointConfig() {
 }
 
 /**
- * This function saves a new waypoint configuration to the current waypoint
+ * Saves a new waypoint configuration to the current waypoint
  */
 function saveWaypointConfig() {
     let previousName = selectedWaypoint.name;
@@ -311,12 +312,15 @@ function autonCreatorDataLoop() {
 
     lastSelectedPath = selectedPath;
 
-    if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
+    if (fieldMouseRising.l && waypointSelected &&
+        path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
-    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
+    } else if (fieldMouseRising.r && waypointSelected &&
+        path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
     } else if (fieldMouseRising.l) {
         let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
+
         if (selectedIndex >= 0) {
             //Select a waypoint
             selectedWaypointIndex = selectedIndex;
@@ -382,6 +386,9 @@ function autonCreatorDataLoop() {
     }
 }
 
+/**
+ * Used to computes the color of the path based on acceleration and speed.
+ */
 function perc2color(perc) {
     perc *= 100;
     let r, g, b = 0;
@@ -494,66 +501,68 @@ function autonCreatorDrawLoop() {
                 let otherPath = paths[i];
                 let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
 
-                if (otherWaypointIndex !== undefined) {
-                    let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
-
-                    otherWaypoint.x = selectedWaypoint.x;
-                    otherWaypoint.y = selectedWaypoint.y;
-                    otherWaypoint.angle = selectedWaypoint.angle;
-                    sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
-                    sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
-                    sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
-                    if (isTank) {
-                        otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
-                        sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
-                    }
-
-                    if (otherPath.getNumWaypoints() > 0) {
-                        // Draw waypoints
-                        let waypoints = otherPath.getWaypoints();
-
-                        for (let waypoint of waypoints) {
-                            let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
-                            let waypointRotation = waypoint.angle;
-                            fieldContext.save();
-                            fieldContext.translate(waypointPos.x, waypointPos.y);
-                            fieldContext.rotate(toRadians(waypointRotation + 90));
-                            fieldContext.globalAlpha = 0.5;
-                            fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
-                            fieldContext.restore();
-                        }
-                    }
-
-                    // Draw spline
-                    let points = otherPath.getPoints(otherWaypointIndex);
-
-                    fieldContext.save();
-
-                    if (points.length !== 0) {
-                        fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
-                        fieldContext.strokeStyle = "#d9d9d9";
-                        fieldContext.globalAlpha = 0.5;
-
-                        let pointInPixels = inchesToPixels(points[0]);
-                        fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
-                        fieldContext.beginPath();
-
-                        for (let point of points) {
-                            let pointInPixels = inchesToPixels(point);
-                            fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
-                        }
-
-                        fieldContext.stroke();
-                    }
-                    fieldContext.restore();
+                if (otherWaypointIndex === undefined) {
+                    continue;
                 }
+
+                let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
+
+                otherWaypoint.x = selectedWaypoint.x;
+                otherWaypoint.y = selectedWaypoint.y;
+                otherWaypoint.angle = selectedWaypoint.angle;
+                sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
+                sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
+                sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
+                if (isTank) {
+                    otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
+                    sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
+                }
+
+                if (otherPath.getNumWaypoints() > 0) {
+                    // Draw waypoints
+                    let waypoints = otherPath.getWaypoints();
+
+                    for (let waypoint of waypoints) {
+                        let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+                        let waypointRotation = waypoint.angle;
+                        fieldContext.save();
+                        fieldContext.translate(waypointPos.x, waypointPos.y);
+                        fieldContext.rotate(toRadians(waypointRotation + 90));
+                        fieldContext.globalAlpha = 0.5;
+                        fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+                        fieldContext.restore();
+                    }
+                }
+
+                // Draw spline
+                let points = otherPath.getPoints(otherWaypointIndex);
+
+                fieldContext.save();
+
+                if (points.length !== 0) {
+                    fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
+                    fieldContext.strokeStyle = "#d9d9d9";
+                    fieldContext.globalAlpha = 0.5;
+
+                    let pointInPixels = inchesToPixels(points[0]);
+                    fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
+                    fieldContext.beginPath();
+
+                    for (let point of points) {
+                        let pointInPixels = inchesToPixels(point);
+                        fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+                    }
+
+                    fieldContext.stroke();
+                }
+                fieldContext.restore();
             }
         }
     }
 }
 
 /**
- * Outputs every path in current window to json format
+ * Outputs every path in the current window to json format
  * @returns {string} - all path data in json format
  */
 function pathAsText(pretty) {
@@ -586,7 +595,7 @@ function sendPath() {
 }
 
 /**
- * Loads a path from a json file
+ * Loads a path from a json file.
  * @param path - json path data
  */
 function loadPath(path) {
@@ -595,19 +604,20 @@ function loadPath(path) {
     sharedWaypoints = [];
     $('#pathSelector').empty();
     $('#waypointsList').empty();
-    robotLength = json.robot.robotWidth;
+    robotLength = json.robot.robotLength;
     robotWidth = json.robot.robotWidth;
     robotName = json.robot.robotName;
     isTank = json.robot.savedIsTank;
     savedIsTank = json.robot.savedIsTank;
     sharedWaypoints = json.sharedWaypoints;
+
     loadConfig();
     for (let path of json.paths) {
         addPath(Path.fromJson(path));
     }
     loadSharedButtons();
-    //console.log("Loaded paths: ");
-    //console.log(paths);
+
+    selectedPath = paths.length - 1;
     lastSelectedPath = -1;
 }
 
@@ -617,7 +627,6 @@ function connectedToRobot() {
     } else {
         return false;
     }
-
 }
 
 function connectToRobot() {
