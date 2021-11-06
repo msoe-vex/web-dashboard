@@ -22,8 +22,7 @@ let waypointSelected = false;
 const WaypointAction = {
     MOVE: 1,
     ROTATE: 2,
-    SPLINE_ROTATE: 3, // Still needs implementation
-    NONE: 4
+    NONE: 3
 };
 
 let path = null;
@@ -497,66 +496,72 @@ function autonCreatorDrawLoop() {
             }
         })
         for (let i in paths) {
-            if (i !== selectedPath) {
-                let otherPath = paths[i];
-                let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
-
-                if (otherWaypointIndex === undefined) {
-                    continue;
-                }
-
-                let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
-
-                otherWaypoint.x = selectedWaypoint.x;
-                otherWaypoint.y = selectedWaypoint.y;
-                otherWaypoint.angle = selectedWaypoint.angle;
-                sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
-                sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
-                sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
-                if (isTank) {
-                    otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
-                    sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
-                }
-
-                if (otherPath.getNumWaypoints() > 0) {
-                    // Draw waypoints
-                    let waypoints = otherPath.getWaypoints();
-
-                    for (let waypoint of waypoints) {
-                        let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
-                        let waypointRotation = waypoint.angle;
-                        fieldContext.save();
-                        fieldContext.translate(waypointPos.x, waypointPos.y);
-                        fieldContext.rotate(toRadians(waypointRotation + 90));
-                        fieldContext.globalAlpha = 0.5;
-                        fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
-                        fieldContext.restore();
-                    }
-                }
-
-                // Draw spline
-                let points = otherPath.getPoints(otherWaypointIndex);
-
-                fieldContext.save();
-
-                if (points.length !== 0) {
-                    fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
-                    fieldContext.strokeStyle = "#d9d9d9";
-                    fieldContext.globalAlpha = 0.5;
-
-                    let pointInPixels = inchesToPixels(points[0]);
-                    fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
-                    fieldContext.beginPath();
-
-                    for (let point of points) {
-                        let pointInPixels = inchesToPixels(point);
-                        fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
-                    }
-
-                    fieldContext.stroke();
-                }
-                fieldContext.restore();
+            if (parseInt(i) === selectedPath) {
+                continue;
             }
+
+            let otherPath = paths[i];
+            let otherWaypointIndex = otherPath.getWaypointIndexByName(selectedWaypoint.name);
+
+            // continue if the shared waypoint does not exist in other paths
+            if (otherWaypointIndex === undefined) {
+                continue;
+            }
+
+            let otherWaypoint = otherPath.getWaypoint(otherWaypointIndex);
+
+            otherWaypoint.x = selectedWaypoint.x;
+            otherWaypoint.y = selectedWaypoint.y;
+            otherWaypoint.angle = selectedWaypoint.angle;
+            sharedWaypoints[sharedIndex].x = selectedWaypoint.x;
+            sharedWaypoints[sharedIndex].y = selectedWaypoint.y;
+            sharedWaypoints[sharedIndex].angle = selectedWaypoint.angle;
+            if (isTank) {
+                otherWaypoint.spline_angle = selectedWaypoint.spline_angle;
+                sharedWaypoints[sharedIndex].spline_angle = selectedWaypoint.spline_angle;
+            }
+
+            if (otherPath.getNumWaypoints() > 0) {
+                // Draw waypoints
+                let waypoints = otherPath.getWaypoints();
+
+                for (let waypoint of waypoints) {
+                    if (waypoint.name === selectedWaypoint.name)
+                        continue;
+
+                    let waypointPos = inchesToPixels(new point(waypoint.x, waypoint.y));
+                    let waypointRotation = waypoint.angle;
+                    fieldContext.save();
+                    fieldContext.translate(waypointPos.x, waypointPos.y);
+                    fieldContext.rotate(toRadians(-waypointRotation + 180)); // same logic as above
+                    fieldContext.globalAlpha = 0.5;
+                    fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+                    fieldContext.restore();
+                }
+            }
+
+            // Draw spline
+            let points = otherPath.getPoints(otherWaypointIndex);
+
+            fieldContext.save();
+
+            if (points.length !== 0) {
+                fieldContext.lineWidth = Math.floor(robotWidthPxl * .05);
+                fieldContext.strokeStyle = "#d9d9d9";
+                fieldContext.globalAlpha = 0.5;
+
+                let pointInPixels = inchesToPixels(points[0]);
+                fieldContext.moveTo(pointInPixels.x, pointInPixels.y);
+                fieldContext.beginPath();
+
+                for (let point of points) {
+                    let pointInPixels = inchesToPixels(point);
+                    fieldContext.lineTo(pointInPixels.x, pointInPixels.y);
+                }
+
+                fieldContext.stroke();
+            }
+            fieldContext.restore();
         }
     }
 }
@@ -583,7 +588,7 @@ function pathAsText(pretty) {
 }
 
 /**
- * Exports the path to json and saves it
+ * Exports the path to json and saves it.
  */
 function exportPath() {
     var file = new File([pathAsText(true)], "path.json", { type: "text/plain;charset=utf-8" });
