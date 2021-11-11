@@ -154,10 +154,16 @@ function updateInput() {
 	setKeyboardState("delete");
 }
 
+/**
+ * Sets the key press state of a key board key.
+ */
 function setKeyboardState(key) {
 	setKeypressState(fieldKeyboardRising, fieldKeyboardFalling, fieldKeyboard, fieldKeyboardOld, key);
 }
 
+/**
+ * Sets the key press state of a set of given objects.
+ */
 function setKeypressState(risingState, fallingState, standardState, oldState, key) {
 	risingState[key] = standardState[key] && !oldState[key];
 	fallingState[key] = !standardState[key] && oldState[key];
