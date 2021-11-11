@@ -148,7 +148,6 @@ function updateInput() {
 	fieldMouseOld.l = fieldMouseButton.l;
 	fieldMouseOld.r = fieldMouseButton.r;
 	fieldMouseOld.m = fieldMouseButton.m;
-	fieldMouseOld.n = fieldMouseButton.n;
 
 	fieldKeyboardRising.shift = fieldKeyboard.shift && !fieldKeyboardOld.shift;
 	fieldKeyboardFalling.shift = !fieldKeyboard.shift && fieldKeyboardOld.shift;
