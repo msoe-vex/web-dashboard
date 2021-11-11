@@ -1,16 +1,16 @@
 let fieldMousePos = { x: 0, y: 0 };
 
 const fieldMouseInitialization = { l: false, m: false, r: false };
-let fieldMouseButton = fieldMouseInitialization;
-let fieldMouseOld = fieldMouseInitialization;
-let fieldMouseRising = fieldMouseInitialization;
-let fieldMouseFalling = fieldMouseInitialization;
+let fieldMouseButton = Object.assign({}, fieldMouseInitialization);
+let fieldMouseOld = Object.assign({}, fieldMouseInitialization);
+let fieldMouseRising = Object.assign({}, fieldMouseInitialization);
+let fieldMouseFalling = Object.assign({}, fieldMouseInitialization);
 
 const fieldKeyboardInitialization = { shift: false, control: false, n: false, delete: false };
-let fieldKeyboard = fieldKeyboardInitialization;
-let fieldKeyboardOld = fieldKeyboardInitialization;
-let fieldKeyboardRising = fieldKeyboardInitialization;
-let fieldKeyboardFalling = fieldKeyboardInitialization;
+let fieldKeyboard = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardOld = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardRising = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardFalling = Object.assign({}, fieldKeyboardInitialization);
 
 const cursors = {
 	default: "default",
