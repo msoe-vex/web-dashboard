@@ -139,32 +139,33 @@ function getTouchPos(canvasDom, touchEvent) {
 
 
 function updateInput() {
-	fieldMouseRising.l = fieldMouseButton.l && !fieldMouseOld.l;
-	fieldMouseFalling.l = !fieldMouseButton.l && fieldMouseOld.l;
-	fieldMouseRising.m = fieldMouseButton.m && !fieldMouseOld.m;
-	fieldMouseFalling.m = !fieldMouseButton.m && fieldMouseOld.m;
-	fieldMouseRising.r = fieldMouseButton.r && !fieldMouseOld.r;
-	fieldMouseFalling.r = !fieldMouseButton.r && fieldMouseOld.r;
-	fieldMouseOld.l = fieldMouseButton.l;
-	fieldMouseOld.r = fieldMouseButton.r;
-	fieldMouseOld.m = fieldMouseButton.m;
-
-	setKeyboardState("shift");
-	setKeyboardState("control");
-	setKeyboardState("delete");
+	updateMouseState("l");
+	updateMouseState("m");
+	updateMouseState("r");
+	
+	updateKeyboardState("shift");
+	updateKeyboardState("control");
+	updateKeyboardState("delete");
 }
 
 /**
- * Sets the key press state of a key board key.
+ * Sets the key press state of a mouse button.
  */
-function setKeyboardState(key) {
-	setKeypressState(fieldKeyboardRising, fieldKeyboardFalling, fieldKeyboard, fieldKeyboardOld, key);
+function updateMouseState(key) {
+	updateKeypressState(fieldMouseRising, fieldMouseFalling, fieldMouseButton, fieldMouseOld, key);
+}
+
+/**
+ * Sets the key press state of a keyboard key.
+ */
+function updateKeyboardState(key) {
+	updateKeypressState(fieldKeyboardRising, fieldKeyboardFalling, fieldKeyboard, fieldKeyboardOld, key);
 }
 
 /**
  * Sets the key press state of a set of given objects.
  */
-function setKeypressState(risingState, fallingState, standardState, oldState, key) {
+function updateKeypressState(risingState, fallingState, standardState, oldState, key) {
 	risingState[key] = standardState[key] && !oldState[key];
 	fallingState[key] = !standardState[key] && oldState[key];
 	oldState[key] = standardState[key];
