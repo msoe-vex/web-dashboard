@@ -149,16 +149,17 @@ function updateInput() {
 	fieldMouseOld.r = fieldMouseButton.r;
 	fieldMouseOld.m = fieldMouseButton.m;
 
-	fieldKeyboardRising.shift = fieldKeyboard.shift && !fieldKeyboardOld.shift;
-	fieldKeyboardFalling.shift = !fieldKeyboard.shift && fieldKeyboardOld.shift;
-	fieldKeyboardOld.shift = fieldKeyboard.shift;
-
-	fieldKeyboardRising.control = fieldKeyboard.control && !fieldKeyboardOld.control;
-	fieldKeyboardFalling.control = !fieldKeyboard.control && fieldKeyboardOld.control;
-	fieldKeyboardOld.control = fieldKeyboard.control;
-
-	fieldKeyboardRising.delete = fieldKeyboard.delete && !fieldKeyboardOld.delete;
-	fieldKeyboardFalling.delete = !fieldKeyboard.delete && fieldKeyboardOld.delete;
-	fieldKeyboardOld.delete = fieldKeyboard.delete;
+	setKeyboardState("shift");
+	setKeyboardState("control");
+	setKeyboardState("delete");
 }
 
+function setKeyboardState(key) {
+	setKeypressState(fieldKeyboardRising, fieldKeyboardFalling, fieldKeyboard, fieldKeyboardOld, key);
+}
+
+function setKeypressState(risingState, fallingState, standardState, oldState, key) {
+	risingState[key] = standardState[key] && !oldState[key];
+	fallingState[key] = !standardState[key] && oldState[key];
+	oldState[key] = standardState[key];
+}
