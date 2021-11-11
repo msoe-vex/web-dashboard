@@ -4,10 +4,10 @@ let fieldMouseOld = { l: false, m: false, r: false };
 let fieldMouseRising = { l: false, m: false, r: false };
 let fieldMouseFalling = { l: false, m: false, r: false };
 
-let fieldKeyboard = { shift: false, control: false, n: false };
-let fieldKeyboardOld = { shift: false, control: false, n:false };
-let fieldKeyboardRising = { shift: false, control: false, n: false };
-let fieldKeyboardFalling = { shift: false, control: false, n: false };
+let fieldKeyboard = { shift: false, control: false, n: false, delete: false };
+let fieldKeyboardOld = { shift: false, control: false, n:false, delete: false };
+let fieldKeyboardRising = { shift: false, control: false, n: false, delete: false };
+let fieldKeyboardFalling = { shift: false, control: false, n: false, delete: false };
 
 const cursors = {
 	default: "default",
@@ -62,6 +62,8 @@ canvas.addEventListener('keydown', function (evt) {
 		fieldKeyboard.n = true;
 	} else if (evt.key === "Enter") {
 		fieldKeyboard.n = false;
+	} else if (evt.key == "Delete") {
+		fieldKeyboard.delete = true;
 	}
 }, false);
 
@@ -70,7 +72,9 @@ canvas.addEventListener('keyup', function (evt) {
 		fieldKeyboard.shift = false;
 	} else if (evt.key === "Control") {
 		fieldKeyboard.control = false;
-	} 
+	} else if (evt.key == "Delete") {
+		fieldKeyboard.delete = false;
+	}
 }, false);
 
 // Set up touch events for mobile, etc
@@ -150,5 +154,9 @@ function updateInput() {
 	fieldKeyboardRising.control = fieldKeyboard.control && !fieldKeyboardOld.control;
 	fieldKeyboardFalling.control = !fieldKeyboard.control && fieldKeyboardOld.control;
 	fieldKeyboardOld.control = fieldKeyboard.control;
+
+	fieldKeyboardRising.delete = fieldKeyboard.delete && !fieldKeyboardOld.delete;
+	fieldKeyboardFalling.delete = !fieldKeyboard.delete && fieldKeyboardOld.delete;
+	fieldKeyboardOld.delete = fieldKeyboard.delete;
 }
 
