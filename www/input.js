@@ -23,7 +23,7 @@ const canvas = document.getElementById('windowCanvas');
 canvas.setAttribute("tabindex", 0);
 
 canvas.oncontextmenu = function (evt) {
-	evt.preventDefault();
+	evt.preventDefault(); // disables right click context menu
 	evt.stopPropagation();
 };
 
@@ -65,8 +65,6 @@ canvas.addEventListener('keydown', function (evt) {
 		fieldKeyboard.n = true;
 	} else if (evt.key === "Enter") {
 		fieldKeyboard.n = false;
-	} else if (evt.key == "Delete") {
-		fieldKeyboard.delete = true;
 	}
 }, false);
 
@@ -75,7 +73,20 @@ canvas.addEventListener('keyup', function (evt) {
 		fieldKeyboard.shift = false;
 	} else if (evt.key === "Control") {
 		fieldKeyboard.control = false;
-	} else if (evt.key == "Delete") {
+	}
+}, false);
+
+/**
+ * Global keys use window so that mouse click location does not affect behavior
+ */
+window.addEventListener('keydown', function (evt) {
+	if (evt.key == "Delete") {
+		fieldKeyboard.delete = true;
+	}
+}, false);
+
+window.addEventListener('keyup', function (evt) {
+	if (evt.key == "Delete") {
 		fieldKeyboard.delete = false;
 	}
 }, false);
