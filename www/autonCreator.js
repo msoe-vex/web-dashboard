@@ -343,6 +343,8 @@ function autonCreatorDataLoop() {
             $("#nameWaypointButton").prop("disabled", true);
         }
         waypointAction = WaypointAction.NONE;
+    } else if (fieldKeyboardRising.delete) {
+            removeWaypoint();
     } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
         waypointAction = WaypointAction.NONE;
     }
