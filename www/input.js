@@ -6,7 +6,7 @@ let fieldMouseOld = Object.assign({}, fieldMouseInitialization);
 let fieldMouseRising = Object.assign({}, fieldMouseInitialization);
 let fieldMouseFalling = Object.assign({}, fieldMouseInitialization);
 
-const fieldKeyboardInitialization = { shift: false, control: false, n: false, delete: false };
+const fieldKeyboardInitialization = { shift: false, control: false, delete: false };
 let fieldKeyboard = Object.assign({}, fieldKeyboardInitialization);
 let fieldKeyboardOld = Object.assign({}, fieldKeyboardInitialization);
 let fieldKeyboardRising = Object.assign({}, fieldKeyboardInitialization);
@@ -61,10 +61,6 @@ canvas.addEventListener('keydown', function (evt) {
 		fieldKeyboard.shift = true;
 	} else if (evt.key === "Control") {
 		fieldKeyboard.control = true;
-	} else if (evt.key === "n") {
-		fieldKeyboard.n = true;
-	} else if (evt.key === "Enter") {
-		fieldKeyboard.n = false;
 	}
 }, false);
 
