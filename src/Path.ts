@@ -3,6 +3,7 @@ import { Spline } from "./Spline";
 import { Point } from "./Point"
 import { hypot, calculateCurvature, shortestRotationTo } from "./Math";
 import { toCamelCase, pixelsToInches } from "./Utility"
+import { PassThrough } from "stream";
 
 export type SplineDetails = {
     spline: Spline;
@@ -47,8 +48,8 @@ export class Path {
         this.maxAccel = maxAccel;
         this.k = k || 1.6;
         this.totalTime = totalTime || 0;
-        let waypoints = [];
-        let splines = [];
+        this.waypoints = [];
+        this.splines = [];
         this.points = [];
         this.regenerate = true;
         this.simplified = false;
@@ -157,17 +158,6 @@ export class Path {
         if (this.regenerate) {
             this.points = [];
 
-            this.waypoints.forEach((waypoint, i) => {
-                let leftSpline = i === 0 ? undefined : this.splines[i - 1];
-                if (leftSpline) {
-                    leftSpline.spline.endAngle = waypoint.spline_angle;
-                }
-                let rightSpline = i === this.splines.length ? undefined : this.splines[i];
-                if (rightSpline) {
-                    rightSpline.spline.startAngle = waypoint.spline_angle;
-                }
-            });
-
             if (this.splines.length !== 0) {
                 this.splines.forEach((spline, i) => {
                     let stepSize = 1 / spline.samples;
@@ -186,17 +176,14 @@ export class Path {
                                 spline.spline.get(stepSize).x, spline.spline.get(stepSize).y);
                         }
                     }
-
-                    this.points.push(spline.spline.get(0));
-                    for (let i = stepSize; i < 1; i += stepSize) {
-                        this.points.push(spline.spline.get(i));
-                    }
-
-                    if (i === (this.splines.length - 1)) {
-                        this.points.push(spline.spline.get(1));
+                    // Generate points in the current spline
+                    spline.spline.generatePoints(spline.samples);
+                    
+                    // iterate through each point in spline.points
+                    for (let i = 0; i < spline.spline.points.length; i++) {
+                        this.points.push(spline.spline.points[i]);
                     }
                 });
-                
                 this.calculateSpeed();
                 this.regenerate = false;
             }
@@ -253,7 +240,7 @@ export class Path {
             let aveOmega = shortestRotationTo(this.points[i].theta, this.points[i-1].theta) / deltaTime;
             let alpha = (2 * aveOmega) / (0.5 * deltaTime);
             for (this.k = this.waypointIndicies[i-1]; this.k < this.waypointIndicies[i]; this.k++) {
-                let relTime = this.points[this.k].time - this.points[i-1].time
+                let relTime = this.points[this.k].time - this.points[i-1].time;
                 if (relTime > (0.5 * deltaTime)) {
                     this.points[this.k].omega = alpha * relTime + this.points[i-1].omega;
                     this.points[this.k].theta = this.points[this.k].omega * relTime + this.points[i-1].theta;

@@ -9,6 +9,7 @@ import { CursorTypes, InputState } from "./Input";
 import { FieldCanvas } from "./FieldCanvas";
 import Field from "./images/field.png"
 import Robot from "./images/robot.png"
+import Test from "./images/test.png"
 
 export enum WaypointAction {
     MOVE,
@@ -32,6 +33,7 @@ export type JSONPathExport = {
 
 export class AutonCreator {
     fieldImage: HTMLImageElement = new Image();
+    fieldHeight: number;
     robotImage: HTMLImageElement = new Image();
     ratio: number;
     ws: WebSocket;
@@ -52,16 +54,40 @@ export class AutonCreator {
 
     constructor() {
         this.ratio = 1;
+        this.fieldHeight = 1;
         this.isWaypointSelected = false;
+        this.sharedWaypoints = [];
         this.activePath = null;
+        this.paths = [];
         this.robotWidth = 0;
         this.robotLength = 0;
         this.robotName = "";
         this.isTank = true;
         this.savedIsTank = this.isTank;
-        this.selectedPath = null;
-        this.lastSelectedPath = null;
+        this.selectedPath = -1;
+        this.lastSelectedPath = -1;
         this.waypointAction = WaypointAction.NONE;
+        this.addPath = this.addPath.bind(this);
+        this.createNewPath = this.createNewPath.bind(this);
+        this.setSwerve = this.setSwerve.bind(this);
+        this.newWaypoint = this.newWaypoint.bind(this);
+        this.newSharedWaypoint = this.newSharedWaypoint.bind(this);
+        this.newSharedButton = this.newSharedButton.bind(this);
+        this.loadSharedButtons = this.loadSharedButtons.bind(this);
+        this.removeWaypoint = this.removeWaypoint.bind(this);
+        this.autonCreatorInit = this.autonCreatorInit.bind(this);
+        this.loadConfig = this.loadConfig.bind(this);
+        this.saveConfig = this.saveConfig.bind(this);
+        this.loadWaypointConfig = this.loadWaypointConfig.bind(this);
+        this.saveWaypointConfig = this.saveWaypointConfig.bind(this);
+        this.autonCreatorDataLoop = this.autonCreatorDataLoop.bind(this);
+        this.autonCreatorDrawLoop = this.autonCreatorDrawLoop.bind(this);
+        this.pathAsText = this.pathAsText.bind(this);
+        this.exportPath = this.exportPath.bind(this);
+        this.sendPath = this.sendPath.bind(this);
+        this.loadPath = this.loadPath.bind(this);
+        this.connectedToRobot = this.connectedToRobot.bind(this);
+        this.connectToRobot = this.connectToRobot.bind(this);
     }
 
     /**
@@ -74,14 +100,6 @@ export class AutonCreator {
         $('#pathSelector').append($('<option/>', {
             value: index
         }).text(path.name).attr('selected','selected'));
-
-        // /**
-        //  * Allows user to change the selected path
-        //  */
-        // $('#pathSelector').on('change', function () {
-        //     selectedPath = this.value;
-        // });
-
         return index;
     }
 
@@ -120,7 +138,7 @@ export class AutonCreator {
      * @param speed - speed of the waypoint
      * @param shared - true if waypoint is shared
      */
-    newWaypoint() {
+    newWaypoint = () => {
         this.activePath.newWaypoint();
     };
 
@@ -182,7 +200,7 @@ export class AutonCreator {
      * Removes the selected by waypoint
      * Called when the 'Remove Waypoint' button is pressed
      */
-    removeWaypoint() {
+    removeWaypoint = () => {
         if (this.activePath.getNumWaypoints() > 0) {
             if (this.isWaypointSelected) {
                 this.activePath.removeWaypoint(this.selectedWaypointIndex);
@@ -202,11 +220,11 @@ export class AutonCreator {
      * Initialized the first path and images
      */
     autonCreatorInit() {
-        //connectToRobot();
         let firstPath = new Path("TestPath", Constants.MAX_VELOCITY, Constants.MAX_ACCELERATION, Constants.K); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
         this.addPath(firstPath);
         this.fieldImage.src = Field;
         this.robotImage.src = Robot;
+
         firstPath.newWaypoint(0, 7.5, 0, 0, "startWaypoint", 0);
         firstPath.newWaypoint(0, 71, 0, 0, "endWaypoint", undefined);
         this.selectedPath = 0;
@@ -314,10 +332,20 @@ export class AutonCreator {
      * Updates the selected path when actions are done to the selected waypoint
      */
     autonCreatorDataLoop(fieldCanvas: FieldCanvas) {
+        // Field Canvas height gets reset to 0, due to image not being loaded in on first few loops, so we need to save it somehow
+        if (fieldCanvas.getHeight() > 1) {
+            this.fieldHeight = fieldCanvas.getHeight();
+        } else {
+            fieldCanvas.getFieldCanvas().height = this.fieldHeight;
+        }
+
         const xinput = $("#x-value");
         const yinput = $("#y-value");
 
         this.ratio = fieldCanvas.getHeight() / Constants.FIELD_WIDTH_IN * (this.fieldImage.height / this.fieldImage.width);
+
+        // Temp change because something is wrong with fieldCanvas height, I think its a css problem, with flex, but im v confused
+        this.ratio = 6;
 
         if (this.lastSelectedPath !== this.selectedPath) {
             this.activePath = this.paths[this.selectedPath];
@@ -411,6 +439,7 @@ export class AutonCreator {
         let robotWidthPxl = Constants.ROBOT_WIDTH_IN * this.ratio;
         let robotHeightPxl = robotWidthPxl * (this.robotImage.height / this.robotImage.width);
         let robotCenterPxl = Constants.ROBOT_CENTER_IN * this.ratio;
+        
         let fieldWidthPxl = Constants.FIELD_WIDTH_IN * this.ratio;
         let fieldHeightPxl = fieldWidthPxl * (this.fieldImage.height / this.fieldImage.width);
 
@@ -421,16 +450,6 @@ export class AutonCreator {
         $("#windowDiv").toggleClass("justify-content-center", !smallScreen).toggleClass("justify-content-start", smallScreen);
 
         fieldCanvas.getFieldContext().drawImage(this.fieldImage, 0, 0, fieldWidthPxl, fieldHeightPxl);
-
-        if (this.isWaypointSelected) {
-            // document.getElementById("statusBarXY").innerText = "X: " + selectedWaypoint.x.toFixed(1)
-            //     + " Y: " + selectedWaypoint.y.toFixed(1) + " Angle: " + selectedWaypoint.angle.toFixed(2)
-            //     + " Name: " + selectedWaypoint.name;
-        } else {
-            let mousePos = pixelsToInches(InputState.fieldMousePos, this.ratio);
-            // document.getElementById("statusBarXY").innerText = "X: " + mousePos.x.toFixed(1)
-            //     + " Y: " + mousePos.y.toFixed(1);
-        }
 
         if (this.waypointAction === WaypointAction.ROTATE) {
             fieldCanvas.getFieldContext().fillStyle = "#ffffff";
@@ -475,7 +494,6 @@ export class AutonCreator {
 
         if (points.length !== 0) {
             fieldCanvas.getFieldContext().lineWidth = Math.floor(robotWidthPxl * .05);
-
             for (let i = 1; i < points.length; i++) {
                 let lastPointInPixels = inchesToPixels(points[i - 1], this.ratio);
                 let currentPointInPixels = inchesToPixels(points[i], this.ratio);
@@ -573,8 +591,6 @@ export class AutonCreator {
             paths: this.paths
         };
         let json = JSON.stringify(pathOutput, null, 4);
-        console.log("Path: ");
-        console.log(json);
         return json;
     };
 
@@ -609,8 +625,6 @@ export class AutonCreator {
             this.addPath(Path.fromJSON(path));
         }
         this.loadSharedButtons();
-        //console.log("Loaded paths: ");
-        //console.log(paths);
         this.lastSelectedPath = -1;
     };
 

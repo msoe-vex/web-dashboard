@@ -1,6 +1,6 @@
-import { activeAutonCreator } from "./AutonManager";
+import { AutonCreator } from "./AutonManager";
 
-export function handleFileSelectEvent(event: any) {
+export function handleFileSelectEvent(event: any, activeAutonCreator: AutonCreator) {
     event.stopPropagation();
     event.preventDefault();
 

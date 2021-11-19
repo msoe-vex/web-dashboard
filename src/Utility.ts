@@ -30,10 +30,10 @@ export function toCamelCase(str: string): string {
  * @returns {point} - new point in pixels
  */
 export function inchesToPixels(pointInInches: Point, ratio: number): Point {
-    let pixelsX = (pointInInches.y + (Constants.FIELD_WIDTH_IN / 2)) * ratio;
-    let pixelsY = pointInInches.x * ratio;
+    let pixelsX = (pointInInches.x + (Constants.FIELD_WIDTH_IN / 2)) * ratio;
+    let pixelsY = pointInInches.y * ratio;
 
-    return new Point(pixelsX, pixelsY);
+    return new Point(pixelsY, pixelsX);
 }
 
 /**

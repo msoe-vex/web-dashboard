@@ -11,12 +11,15 @@ export class Spline {
 	startAngle: number;
 	endAngle: number;
 	knot: number;
+	points: Point[];
 
 	constructor(w1: Waypoint, w2: Waypoint) {
 		this.w1 = w1;
 		this.w2 = w2;
 		this.startAngle = w1.spline_angle;
 		this.endAngle = w2.spline_angle;
+		this.points = [];
+		this.generatePoints = this.generatePoints.bind(this);
 	}
 
 	/**
@@ -81,5 +84,22 @@ export class Spline {
 		} 
 
 		return new Point(x * cosTheta - y * sinTheta + this.w1.x, x * sinTheta + y * cosTheta + this.w1.y, speedAtPoint);
+	}
+
+	generatePoints(samples: number) {
+		this.points = [];
+		let stepSize = 1 / samples; // Sets the stepSize based on the samples
+		console.log(this.points);
+
+		this.points.push(this.get(0)); 
+		console.log(this.points);
+		this.points[0].theta = this.w1.angle; 
+
+		for (let i = stepSize; i < 1; i += stepSize) {
+			this.points.push(this.get(i));
+		}
+
+		this.points.push(this.get(1));
+		this.points[this.points.length - 1].theta = this.w2.angle;
 	}
 }

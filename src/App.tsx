@@ -1,7 +1,8 @@
 import * as React from "react";
 import { hot } from "react-hot-loader";
 import "./App.scss";
-import { activeAutonCreator, AutonCreator } from "./AutonManager";
+import { AutonCreator } from "./AutonManager";
+import { initialize } from "./Main"
 
 export type IAppProps = {
 
@@ -15,22 +16,44 @@ export type IAppState = {
 class App extends React.Component<IAppProps, IAppState> {
     constructor(props: IAppProps) {
         super(props);
+        this.handleLoad = this.handleLoad.bind(this);
         this.state = { open: true, autonCreator: new AutonCreator() };
+        this.openNav = this.openNav.bind(this);
+        this.handleLoad = this.handleLoad.bind(this);
+        this.render = this.render.bind(this);
+    }
+
+    componentDidMount() {
+        window.addEventListener('load', this.handleLoad);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('load', this.handleLoad);
+    }
+
+    componentDidUpdate() {
+        window.addEventListener('load', this.handleLoad);
+        this.handleLoad();
+    }
+
+    handleLoad() {
+        initialize(this.state.autonCreator);    
     }
 
     openNav() {
         if (!this.state.open) {
             document.getElementById("mySidenav").style.width = "300px";
             document.getElementById("sharedWaypointsBar").style.right = "300px";
-            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-right\"></i> Hide Sidebar <i class=\"fas fa-chevron-right\"></i>"
+            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-right\"></i> Hide Sidebar <i class=\"fas fa-chevron-right\"></i>";
         } else {
             document.getElementById("mySidenav").style.width = "0";
             document.getElementById("sharedWaypointsBar").style.right = "0";
-            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-left\"></i> Expand Sidebar <i class=\"fas fa-chevron-left\"></i>"
+            document.getElementById("sidebarText").innerHTML = "<i class=\"fas fa-chevron-left\"></i> Expand Sidebar <i class=\"fas fa-chevron-left\"></i>";
         }
 
         this.setState({
-            open: !this.state.open
+            open: !this.state.open,
+            autonCreator: this.state.autonCreator
         });
     }
 

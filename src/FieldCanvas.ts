@@ -5,7 +5,7 @@ export class FieldCanvas {
     fieldCanvas: HTMLCanvasElement
     fieldContext: CanvasRenderingContext2D
 
-    constructor(canvasElement: HTMLElement) {
+    constructor(canvasElement: HTMLCanvasElement) {
         this.fieldCanvas = <HTMLCanvasElement>canvasElement;
         this.fieldContext = this.fieldCanvas.getContext('2d');
 
