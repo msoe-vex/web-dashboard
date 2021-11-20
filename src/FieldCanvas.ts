@@ -32,42 +32,42 @@ export class FieldCanvas {
 
         canvas.addEventListener('mousedown', (event: MouseEvent) => {
             if (event.button === 0) {
-                InputState.fieldMouseButton.l = true;
+                InputState.mouse.l.setPressed();
             } else if (event.button === 1) {
-                InputState.fieldMouseButton.m = true;
+                InputState.mouse.m.setPressed();
             } else if (event.button === 2) {
-                InputState.fieldMouseButton.r = true;
+                InputState.mouse.r.setPressed();
             }
         }, false);
 
         canvas.addEventListener('mouseup', (event: MouseEvent) => {
             if (event.button === 0) {
-                InputState.fieldMouseButton.l = false;
+                InputState.mouse.l.setReleased();
             } else if (event.button === 1) {
-                InputState.fieldMouseButton.m = false;
+                InputState.mouse.m.setReleased();
             } else if (event.button === 2) {
-                InputState.fieldMouseButton.r = false;
+                InputState.mouse.r.setReleased();
             }
         }, false);
 
         canvas.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.key === "Shift") {
-                InputState.fieldKeyboard.shift = true;
+                InputState.mouse.shift.setPressed();
             } else if (event.key === "Control") {
-                InputState.fieldKeyboard.control = true;
-            } else if (event.key === "n") {
-                InputState.fieldKeyboard.n = true;
-            } else if (event.key === "Enter") {
-                InputState.fieldKeyboard.n = false;
-            }
+                InputState.mouse.control.setPressed();
+            } else if (event.key === "Delete") {
+                InputState.mouse.delete.setPressed();
+            } 
         }, false);
 
         canvas.addEventListener('keyup', (event: KeyboardEvent) => {
             if (event.key === "Shift") {
-                InputState.fieldKeyboard.shift = false;
+                InputState.mouse.shift.setReleased();
             } else if (event.key === "Control") {
-                InputState.fieldKeyboard.control = false;
-            }
+                InputState.mouse.control.setReleased();
+            } else if (event.key === "Delete") {
+                InputState.mouse.delete.setReleased();
+            } 
         }, false);
 
         // Set up touch events for mobile, etc
