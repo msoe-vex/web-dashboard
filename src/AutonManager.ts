@@ -389,6 +389,8 @@ export class AutonCreator {
                 $("#nameWaypointButton").prop("disabled", true);
             }
             this.waypointAction = WaypointAction.NONE;
+        } else if (InputState.keyboard.delete.pressed()) {
+            this.removeWaypoint();
         } else if (InputState.mouse.l.released() || InputState.mouse.r.released() || !this.isWaypointSelected) {
             this.waypointAction = WaypointAction.NONE;
         }
