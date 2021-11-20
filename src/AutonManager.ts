@@ -356,15 +356,15 @@ export class AutonCreator {
 
         this.lastSelectedPath = this.selectedPath;
 
-        if (InputState.fieldMouseRising.l && 
+        if (InputState.mouse.l.pressed() && 
                 this.isWaypointSelected && 
                 this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2) === this.selectedWaypointIndex) {
                 this.waypointAction = WaypointAction.MOVE;
-        } else if (InputState.fieldMouseRising.r && 
+        } else if (InputState.mouse.r.pressed() && 
                 this.isWaypointSelected && 
                 this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2) === this.selectedWaypointIndex) {
             this.waypointAction = WaypointAction.ROTATE;
-        } else if (InputState.fieldMouseRising.l) {
+        } else if (InputState.mouse.l.pressed()) {
             let selectedIndex = this.activePath.getClosestWaypoint(InputState.fieldMousePos, this.ratio, Constants.ROBOT_WIDTH_IN / 2);
             if (selectedIndex >= 0) {
                 //Select a waypoint
@@ -389,7 +389,7 @@ export class AutonCreator {
                 $("#nameWaypointButton").prop("disabled", true);
             }
             this.waypointAction = WaypointAction.NONE;
-        } else if (InputState.fieldMouseFalling.l || InputState.fieldMouseFalling.r || !this.isWaypointSelected) {
+        } else if (InputState.mouse.l.released() || InputState.mouse.r.released() || !this.isWaypointSelected) {
             this.waypointAction = WaypointAction.NONE;
         }
 
@@ -407,12 +407,12 @@ export class AutonCreator {
             case WaypointAction.ROTATE:
                 let angle1 = toDegrees(Math.atan2((mousePos.x - this.selectedWaypoint.x), (mousePos.y - this.selectedWaypoint.y)));
 
-                if (InputState.fieldKeyboard.control) {
+                if (InputState.keyboard.control.pressed()) {
                     angle1 = Math.round(angle1 / 15) * 15;
                 }
 
                 // Move spline only
-                if (InputState.fieldKeyboard.shift && !this.savedIsTank) {
+                if (InputState.keyboard.shift.pressed() && !this.savedIsTank) {
                     // Swerve - Update spline only with right click shift
                     this.selectedWaypoint.spline_angle = angle1;
                 } else if (!this.savedIsTank) {
@@ -453,7 +453,7 @@ export class AutonCreator {
 
         if (this.waypointAction === WaypointAction.ROTATE) {
             fieldCanvas.getFieldContext().fillStyle = "#ffffff";
-            if (InputState.fieldKeyboard.shift) {
+            if (InputState.keyboard.shift.pressed()) {
                 fieldCanvas.getFieldContext().fillText((this.selectedWaypoint.spline_angle.toFixed(1) + "\xB0"), InputState.fieldMousePos.x + 8,
                 InputState.fieldMousePos.y - 8);
             } else {
