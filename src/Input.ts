@@ -1,5 +1,11 @@
 import { Point } from "./Point";
 
+export enum CursorTypes {
+    DEFAULT = "default",
+    CROSSHAIR = "crosshair",
+	MOVE = "move"
+};
+
 export class State {
 	private active = false;
 	private old = false;
