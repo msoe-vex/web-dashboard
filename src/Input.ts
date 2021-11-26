@@ -12,27 +12,27 @@ export class State {
 	private rising = false;
 	private falling = false;
 
-	public held() {
+	public held(): boolean {
 		return this.active;
 	}
 
-	public pressed() {
+	public pressed(): boolean {
 		return this.rising;
 	}
 
-	public released() {
+	public released(): boolean {
 		return this.falling;
 	}
 
-	public setPressed() {
+	public setPressed(): void {
 		this.active = true;
 	}
 
-	public setReleased() {
+	public setReleased(): void {
 		this.active = false;
 	}
 
-	public updateState() {
+	public updateState(): void {
 		this.rising = this.active && !this.old;
 		this.falling = !this.active && this.old;
 		this.old = this.active;
@@ -44,7 +44,7 @@ export type Mouse = {
 	l: State;
 	m: State;
 	r: State;
-}
+};
 
 export type Keyboard = {
 	[index: string] : State;
@@ -53,7 +53,7 @@ export type Keyboard = {
 	delete: State;
 	z: State;
 	y: State;
-}
+};
 
 export class InputState {
 	static fieldMousePos: Point = new Point(0, 0);
@@ -61,7 +61,7 @@ export class InputState {
 	static mouse: Mouse;
 	static keyboard: Keyboard;
 
-	static update() {
+	static update(): void {
 		for (const key in InputState.mouse) {
 			InputState.mouse[key].updateState();
 		}
@@ -72,7 +72,7 @@ export class InputState {
 }
 
 // Get the position of a touch relative to the canvas
-export function getTouchPos(canvasDom: HTMLCanvasElement, touchEvent: TouchEvent) {
+export function getTouchPos(canvasDom: HTMLCanvasElement, touchEvent: TouchEvent): Point {
     let rect = canvasDom.getBoundingClientRect();
     return new Point(
         touchEvent.touches[0].clientX - rect.left,
@@ -80,6 +80,6 @@ export function getTouchPos(canvasDom: HTMLCanvasElement, touchEvent: TouchEvent
 	);
 }
 
-export function updateInput() {
+export function updateInput(): void {
 	InputState.update();
 }
