@@ -52,22 +52,32 @@ export class FieldCanvas {
 
         canvas.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.key === "Shift") {
-                InputState.mouse.shift.setPressed();
+                InputState.keyboard.shift.setPressed();
             } else if (event.key === "Control") {
-                InputState.mouse.control.setPressed();
+                InputState.keyboard.control.setPressed();
             } else if (event.key === "Delete") {
-                InputState.mouse.delete.setPressed();
+                InputState.keyboard.delete.setPressed();
             } 
         }, false);
 
         canvas.addEventListener('keyup', (event: KeyboardEvent) => {
             if (event.key === "Shift") {
-                InputState.mouse.shift.setReleased();
+                InputState.keyboard.shift.setReleased();
             } else if (event.key === "Control") {
-                InputState.mouse.control.setReleased();
-            } else if (event.key === "Delete") {
-                InputState.mouse.delete.setReleased();
+                InputState.keyboard.control.setReleased();
+            }
+        }, false);
+
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === "Delete") {
+                InputState.keyboard.delete.setPressed();
             } 
+        }, false);
+
+        window.addEventListener('keyup', (event: KeyboardEvent) => {
+            if (event.key === "Delete") {
+                InputState.keyboard.delete.setReleased();
+            }
         }, false);
 
         // Set up touch events for mobile, etc
