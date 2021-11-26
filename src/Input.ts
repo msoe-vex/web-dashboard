@@ -1,16 +1,16 @@
 import { Point } from "./Point";
 
 export enum CursorTypes {
-    DEFAULT = "default",
-    CROSSHAIR = "crosshair",
-	MOVE = "move"
-};
+	DEFAULT = "default",
+	CROSSHAIR = "crosshair",
+	MOVE = "move",
+}
 
 export class State {
-	private active = false;
-	private old = false;
-	private rising = false;
-	private falling = false;
+	private active: boolean = false;
+	private old: boolean = false;
+	private rising: boolean = false;
+	private falling: boolean = false;
 
 	public held(): boolean {
 		return this.active;
@@ -39,27 +39,25 @@ export class State {
 	}
 }
 
-export type Mouse = {
-	[index: string] : State;
-	l: State;
-	m: State;
-	r: State;
-};
+export class Mouse {
+	[ index : string ] : State;
+	l: State = new State();
+	m: State = new State();
+	r: State = new State();
+}
 
-export type Keyboard = {
-	[index: string] : State;
-	shift: State;
-	control: State;
-	delete: State;
-	z: State;
-	y: State;
-};
+export class Keyboard {
+	[ index : string ] : State;
+	shift: State = new State();
+	control: State = new State();
+	delete: State = new State();
+}
 
 export class InputState {
 	static fieldMousePos: Point = new Point(0, 0);
 
-	static mouse: Mouse;
-	static keyboard: Keyboard;
+	static mouse: Mouse = new Mouse();
+	static keyboard: Keyboard = new Keyboard();
 
 	static update(): void {
 		for (const key in InputState.mouse) {
@@ -73,13 +71,9 @@ export class InputState {
 
 // Get the position of a touch relative to the canvas
 export function getTouchPos(canvasDom: HTMLCanvasElement, touchEvent: TouchEvent): Point {
-    let rect = canvasDom.getBoundingClientRect();
-    return new Point(
-        touchEvent.touches[0].clientX - rect.left,
-        touchEvent.touches[0].clientY - rect.top
+	let rect = canvasDom.getBoundingClientRect();
+	return new Point(
+		touchEvent.touches[0].clientX - rect.left,
+		touchEvent.touches[0].clientY - rect.top
 	);
-}
-
-export function updateInput(): void {
-	InputState.update();
 }
