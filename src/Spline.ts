@@ -88,10 +88,8 @@ export class Spline {
 	generatePoints(samples: number) {
 		this.points = [];
 		let stepSize = 1 / samples; // Sets the stepSize based on the samples
-		console.log(this.points);
 
 		this.points.push(this.get(0)); 
-		console.log(this.points);
 		this.points[0].theta = this.w1.angle; 
 
 		for (let i = stepSize; i < 1; i += stepSize) {
