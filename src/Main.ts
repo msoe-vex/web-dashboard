@@ -1,7 +1,7 @@
 import { AutonCreator } from "./AutonManager";
 import { handleDragOverEvent, handleFileSelectEvent } from "./Events";
 import { FieldCanvas } from "./FieldCanvas";
-import { updateInput } from "./Input";
+import { InputState } from "./Input";
 
 export function initialize(activeAutonCreator: AutonCreator) {
     let fieldCanvas = new FieldCanvas(document.getElementById("windowCanvas") as HTMLCanvasElement);
@@ -17,7 +17,7 @@ export function initialize(activeAutonCreator: AutonCreator) {
 };
 
 function loop(fieldCanvas: FieldCanvas, activeAutonCreator: AutonCreator) {
-    updateInput();
+    InputState.update();
 
     fieldCanvas.clearRect(0, 0);
     fieldCanvas.rect(0, 0);
