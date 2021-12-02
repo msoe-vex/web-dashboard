@@ -1,6 +1,7 @@
 # User-defined files and folders
 /.idea
 /www/.idea
+dist/
 
 # Logs
 logs
