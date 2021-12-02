@@ -10,7 +10,6 @@ export class Spline {
 	w2: Waypoint;
 	startAngle: number;
 	endAngle: number;
-	knot: number;
 	points: Point[];
 
 	constructor(w1: Waypoint, w2: Waypoint) {
@@ -61,16 +60,16 @@ export class Spline {
 	};
 
 	getA() {
-		return (this.getA0() + this.getA1()) / (this.knot * this.knot);
+		return (this.getA0() + this.getA1()) / (this.getKnot() * this.getKnot());
 	};
 
 	getB() {
-		return -(2 * this.getA0() + this.getA1()) / this.knot;
+		return -(2 * this.getA0() + this.getA1()) / this.getKnot();
 	};
 
 	get(percentage: number) {
 		percentage = Math.max(Math.min(percentage, 1), 0);
-		let x = percentage * this.knot;
+		let x = percentage * this.getKnot();
 		let y = (this.getA() * x + this.getB()) * (x * x) + this.getA0() * x;
 		let cosTheta = Math.cos(this.getAngleOff());
 		let sinTheta = Math.sin(this.getAngleOff());
@@ -89,10 +88,8 @@ export class Spline {
 	generatePoints(samples: number) {
 		this.points = [];
 		let stepSize = 1 / samples; // Sets the stepSize based on the samples
-		console.log(this.points);
 
 		this.points.push(this.get(0)); 
-		console.log(this.points);
 		this.points[0].theta = this.w1.angle; 
 
 		for (let i = stepSize; i < 1; i += stepSize) {

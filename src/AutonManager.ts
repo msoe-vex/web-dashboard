@@ -244,6 +244,12 @@ export class AutonCreator {
                 this.selectedWaypoint.y = y;
             }
         });
+
+        $("#pathSelector").on("change", () => {
+            let value = parseInt($("#pathSelector").val().toString())
+
+            this.selectedPath = value;
+        });
     };
 
     /**
