@@ -1,13 +1,16 @@
 let fieldMousePos = { x: 0, y: 0 };
-let fieldMouseButton = { l: false, m: false, r: false };
-let fieldMouseOld = { l: false, m: false, r: false };
-let fieldMouseRising = { l: false, m: false, r: false };
-let fieldMouseFalling = { l: false, m: false, r: false };
 
-let fieldKeyboard = { shift: false, control: false, n: false };
-let fieldKeyboardOld = { shift: false, control: false, n:false };
-let fieldKeyboardRising = { shift: false, control: false, n: false };
-let fieldKeyboardFalling = { shift: false, control: false, n: false };
+const fieldMouseInitialization = { l: false, m: false, r: false };
+let fieldMouseButton = Object.assign({}, fieldMouseInitialization);
+let fieldMouseOld = Object.assign({}, fieldMouseInitialization);
+let fieldMouseRising = Object.assign({}, fieldMouseInitialization);
+let fieldMouseFalling = Object.assign({}, fieldMouseInitialization);
+
+const fieldKeyboardInitialization = { shift: false, control: false, delete: false };
+let fieldKeyboard = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardOld = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardRising = Object.assign({}, fieldKeyboardInitialization);
+let fieldKeyboardFalling = Object.assign({}, fieldKeyboardInitialization);
 
 const cursors = {
 	default: "default",
@@ -20,7 +23,7 @@ const canvas = document.getElementById('windowCanvas');
 canvas.setAttribute("tabindex", 0);
 
 canvas.oncontextmenu = function (evt) {
-	evt.preventDefault();
+	evt.preventDefault(); // disables right click context menu
 	evt.stopPropagation();
 };
 
@@ -58,10 +61,6 @@ canvas.addEventListener('keydown', function (evt) {
 		fieldKeyboard.shift = true;
 	} else if (evt.key === "Control") {
 		fieldKeyboard.control = true;
-	} else if (evt.key === "n") {
-		fieldKeyboard.n = true;
-	} else if (evt.key === "Enter") {
-		fieldKeyboard.n = false;
 	}
 }, false);
 
@@ -70,7 +69,22 @@ canvas.addEventListener('keyup', function (evt) {
 		fieldKeyboard.shift = false;
 	} else if (evt.key === "Control") {
 		fieldKeyboard.control = false;
-	} 
+	}
+}, false);
+
+/**
+ * Global keys use window so that mouse click location does not affect behavior
+ */
+window.addEventListener('keydown', function (evt) {
+	if (evt.key == "Delete") {
+		fieldKeyboard.delete = true;
+	}
+}, false);
+
+window.addEventListener('keyup', function (evt) {
+	if (evt.key == "Delete") {
+		fieldKeyboard.delete = false;
+	}
 }, false);
 
 // Set up touch events for mobile, etc
@@ -132,23 +146,34 @@ function getTouchPos(canvasDom, touchEvent) {
 
 
 function updateInput() {
-	fieldMouseRising.l = fieldMouseButton.l && !fieldMouseOld.l;
-	fieldMouseFalling.l = !fieldMouseButton.l && fieldMouseOld.l;
-	fieldMouseRising.m = fieldMouseButton.m && !fieldMouseOld.m;
-	fieldMouseFalling.m = !fieldMouseButton.m && fieldMouseOld.m;
-	fieldMouseRising.r = fieldMouseButton.r && !fieldMouseOld.r;
-	fieldMouseFalling.r = !fieldMouseButton.r && fieldMouseOld.r;
-	fieldMouseOld.l = fieldMouseButton.l;
-	fieldMouseOld.r = fieldMouseButton.r;
-	fieldMouseOld.m = fieldMouseButton.m;
-	fieldMouseOld.n = fieldMouseButton.n;
-
-	fieldKeyboardRising.shift = fieldKeyboard.shift && !fieldKeyboardOld.shift;
-	fieldKeyboardFalling.shift = !fieldKeyboard.shift && fieldKeyboardOld.shift;
-	fieldKeyboardOld.shift = fieldKeyboard.shift;
-
-	fieldKeyboardRising.control = fieldKeyboard.control && !fieldKeyboardOld.control;
-	fieldKeyboardFalling.control = !fieldKeyboard.control && fieldKeyboardOld.control;
-	fieldKeyboardOld.control = fieldKeyboard.control;
+	updateMouseState("l");
+	updateMouseState("m");
+	updateMouseState("r");
+	
+	updateKeyboardState("shift");
+	updateKeyboardState("control");
+	updateKeyboardState("delete");
 }
 
+/**
+ * Sets the key press state of a mouse button.
+ */
+function updateMouseState(key) {
+	updateKeypressState(fieldMouseRising, fieldMouseFalling, fieldMouseButton, fieldMouseOld, key);
+}
+
+/**
+ * Sets the key press state of a keyboard key.
+ */
+function updateKeyboardState(key) {
+	updateKeypressState(fieldKeyboardRising, fieldKeyboardFalling, fieldKeyboard, fieldKeyboardOld, key);
+}
+
+/**
+ * Sets the key press state of a set of given objects.
+ */
+function updateKeypressState(risingState, fallingState, standardState, oldState, key) {
+	risingState[key] = standardState[key] && !oldState[key];
+	fallingState[key] = !standardState[key] && oldState[key];
+	oldState[key] = standardState[key];
+}
