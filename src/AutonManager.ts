@@ -9,7 +9,6 @@ import { CursorTypes, InputState } from "./Input";
 import { FieldCanvas } from "./FieldCanvas";
 import Field from "./images/field.png"
 import Robot from "./images/robot.png"
-import Test from "./images/test.png"
 
 export enum WaypointAction {
     MOVE,
@@ -67,27 +66,6 @@ export class AutonCreator {
         this.selectedPath = -1;
         this.lastSelectedPath = -1;
         this.waypointAction = WaypointAction.NONE;
-        this.addPath = this.addPath.bind(this);
-        this.createNewPath = this.createNewPath.bind(this);
-        this.setSwerve = this.setSwerve.bind(this);
-        this.newWaypoint = this.newWaypoint.bind(this);
-        this.newSharedWaypoint = this.newSharedWaypoint.bind(this);
-        this.newSharedButton = this.newSharedButton.bind(this);
-        this.loadSharedButtons = this.loadSharedButtons.bind(this);
-        this.removeWaypoint = this.removeWaypoint.bind(this);
-        this.autonCreatorInit = this.autonCreatorInit.bind(this);
-        this.loadConfig = this.loadConfig.bind(this);
-        this.saveConfig = this.saveConfig.bind(this);
-        this.loadWaypointConfig = this.loadWaypointConfig.bind(this);
-        this.saveWaypointConfig = this.saveWaypointConfig.bind(this);
-        this.autonCreatorDataLoop = this.autonCreatorDataLoop.bind(this);
-        this.autonCreatorDrawLoop = this.autonCreatorDrawLoop.bind(this);
-        this.pathAsText = this.pathAsText.bind(this);
-        this.exportPath = this.exportPath.bind(this);
-        this.sendPath = this.sendPath.bind(this);
-        this.loadPath = this.loadPath.bind(this);
-        this.connectedToRobot = this.connectedToRobot.bind(this);
-        this.connectToRobot = this.connectToRobot.bind(this);
     }
 
     /**
@@ -635,27 +613,4 @@ export class AutonCreator {
         this.loadSharedButtons();
         this.lastSelectedPath = -1;
     };
-
-    connectedToRobot() {
-        if (this.ws) {
-            return this.ws.readyState === this.ws.OPEN;
-        } else {
-            return false;
-        }
-
-    };
-
-    connectToRobot() {
-        if (location.protocol !== 'https:') {
-            this.ws = new WebSocket('ws://' + document.location.host + '/path');
-            if (!(this.ws.readyState === this.ws.CONNECTING || this.ws.readyState === this.ws.OPEN)) {
-                console.log("Can not connect to: " + 'ws://' + document.location.host + '/path');
-                this.ws = new WebSocket('ws://10.20.62.2:5810/path');
-            }
-        }
-    };
 }
-
-let activeAutonCreator = new AutonCreator();
-
-export { activeAutonCreator };

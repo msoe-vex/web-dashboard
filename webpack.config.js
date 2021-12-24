@@ -3,41 +3,51 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/index.tsx",
-  devtool: 'inline-source-map',
-  mode: "development",
+  entry: ['./src/Main.ts', './src/style.css'],
+  mode: 'production',
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: "babel-loader",
-        options: { presets: ["@babel/env"] }
+        test: /\.ts?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
-        test: /\.tsx?$/,
-        use: "ts-loader",
-        exclude: /node_modules/
+        test: /\.(png|jpe?g|gif)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+          },
+        ],
       },
       {
-        test: /\.s[ac]ss$/,
-        use: ["style-loader", "css-loader", "sass-loader"]
+        test: /\.(sa|sc|c)ss$/,
+        use: [
+          "style-loader",
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: ["autoprefixer"],
+              },
+            },
+          },
+          "sass-loader",
+        ],
       },
       {
-        test: /\.(png|jpe?g|gif|jp2|webp)$/,
-        type: "asset/resource"
+        test: require.resolve("jquery"),
+        loader: "expose?$!expose?jQuery"
       }
     ]
   },
-  resolve: { 
-    extensions: ["*", ".js", ".jsx", ".ts", ".tsx"],
-    alias: {
-      "react-dom": "@hot-loader/react-dom"
-    } 
+  resolve: {
+    extensions: ['.ts', '.js'],
   },
   output: {
-    path: path.resolve(__dirname, "dist/"),
-    filename: "bundle.js"
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
   },
   devServer: {
     contentBase: path.join(__dirname, "dist/"),

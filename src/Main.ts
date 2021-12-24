@@ -1,9 +1,18 @@
+// Import for images
+import * as _ from 'lodash';
+
+// Import our styles
+import './scss/style.scss';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Project loading/code
 import { AutonCreator } from "./AutonManager";
 import { handleDragOverEvent, handleFileSelectEvent } from "./Events";
 import { FieldCanvas } from "./FieldCanvas";
 import { InputState } from "./Input";
 
-export function initialize(activeAutonCreator: AutonCreator) {
+
+ function initialize(activeAutonCreator: AutonCreator) {
     let fieldCanvas = new FieldCanvas(document.getElementById("windowCanvas") as HTMLCanvasElement);
     
     let windowDiv = document.getElementById("windowDiv");
@@ -15,7 +24,7 @@ export function initialize(activeAutonCreator: AutonCreator) {
 
     windowDiv.scrollTop = windowDiv.scrollHeight;
 };
-
+    
 function loop(fieldCanvas: FieldCanvas, activeAutonCreator: AutonCreator) {
     InputState.update();
 
@@ -28,4 +37,52 @@ function loop(fieldCanvas: FieldCanvas, activeAutonCreator: AutonCreator) {
     requestAnimationFrame(() => {
         loop(fieldCanvas, activeAutonCreator);
     });
-}
+};
+
+let autonCreator = new AutonCreator();
+initialize(autonCreator);
+$(document).ready(function() {
+    $("#newPath").click(function(){
+        autonCreator.createNewPath();
+    });
+
+    $("#newWaypoint").click(function(){
+        autonCreator.newWaypoint();
+    });
+
+    $("#newSharedWaypoint").click(function(){
+        autonCreator.newSharedWaypoint();
+    });
+
+    $("#removeWaypoint").click(function(){
+        autonCreator.removeWaypoint();
+    });
+
+    $("#exportPath").click(function(){
+        autonCreator.exportPath();
+    });
+
+    $("#sendPath").click(function(){
+        autonCreator.sendPath();
+    });
+
+    $("#close").click(function(){
+        autonCreator.loadConfig();
+    });
+
+    $("#close2").click(function(){
+        autonCreator.loadConfig();
+    });
+
+    $("#tankDrive").click(function(){
+        autonCreator.setSwerve();
+    });
+
+    $("#save").click(function(){
+        autonCreator.saveConfig();
+    });
+
+    $("#save2").click(function(){
+        autonCreator.saveWaypointConfig();
+    });
+});
