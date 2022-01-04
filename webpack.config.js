@@ -35,10 +35,6 @@ module.exports = {
           },
           "sass-loader",
         ],
-      },
-      {
-        test: require.resolve("jquery"),
-        loader: "expose?$!expose?jQuery"
       }
     ]
   },
