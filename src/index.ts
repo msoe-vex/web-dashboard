@@ -2,8 +2,9 @@
 import * as _ from 'lodash';
 
 // Import our styles
+import * as $ from "jquery";
 import './scss/style.scss';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap';
 
 // Project loading/code
 import { AutonCreator } from "./AutonManager";
