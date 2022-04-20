@@ -139,22 +139,83 @@ class Spline {
 		};
 
 		this.calculateThetas = function () { 
+			// Omega - change in rotation (velocity)
+			// Alpha - change in change of rotation (acceleration)
 			this.points[0].omega = 0;
+			this.points[0].theta = this.startAngle;
 			let deltaTime = this.points[this.points.length - 1].time - this.points[0].time;
-			let aveOmega = shortestRotationTo(startWaypoint.angle, endWaypoint.angle) / deltaTime;
-			let alpha = (aveOmega) / (0.5 * deltaTime);
-			for (let i = 1; i < this.points.length; i++) {
-				let relTime = this.points[i].time - this.points[0].time
-				if (relTime < (0.5 * deltaTime)) {
-					this.points[i].omega = alpha * relTime + this.points[0].omega;
-					this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;
+
+			if (savedIsTank) {
+				let isForward = true; // Flag for if the path is forward or reverse
+
+				if (this.points.length >= 2) {
+					let firstPoint = this.points[0]
+					let secondPoint = this.points[1]
+
+					let delta = new point(secondPoint.x - firstPoint.x, secondPoint.y - firstPoint.y)
+					let pointAngle = toDegrees(Math.atan2(delta.y, delta.x))
+
+					if (Math.abs(this.startAngle - pointAngle) > 90) {
+						isForward = false;
+					}
+				}
+
+				if (isForward) {
+					for (let i = 1; i < this.points.length; i++) {
+						// Calculate the relative time in the spline to reach the point
+						let relTime = this.points[i].time - this.points[0].time
+	
+						let previousPoint = this.points[i - 1]
+						let currentPoint = this.points[i]
+						let nextPoint = currentPoint; // Edge case if on the last two points of the path
+						if (i < this.points.length - 1) {
+							nextPoint = this.points[i + 1]
+						}
+	
+						let delta = new point(nextPoint.x - previousPoint.x, nextPoint.y - previousPoint.y)
+	
+						let pointAngle = toDegrees(Math.atan2(delta.y, delta.x))
+	
+						this.points[i].theta = pointAngle
+						this.points[i].ometa = pointAngle - previousPoint.theta
+					}
 				} else {
-					this.points[i].omega = -alpha * relTime + this.points[0].omega + 4 * aveOmega;
-					this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;    
+					for (let i = this.points.length - 2; i >= 0; i--) {
+						// Calculate the relative time in the spline to reach the point
+						let relTime = this.points[i].time - this.points[0].time
+	
+						let previousPoint = this.points[i + 1]
+						let currentPoint = this.points[i]
+						let nextPoint = currentPoint; // Edge case if on the last two points of the path
+						if (i > 0) {
+							nextPoint = this.points[i - 1]
+						}
+	
+						let delta = new point(nextPoint.x - previousPoint.x, nextPoint.y - previousPoint.y)
+	
+						let pointAngle = toDegrees(Math.atan2(delta.y, delta.x))
+	
+						this.points[i].theta = pointAngle
+						this.points[i].ometa = pointAngle - previousPoint.theta
+					}
+				}
+			} else {
+				let aveOmega = shortestRotationTo(startWaypoint.angle, endWaypoint.angle) / deltaTime;
+				let alpha = (aveOmega) / (0.5 * deltaTime);
+				for (let i = 1; i < this.points.length; i++) {
+					let relTime = this.points[i].time - this.points[0].time
+					if (relTime < (0.5 * deltaTime)) {
+						this.points[i].omega = alpha * relTime + this.points[0].omega;
+						this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;
+					} else {
+						this.points[i].omega = -alpha * relTime + this.points[0].omega + 4 * aveOmega;
+						this.points[i].theta = 0.5 * alpha * relTime * relTime + this.points[0].omega + this.points[0].theta;    
+					}
 				}
 			}
-			endWaypoint.omega = this.points[this.points.length-1].omega;
 
+			endWaypoint.omega = this.points[this.points.length-1].omega;
+			this.points[this.points.length-1].theta = this.endAngle
         };
 	}
 }
