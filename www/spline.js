@@ -118,7 +118,7 @@ class Spline {
 			this.points.push(this.get(0)); 
 			this.points[0].theta = startWaypoint.angle; 
 
-			for (let i = stepSize; i < 1; i += stepSize) {
+			for (let i = stepSize; i < (1 - stepSize); i += stepSize) {
 				this.points.push(this.get(i));
 			}
 
@@ -155,7 +155,7 @@ class Spline {
 					let delta = new point(secondPoint.x - firstPoint.x, secondPoint.y - firstPoint.y)
 					let pointAngle = toDegrees(Math.atan2(delta.y, delta.x))
 
-					if (Math.abs(this.startAngle - pointAngle) > 90) {
+					if (Math.abs(this.startAngle - pointAngle) > 90 && Math.abs(this.startAngle - pointAngle) < 270) {
 						isForward = false;
 					}
 				}
