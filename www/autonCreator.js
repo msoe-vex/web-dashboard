@@ -4,7 +4,7 @@ const robotImage = new Image();
 //properties
 const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
-let robotCenterIn = 11;
+let robotCenterIn = robotWidthIn/2;
 
 //constants
 const maxVel = 50;
@@ -27,6 +27,7 @@ const WaypointAction = {
 
 let path = null;
 let paths = [];
+let pathSelector = document.getElementById("pathSelector");
 let sharedWaypoints = [];
 let robotWidth = 0;
 let robotLength = 0;
@@ -60,14 +61,39 @@ $('#pathSelector').on('change', function () {
 });
 
 /**
+ * Renames a path
+ */
+function renamePath() {
+    let name = toCamelCase(prompt("New name for the path"));
+    if (name != "" && name != null) {
+        paths[selectedPath].name = name;
+        pathSelector.options[pathSelector.selectedIndex].text = name;
+    }
+}
+
+/**
+ * Event listener to rename path name on right click
+ */
+pathSelector.addEventListener('contextmenu', function(ev) {
+    ev.preventDefault();
+    renamePath();
+    return false;
+}, false);
+
+/**
  * Creates a new path
  */
 function newPath() {
     let name = prompt("Name the path");
-    let path = new Path(name, maxVel, maxAccel, k);
-    path.newWaypoint(20, 10, 0, 0, "start", 0);
-    path.newWaypoint(30, 70, 0, 0, "end", undefined);
-    selectedPath = addPath(path);
+    if (name != "" && name != null) {
+        let path = new Path(name, maxVel, maxAccel, k);
+        path.newWaypoint(20, 10, 0, 0, "start", 0);
+        path.newWaypoint(30, 70, 0, 0, "end", undefined);
+        selectedPath = addPath(path);
+    } else {
+        // ask again
+        newPath();
+    }
 }
 
 /**
@@ -297,6 +323,7 @@ function saveWaypointConfig() {
  */
 function autonCreatorDataLoop() {
     let fieldHeightPxl = windowHeight;
+    let robotWidthPxl = robotWidthIn * ratio;
     const xinput = $("#x-value");
     const yinput = $("#y-value");
 
@@ -310,13 +337,28 @@ function autonCreatorDataLoop() {
     }
 
     lastSelectedPath = selectedPath;
+    if (fieldMouseRising.l && waypointSelected) {
+        //console.log(selectedWaypoint.angle + 180);
+        //console.log("x: " + ((Math.cos(selectedWaypoint.angle) * (fieldMousePos.x + robotWidthPxl)) + (Math.sin(selectedWaypoint.angle) * (fieldMousePos.y + robotWidthPxl))))
+        //console.log("y: " + ((Math.cos(selectedWaypoint.angle) * (fieldMousePos.y + robotWidthPxl)) - (Math.sin(selectedWaypoint.angle) * (fieldMousePos.x + robotWidthPxl))))
+        console.log("x: " + (robotWidthPxl*Math.cos(toRadians(selectedWaypoint.angle))));
+        console.log("y: " + (robotWidthPxl*Math.sin(toRadians(selectedWaypoint.angle))));
+        //console.log("x: " + (fieldMousePos.x + (robotWidthPxl*Math.cos(toRadians(selectedWaypoint.angle)))));
+        //console.log("y: " + (fieldMousePos.y + (robotWidthPxl*Math.sin(toRadians(selectedWaypoint.angle)))));
 
+    }
+    
     if (fieldMouseRising.l && waypointSelected &&
         path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
     } else if (fieldMouseRising.r && waypointSelected &&
         path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
+    } else if (fieldMouseRising.l && waypointSelected &&
+        path.getClosestWaypoint({x: (fieldMousePos.x + (robotWidthPxl*Math.cos(selectedWaypoint.angle))), y: (fieldMousePos.y + (robotWidthPxl*Math.sin(selectedWaypoint.angle)))}, 5) === selectedWaypointIndex) {
+        waypointAction = WaypointAction.ROTATE;
+        console.log("test");
+
     } else if (fieldMouseRising.l) {
         let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
 
@@ -404,6 +446,22 @@ function perc2color(perc) {
     return '#' + ('000000' + h.toString(16)).slice(-6);
 }
 
+// function to draw circle to canvas
+function drawCircle(ctx, x, y, radius, fill, stroke, strokeWidth) {
+    ctx.beginPath()
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false)
+    if (fill) {
+      ctx.fillStyle = fill
+      ctx.fill()
+    }
+    if (stroke) {
+      ctx.lineWidth = strokeWidth
+      ctx.strokeStyle = stroke
+      ctx.stroke()
+    }
+  }
+  
+
 /**
  * Draws the updated path when actions are done to the selected waypoint
  * Also draws ghosts of any shared waypoints being changed
@@ -447,6 +505,7 @@ function autonCreatorDrawLoop() {
     if (path.getNumWaypoints() > 0) {
         // Draw waypoints
         let waypoints = path.getWaypoints();
+        let opacityRange = document.getElementById("opacityRange");
 
         for (let i in waypoints) {
             let waypoint = waypoints[i];
@@ -462,7 +521,20 @@ function autonCreatorDrawLoop() {
                 fieldContext.shadowColor = 'white';
             }
 
+            fieldContext.globalAlpha = opacityRange.value/100;
             fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+            
+            if (parseInt(i) === selectedWaypointIndex) {
+                fieldContext.globalAlpha = 1;
+                fieldContext.lineWidth = 3;
+                fieldContext.beginPath();
+                fieldContext.moveTo(0, 0);
+                //fieldContext.lineTo(waypoint.y + 5, waypoint.y);
+                fieldContext.lineTo(0, -robotWidthPxl);
+                fieldContext.stroke();
+                drawCircle(fieldContext, 0, -robotWidthPxl, 5, 'black', 'blue', 2);
+            }
+
             fieldContext.restore();
         }
     }
