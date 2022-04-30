@@ -4,7 +4,7 @@ const robotImage = new Image();
 //properties
 const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
-let robotCenterIn = 11;
+let robotCenterIn = robotWidthIn/2;
 
 //constants
 const maxVel = 50;
