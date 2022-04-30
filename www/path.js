@@ -168,8 +168,8 @@ class Path {
                             }
                         });
                     });
-                    // this is here because calculateSpeed can only be done on the complete points array and 
-                    this.calculateSpeed();
+                    // this is here because calculateSpeed can only be done on the complete points array and
+                    this.calculateSpeed(); 
                     regenerate = false;
                     this.waypoints[0].omega = 0;
                     // calculateTime and calulateThetas depend on speed and time
@@ -189,7 +189,6 @@ class Path {
                         //     }
                         // }
                     });
-
                     this.calculateSpeedComponents();
                     this.points.forEach((point, i) => {
                         if (i !== 0) {
@@ -235,7 +234,10 @@ class Path {
             //Limit speed around curves based on curvature
             this.points.forEach((point, i) => {
                 if (i !== 0 && i < (self.points.length - 1)) {
-                    let curvature = calculateCurvature(self.points[i - 1], self.points[i], self.points[i + 1]);
+                    let curvature = 0.001;
+                    if (self.points[i].splineNum === self.points[i+1].splineNum && self.points[i].splineNum === self.points[i-1].splineNum) {
+                        curvature = calculateCurvature(self.points[i - 1], self.points[i], self.points[i + 1]);
+                    }
                     let current_speed = point.speed || self.maxVel;
                     if (curvature === 0 || isNaN(curvature)) {
                         point.speed = current_speed;
