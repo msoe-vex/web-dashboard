@@ -337,15 +337,15 @@ function autonCreatorDataLoop() {
     }
 
     lastSelectedPath = selectedPath;
-    if (fieldMouseRising.l && waypointSelected) {
-        //console.log(selectedWaypoint.angle + 180);
-        //console.log("x: " + ((Math.cos(selectedWaypoint.angle) * (fieldMousePos.x + robotWidthPxl)) + (Math.sin(selectedWaypoint.angle) * (fieldMousePos.y + robotWidthPxl))))
-        //console.log("y: " + ((Math.cos(selectedWaypoint.angle) * (fieldMousePos.y + robotWidthPxl)) - (Math.sin(selectedWaypoint.angle) * (fieldMousePos.x + robotWidthPxl))))
-        console.log("x: " + (robotWidthPxl*Math.cos(toRadians(selectedWaypoint.angle))));
-        console.log("y: " + (robotWidthPxl*Math.sin(toRadians(selectedWaypoint.angle))));
-        //console.log("x: " + (fieldMousePos.x + (robotWidthPxl*Math.cos(toRadians(selectedWaypoint.angle)))));
-        //console.log("y: " + (fieldMousePos.y + (robotWidthPxl*Math.sin(toRadians(selectedWaypoint.angle)))));
-
+    
+    // shifts mouse position from rotation ball to selected waypoint position for closest waypoint check
+    let adjustedMousePosPxl = {x: 0, y: 0};
+    if (waypointSelected) {
+        fieldMousePosIn = pixelsToInches(fieldMousePos);
+        rotateBack = rotatePoint(selectedWaypoint.x, selectedWaypoint.y, fieldMousePosIn.x,
+            fieldMousePosIn.y, selectedWaypoint.angle - 180);
+        positionBack = {x: rotateBack.x + robotWidthIn, y: rotateBack.y};
+        adjustedMousePosPxl = inchesToPixels(positionBack);
     }
     
     if (fieldMouseRising.l && waypointSelected &&
@@ -355,10 +355,8 @@ function autonCreatorDataLoop() {
         path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
     } else if (fieldMouseRising.l && waypointSelected &&
-        path.getClosestWaypoint({x: (fieldMousePos.x + (robotWidthPxl*Math.cos(selectedWaypoint.angle))), y: (fieldMousePos.y + (robotWidthPxl*Math.sin(selectedWaypoint.angle)))}, 5) === selectedWaypointIndex) {
+        path.getClosestWaypoint(adjustedMousePosPxl, 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
-        console.log("test");
-
     } else if (fieldMouseRising.l) {
         let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
 
@@ -532,7 +530,7 @@ function autonCreatorDrawLoop() {
                 //fieldContext.lineTo(waypoint.y + 5, waypoint.y);
                 fieldContext.lineTo(0, -robotWidthPxl);
                 fieldContext.stroke();
-                drawCircle(fieldContext, 0, -robotWidthPxl, 5, 'black', 'blue', 2);
+                drawCircle(fieldContext, 0, -robotWidthPxl, 10, 'black', 'blue', 2);
             }
 
             fieldContext.restore();

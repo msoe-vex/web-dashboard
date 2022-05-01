@@ -32,3 +32,13 @@ function shortestRotationTo (target, current) {
 	counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0);
 	return (Math.abs(clockwiseMove) < Math.abs(counterClockwiseMove) ? -clockwiseMove : counterClockwiseMove);
 }
+
+// from https://stackoverflow.com/a/17411276
+function rotatePoint(cx, cy, x, y, angle) {
+    var radians = toRadians(angle),
+        cos = Math.cos(radians),
+        sin = Math.sin(radians),
+        nx = (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        ny = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+    return {x: nx, y: ny};
+}
