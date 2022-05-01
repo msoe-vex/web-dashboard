@@ -102,15 +102,6 @@ function renamePath() {
 }
 
 /**
- * Event listener to rename path name on right click
- */
-pathSelector.addEventListener('contextmenu', function(ev) {
-    ev.preventDefault();
-    renamePath();
-    return false;
-}, false);
-
-/**
  * Creates a new path
  */
 function newPath() {
