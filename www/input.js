@@ -54,6 +54,32 @@ canvas.addEventListener('mouseup', function (evt) {
 }, false);
 
 canvas.addEventListener('keydown', function (evt) {
+	if (evt.ctrlKey && evt.key === "z") {
+		fieldKeyboard.undo = true;
+	}
+}, false);
+
+canvas.addEventListener('keyup', function (evt) {
+	if (evt.ctrlKey && evt.key === "z") {
+		fieldKeyboard.undoWait = false;
+		fieldKeyboard.undo = false;
+	}
+}, false)
+
+canvas.addEventListener('keydown', function (evt) {
+	if (evt.ctrlKey && evt.key === "y") {
+		fieldKeyboard.redo = true;
+	}
+}, false);
+
+canvas.addEventListener('keyup', function (evt) {
+	if (evt.ctrlKey && evt.key === "y") {
+		fieldKeyboard.redoWait = false;
+		fieldKeyboard.redo = false;
+	}
+}, false)
+
+canvas.addEventListener('keydown', function (evt) {
 	if (evt.key === "Shift") {
 		fieldKeyboard.shift = true;
 	} else if (evt.key === "Control") {
