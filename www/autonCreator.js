@@ -26,6 +26,8 @@ const WaypointAction = {
     NONE: 4
 };
 
+let prevWaypointAction = WaypointAction.NONE;
+
 let path = null;
 let paths = [];
 let sharedWaypoints = [];
@@ -43,6 +45,9 @@ let tempMousePos = null;
 let tempSelected = null;
 
 let waypointAction = WaypointAction.NONE;
+
+fieldKeyboard.undoWait = false;
+fieldKeyboard.redoWait = false;
 
 /**
  * Adds new path to the path selector
@@ -100,8 +105,7 @@ function setSwerve() {
  * @param shared - true if waypoint is shared
  */
 function newWaypoint(x, y, angle, spline_angle, name, speed, shared) {
-    path.newWaypoint(x, y, angle, spline_angle, name, speed, shared);
-    historyStack.push({"Action":"NewWaypoint", "Name":name})
+    path.newWaypoint(x, y, angle, spline_angle, name, speed, shared, undefined, true);
 }
 
 /**
@@ -166,8 +170,8 @@ function loadSharedButtons() {
 function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
-            path.removeWaypoint(selectedWaypointIndex);
-            historyStack.push({"Action":"DeleteWaypoint", "Name":path.getWaypoint(selectedWaypointIndex).name})
+            path.removeWaypoint(selectedWaypointIndex, true);
+
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
                 waypointSelected = false;
@@ -175,8 +179,7 @@ function removeWaypoint() {
                 selectedWaypointIndex--;
             }
         } else {
-            path.removeWaypoint();
-            historyStack.push({"Action":"DeleteWaypoint", "Name":path.getWaypoint(path.getNumWaypoints()-1).name})
+            path.removeWaypoint(undefined, true);
         }
     }
 }
@@ -312,6 +315,16 @@ function autonCreatorDataLoop() {
         waypointAction = WaypointAction.NONE;
     }
 
+    if (fieldKeyboard.undo && fieldKeyboard.undoWait === false) {
+        path.undoAction()
+        fieldKeyboard.undoWait = true;
+    }
+
+    if (fieldKeyboard.redo && fieldKeyboard.redoWait === false) {
+        path.redoAction()
+        fieldKeyboard.redoWait = true;
+    }
+
     lastSelectedPath = selectedPath;
 
     if (fieldMouseRising.l && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
@@ -362,8 +375,8 @@ function autonCreatorDataLoop() {
 
     switch (waypointAction) {
         case WaypointAction.MOVE:
-            selectedWaypoint.x = mousePos.x;
-            selectedWaypoint.y = mousePos.y;
+            path.setWaypointXY(selectedWaypointIndex, mousePos.x, mousePos.y, prevWaypointAction !== WaypointAction.MOVE);
+            prevWaypointAction = WaypointAction.MOVE;
             xinput.val(selectedWaypoint.x);
             yinput.val(selectedWaypoint.y);
             fieldCanvas.style.cursor = cursors.move;
@@ -375,22 +388,25 @@ function autonCreatorDataLoop() {
                 angle1 = Math.round(angle1 / 15) * 15;
             }
 
+            const undoable = prevWaypointAction !== WaypointAction.ROTATE;
+
             // Move spline only
             if (fieldKeyboard.shift && !savedIsTank) {
                 // Swerve - Update spline only with right click shift
-                selectedWaypoint.spline_angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "spline", undoable);
             } else if (!savedIsTank) {
                 // Swerve - Update Robot only with right click
-                selectedWaypoint.angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "angle", undoable);
             } else {
                 // Tank - Update both spine and robot angles
-                selectedWaypoint.angle = angle1;
-                selectedWaypoint.spline_angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "both", undoable);
             }
             fieldCanvas.style.cursor = cursors.crosshair;
+            prevWaypointAction = WaypointAction.ROTATE;
             break;
         case WaypointAction.NONE:
             fieldCanvas.style.cursor = cursors.default;
+            prevWaypointAction = WaypointAction.NONE;
             break;
     }
 }
@@ -641,6 +657,14 @@ function connectToRobot() {
             ws = new WebSocket('ws://10.20.62.2:5810/path');
         }
     }
+}
+
+function undoAction() {
+    path.undoAction();
+}
+
+function redoAction() {
+    path.redoAction();
 }
 
 /**
