@@ -6,10 +6,9 @@ const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
 let robotCenterIn = robotWidthIn/2;
 
-//constants
-const maxVel = 50;
-const maxAccel = 100;
-const k = 3;
+let maxVel = 50;
+let maxAccel = 100;
+let k = 3;
 
 let ratio = 1;
 
@@ -25,12 +24,18 @@ const WaypointAction = {
     NONE: 3
 };
 
+let prevWaypointAction = WaypointAction.NONE;
+
 let path = null;
 let paths = [];
 let pathSelector = document.getElementById("pathSelector");
 let sharedWaypoints = [];
 let robotWidth = 0;
 let robotLength = 0;
+
+// Twenty Four Pixel Coefficient Addition
+let TFPCA = 0; 
+
 let robotName = "";
 let isTank = true;
 let savedIsTank = isTank;
@@ -38,7 +43,14 @@ let savedIsTank = isTank;
 let selectedPath = -1;
 let lastSelectedPath = -1;
 
+let historyStack = [];
+let tempMousePos = null;
+let tempSelected = null;
+
 let waypointAction = WaypointAction.NONE;
+
+fieldKeyboard.undoWait = false;
+fieldKeyboard.redoWait = false;
 
 /**
  * Adds new path to the path selector and sets it as the selected path.
@@ -121,7 +133,7 @@ function setSwerve() {
  * @param shared - true if waypoint is shared
  */
 function newWaypoint(x, y, angle, spline_angle, name, speed, shared) {
-    path.newWaypoint(x, y, angle, spline_angle, name, speed, shared);
+    path.newWaypoint(x, y, angle, spline_angle, name, speed, shared, undefined, true);
 }
 
 /**
@@ -135,6 +147,7 @@ function newSharedWaypoint() {
         let newShared = path.newWaypoint(undefined, undefined, undefined, undefined, name, undefined, true);
         sharedWaypoints.push(newShared);
         newSharedButton(name);
+        historyStack.push({"Action":"NewWaypoint", "Name":name})
     }
 }
 
@@ -185,7 +198,7 @@ function loadSharedButtons() {
 function removeWaypoint() {
     if (path.getNumWaypoints() > 0) {
         if (waypointSelected) {
-            path.removeWaypoint(selectedWaypointIndex);
+            path.removeWaypoint(selectedWaypointIndex, true);
 
             if (path.getNumWaypoints() === 0) {
                 selectedWaypointIndex = -1;
@@ -198,7 +211,7 @@ function removeWaypoint() {
                 selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
             }
         } else {
-            path.removeWaypoint();
+            path.removeWaypoint(undefined, true);
         }
     }
 }
@@ -208,7 +221,7 @@ function removeWaypoint() {
  */
 function autonCreatorInit() {
     //connectToRobot();
-    let firstPath = new Path("TestPath", maxVel, maxAccel, k); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
+    let firstPath = new Path("TestPath", maxVel, maxAccel, k);
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
@@ -242,6 +255,9 @@ function loadConfig() {
     $("#robotLength").val(robotLength);
     $("#robotWidth").val(robotWidth);
     $("#robotName").val(robotName);
+    $("#maxAccel").val(maxAccel);
+    $("#maxVel").val(maxVel);
+    $("#kPoints").val(k);
     isTank = savedIsTank;
     $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
 }
@@ -253,6 +269,12 @@ function saveConfig() {
     robotLength = $("#robotLength").val();
     robotWidth = $("#robotWidth").val();
     robotName = $("#robotName").val();
+    maxAccel = $("#maxAccel").val();
+    maxVel = $("#maxVel").val();
+    k = $("#kPoints").val();
+    if (robotWidth == 24 && robotLength == 24) {
+        TFPCA = 20;
+    }
     savedIsTank = isTank;
     $("#myModal").modal("hide");
 }
@@ -336,6 +358,16 @@ function autonCreatorDataLoop() {
         waypointAction = WaypointAction.NONE;
     }
 
+    if (fieldKeyboard.undo && fieldKeyboard.undoWait === false) {
+        path.undoAction()
+        fieldKeyboard.undoWait = true;
+    }
+
+    if (fieldKeyboard.redo && fieldKeyboard.redoWait === false) {
+        path.redoAction()
+        fieldKeyboard.redoWait = true;
+    }
+
     lastSelectedPath = selectedPath;
     
     // shifts mouse position from rotation ball to selected waypoint position for closest waypoint check
@@ -351,12 +383,17 @@ function autonCreatorDataLoop() {
     if (fieldMouseRising.l && waypointSelected &&
         path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
-    } else if (fieldMouseRising.r && waypointSelected &&
-        path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
+    } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
     } else if (fieldMouseRising.l && waypointSelected &&
         path.getClosestWaypoint(adjustedMousePosPxl, 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
     } else if (fieldMouseRising.l) {
         let selectedIndex = path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2);
 
@@ -387,6 +424,12 @@ function autonCreatorDataLoop() {
             removeWaypoint();
     } else if (fieldMouseFalling.l || fieldMouseFalling.r || !waypointSelected) {
         waypointAction = WaypointAction.NONE;
+        if (fieldMouseFalling.l && waypointSelected && tempMousePos != fieldMousePos && tempSelected == waypointSelected) {
+            historyStack.push({"Action":"AddMove", "x":selectedWaypoint.x, "y":selectedWaypoint.y})
+        }
+        if (fieldMouseFalling.r && waypointSelected && tempMousePos != fieldMousePos && tempSelected == waypointSelected) {
+            historyStack.push({"Action":"AddRotate", "angle":selectedWaypoint.angle})
+        }
     }
 
     // update data
@@ -394,8 +437,8 @@ function autonCreatorDataLoop() {
 
     switch (waypointAction) {
         case WaypointAction.MOVE:
-            selectedWaypoint.x = mousePos.x;
-            selectedWaypoint.y = mousePos.y;
+            path.setWaypointXY(selectedWaypointIndex, mousePos.x, mousePos.y, prevWaypointAction !== WaypointAction.MOVE);
+            prevWaypointAction = WaypointAction.MOVE;
             xinput.val(selectedWaypoint.x);
             yinput.val(selectedWaypoint.y);
             fieldCanvas.style.cursor = cursors.move;
@@ -407,22 +450,25 @@ function autonCreatorDataLoop() {
                 angle1 = Math.round(angle1 / 15) * 15;
             }
 
+            const undoable = prevWaypointAction !== WaypointAction.ROTATE;
+
             // Move spline only
             if (fieldKeyboard.shift && !savedIsTank) {
                 // Swerve - Update spline only with right click shift
-                selectedWaypoint.spline_angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "spline", undoable);
             } else if (!savedIsTank) {
                 // Swerve - Update Robot only with right click
-                selectedWaypoint.angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "angle", undoable);
             } else {
                 // Tank - Update both spine and robot angles
-                selectedWaypoint.angle = angle1;
-                selectedWaypoint.spline_angle = angle1;
+                path.setWaypointAngle(selectedWaypointIndex, angle1, "both", undoable);
             }
             fieldCanvas.style.cursor = cursors.crosshair;
+            prevWaypointAction = WaypointAction.ROTATE;
             break;
         case WaypointAction.NONE:
             fieldCanvas.style.cursor = cursors.default;
+            prevWaypointAction = WaypointAction.NONE;
             break;
     }
 }
@@ -465,9 +511,9 @@ function drawCircle(ctx, x, y, radius, fill, stroke, strokeWidth) {
  * Also draws ghosts of any shared waypoints being changed
  */
 function autonCreatorDrawLoop() {
-    let robotWidthPxl = robotWidthIn * ratio;
-    let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
-    let robotCenterPxl = robotCenterIn * ratio;
+    let robotWidthPxl = (robotWidthIn * ratio) + TFPCA;
+    let robotHeightPxl = (robotWidthPxl * (robotImage.height / robotImage.width)) + TFPCA;
+    let robotCenterPxl = robotCenterIn * ratio + TFPCA;
     let fieldWidthPxl = fieldWidthIn * ratio;
     let fieldHeightPxl = fieldWidthPxl * (fieldImage.height / fieldImage.width);
 
@@ -649,7 +695,10 @@ function pathAsText(pretty) {
             robotName,
             robotWidth,
             robotLength,
-            savedIsTank
+            savedIsTank,
+            maxAccel,
+            maxVel,
+            k
         },
         paths: paths
     };
@@ -686,6 +735,9 @@ function loadPath(path) {
     robotName = json.robot.robotName;
     isTank = json.robot.savedIsTank;
     savedIsTank = json.robot.savedIsTank;
+    k = json.robot.k;
+    maxAccel = json.robot.maxAccel;
+    maxVel = json.robot.maxVel;
     sharedWaypoints = json.sharedWaypoints;
 
     loadConfig();
@@ -714,6 +766,14 @@ function connectToRobot() {
             ws = new WebSocket('ws://10.20.62.2:5810/path');
         }
     }
+}
+
+function undoAction() {
+    path.undoAction();
+}
+
+function redoAction() {
+    path.redoAction();
 }
 
 /**
