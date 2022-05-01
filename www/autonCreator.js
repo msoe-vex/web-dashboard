@@ -32,6 +32,10 @@ let paths = [];
 let sharedWaypoints = [];
 let robotWidth = 0;
 let robotLength = 0;
+
+// Twenty Four Pixel Coefficient Addition
+let TFPCA = 0; 
+
 let robotName = "";
 let isTank = true;
 let savedIsTank = isTank;
@@ -237,6 +241,9 @@ function saveConfig() {
     robotLength = $("#robotLength").val();
     robotWidth = $("#robotWidth").val();
     robotName = $("#robotName").val();
+    if (robotWidth == 24 && robotLength == 24) {
+        TFPCA = 20;
+    }
     savedIsTank = isTank;
     $("#myModal").modal("hide");
 }
@@ -441,9 +448,9 @@ function perc2color(perc) {
  * Also draws ghosts of any shared waypoints being changed
  */
 function autonCreatorDrawLoop() {
-    let robotWidthPxl = robotWidthIn * ratio;
-    let robotHeightPxl = robotWidthPxl * (robotImage.height / robotImage.width);
-    let robotCenterPxl = robotCenterIn * ratio;
+    let robotWidthPxl = (robotWidthIn * ratio) + TFPCA;
+    let robotHeightPxl = (robotWidthPxl * (robotImage.height / robotImage.width)) + TFPCA;
+    let robotCenterPxl = robotCenterIn * ratio + TFPCA;
     let fieldWidthPxl = fieldWidthIn * ratio;
     let fieldHeightPxl = fieldWidthPxl * (fieldImage.height / fieldImage.width);
 
