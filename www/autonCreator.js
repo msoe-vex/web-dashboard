@@ -28,6 +28,8 @@ let prevWaypointAction = WaypointAction.NONE;
 
 let path = null;
 let paths = [];
+let robotOpacity = localStorage.hasOwnProperty("robotOpacity") ? localStorage.getItem("robotOpacity") : 1.0;
+let rotationBall = localStorage.hasOwnProperty("toggleRotationBall") ? localStorage.getItem("toggleRotationBall") : true;
 let pathSelector = document.getElementById("pathSelector");
 let sharedWaypoints = [];
 let robotWidth = 0;
@@ -51,6 +53,22 @@ let waypointAction = WaypointAction.NONE;
 
 fieldKeyboard.undoWait = false;
 fieldKeyboard.redoWait = false;
+
+/**
+ * Update robot's opacity when slider is changed
+ */
+function changeOpacity() {
+    robotOpacity = document.getElementById("opacityRange").value/100;
+    localStorage.setItem("robotOpacity", robotOpacity);
+}
+
+/**
+ * Toggle rotational ball when checkbox is changed
+ */
+function toggleRotationBall() {
+    rotationBall = document.getElementById("rotationBallCheckbox").checked;
+    localStorage.setItem("toggleRotationBall", rotationBall);
+}
 
 /**
  * Adds new path to the path selector and sets it as the selected path.
@@ -389,7 +407,7 @@ function autonCreatorDataLoop() {
         waypointAction = WaypointAction.ROTATE;
         tempMousePos = fieldMousePos;
         tempSelected = waypointSelected;
-    } else if (fieldMouseRising.l && waypointSelected &&
+    } else if (rotationBall && fieldMouseRising.l && waypointSelected &&
         path.getClosestWaypoint(adjustedMousePosPxl, 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
         tempMousePos = fieldMousePos;
@@ -549,7 +567,6 @@ function autonCreatorDrawLoop() {
     if (path.getNumWaypoints() > 0) {
         // Draw waypoints
         let waypoints = path.getWaypoints();
-        let opacityRange = document.getElementById("opacityRange");
 
         for (let i in waypoints) {
             let waypoint = waypoints[i];
@@ -565,15 +582,14 @@ function autonCreatorDrawLoop() {
                 fieldContext.shadowColor = 'white';
             }
 
-            fieldContext.globalAlpha = opacityRange.value/100;
+            fieldContext.globalAlpha = robotOpacity;
             fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
             
-            if (parseInt(i) === selectedWaypointIndex) {
-                fieldContext.globalAlpha = 1;
+            // draw rotation ball
+            if (rotationBall && parseInt(i) === selectedWaypointIndex) {
                 fieldContext.lineWidth = 3;
                 fieldContext.beginPath();
                 fieldContext.moveTo(0, 0);
-                //fieldContext.lineTo(waypoint.y + 5, waypoint.y);
                 fieldContext.lineTo(0, -robotWidthPxl);
                 fieldContext.stroke();
                 drawCircle(fieldContext, 0, -robotWidthPxl, 10, 'black', 'blue', 2);
@@ -652,7 +668,7 @@ function autonCreatorDrawLoop() {
                     fieldContext.save();
                     fieldContext.translate(waypointPos.x, waypointPos.y);
                     fieldContext.rotate(toRadians(-waypointRotation + 180)); // same logic as above
-                    fieldContext.globalAlpha = 0.5;
+                    fieldContext.globalAlpha = 0.5*robotOpacity;
                     fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
                     fieldContext.restore();
                 }
