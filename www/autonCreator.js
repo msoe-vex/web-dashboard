@@ -6,10 +6,9 @@ const fieldWidthIn = 143.04;
 let robotWidthIn = 14.5;
 let robotCenterIn = robotWidthIn/2;
 
-//constants
-const maxVel = 50;
-const maxAccel = 100;
-const k = 3;
+let maxVel = 50;
+let maxAccel = 100;
+let k = 3;
 
 let ratio = 1;
 
@@ -196,7 +195,7 @@ function removeWaypoint() {
  */
 function autonCreatorInit() {
     //connectToRobot();
-    let firstPath = new Path("TestPath", maxVel, maxAccel, k); //TODO: Make it so these can be changed on the GUI, also save them in the json output so they can be loaded later
+    let firstPath = new Path("TestPath", maxVel, maxAccel, k);
     addPath(firstPath);
     fieldImage.src = "images/field.png";
     robotImage.src = "images/robot.png";
@@ -230,6 +229,9 @@ function loadConfig() {
     $("#robotLength").val(robotLength);
     $("#robotWidth").val(robotWidth);
     $("#robotName").val(robotName);
+    $("#maxAccel").val(maxAccel);
+    $("#maxVel").val(maxVel);
+    $("#kPoints").val(k);
     isTank = savedIsTank;
     $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
 }
@@ -241,6 +243,9 @@ function saveConfig() {
     robotLength = $("#robotLength").val();
     robotWidth = $("#robotWidth").val();
     robotName = $("#robotName").val();
+    maxAccel = $("#maxAccel").val();
+    maxVel = $("#maxVel").val();
+    k = $("#kPoints").val();
     if (robotWidth == 24 && robotLength == 24) {
         TFPCA = 20;
     }
@@ -618,7 +623,10 @@ function pathAsText(pretty) {
             robotName,
             robotWidth,
             robotLength,
-            savedIsTank
+            savedIsTank,
+            maxAccel,
+            maxVel,
+            k
         },
         paths: paths
     };
@@ -655,6 +663,9 @@ function loadPath(path) {
     robotName = json.robot.robotName;
     isTank = json.robot.savedIsTank;
     savedIsTank = json.robot.savedIsTank;
+    k = json.robot.k;
+    maxAccel = json.robot.maxAccel;
+    maxVel = json.robot.maxVel;
     sharedWaypoints = json.sharedWaypoints;
 
     loadConfig();
