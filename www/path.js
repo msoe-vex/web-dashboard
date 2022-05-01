@@ -26,6 +26,11 @@ class Path {
         let splines = [];
         this.points = [];
         let self = this;
+
+        this.actionStack = [];
+
+        this.redoStack = [];
+
         //let duplicateIndices = [];
         let debugMode = true;
 
@@ -54,7 +59,123 @@ class Path {
             return this.maxAccel;
         };
 
-        this.newWaypoint = function (x, y, angle, spline_angle, name, speed, shared, index) {
+        this.undoAction = function () {
+            if (this.actionStack.length > 0) {
+                let action = this.actionStack.pop();
+                if (action.type === "add") {
+                    this.removeWaypoint(action.index, false);
+                } else if (action.type === "remove") {
+                    if (action.index === this.waypoints.length) {
+                        this.newWaypoint(action.waypoint.x, action.waypoint.y, action.waypoint.angle, action.waypoint.spline_angle, action.waypoint.name, action.waypoint.speed, action.waypoint.shared, action.index, false);
+                    } else {
+                        this.modifiedNewWaypoint(action.waypoint, action.index);
+                    }
+                } else if (action.type === "move") {
+                    this.setWaypointXY(action.index, action.x, action.y, false);
+                } else if (action.type === "rotate") {
+                    if (action.spline_or_angle === "spline") {
+                        this.setWaypointAngle(action.index, action.spline_angle, "spline", false);
+                    } else if (action.spline_or_angle === "angle") {
+                        this.setWaypointAngle(action.index, action.angle, "angle", false);
+                    } else {
+                        this.setWaypointAngle(action.index, action.angle, "both", false);
+                    }
+                }
+                this.redoStack.push(action);
+            } 
+        }
+
+        this.redoAction = function () {
+            if (this.redoStack.length > 0) {
+                let action = this.redoStack.pop();
+                if (action.type === "add") {
+                    this.newWaypoint(action.waypoint.x, action.waypoint.y, action.waypoint.angle, action.waypoint.spline_angle, action.waypoint.name, action.waypoint.speed, action.waypoint.shared, action.index, false);
+                } else if (action.type === "remove") {
+                    this.removeWaypoint(action.index, false);
+                } else if (action.type === "move") {
+                    this.setWaypointXY(action.index, action.x, action.y, false);
+                } else if (action.type === "rotate") {
+                    if (action.spline_or_angle === "spline") {
+                        this.setWaypointAngle(action.index, action.spline_angle, "spline", false);
+                    } else if (action.spline_or_angle === "angle") {
+                        this.setWaypointAngle(action.index, action.angle, "angle", false);
+                    } else {
+                        this.setWaypointAngle(action.index, action.angle, "both", false);
+                    }
+                }
+                this.actionStack.push(action);
+            }
+        }
+
+
+        this.setWaypointAngle = function (index, angle, spline_or_angle, undoable) {
+            let waypoint = this.waypoints[index];
+            const old_angle = waypoint.angle;
+            const old_spline_angle = waypoint.spline_angle;
+            if (spline_or_angle === "spline") {
+                waypoint.spline_angle = angle;
+            } else if (spline_or_angle === "angle") {
+                waypoint.angle = angle;
+            } else {
+                waypoint.angle = angle;
+                waypoint.spline_angle = angle;
+            }
+            if (undoable) {
+                this.actionStack.push({
+                    type: "rotate",
+                    index: index,
+                    angle: old_angle,
+                    spline_angle: old_spline_angle,
+                    spline_or_angle: spline_or_angle
+                });
+            }
+            regenerate = true;
+        }
+
+
+        this.setWaypointXY = function (index, x, y, undoable) {
+            if (undoable) {
+                this.actionStack.push({"type": "move", "index": index, "x": this.waypoints[index].x, "y": this.waypoints[index].y});
+            }
+            let waypoint = this.waypoints[index];
+            waypoint.y = y;
+            waypoint.x = x;
+            regenerate = true;
+        }
+
+        this.modifiedNewWaypoint = function (waypoint, index) {
+            let newWaypoint = new Waypoint(waypoint.x, waypoint.y, waypoint.angle, waypoint.spline_angle, waypoint.name, waypoint.speed, waypoint.shared, index);
+            let prevWaypoint;
+            if (index > 0) {
+                prevWaypoint = this.waypoints[index - 1];
+            } 
+            if (prevWaypoint) {
+                splines.splice(index-1, 1);
+                let newPrevSpline = new Spline(prevWaypoint, newWaypoint);
+                newPrevSpline.startAngle = prevWaypoint.angle;
+                newPrevSpline.endAngle = newWaypoint.angle;
+                splines[index - 1] = newPrevSpline;
+                let newSpline = new Spline(newWaypoint, this.waypoints[index]);
+                newSpline.startAngle = newWaypoint.angle;
+                newSpline.endAngle = this.waypoints[index].angle;
+                splines.splice(index, 0, newSpline);
+                let newPostSpline = new Spline(this.waypoints[index], this.waypoints[index+1]);
+                newPostSpline.startAngle = this.waypoints[index].angle;
+                newPostSpline.endAngle = this.waypoints[index+1].angle;
+                splines.splice(index+1, 0, newPostSpline);
+            } else {
+                let newSpline = new Spline(newWaypoint, this.waypoints[index]);
+                newSpline.startAngle = newWaypoint.angle;
+                newSpline.endAngle = this.waypoints[index].angle;
+                splines.splice(index, 0, newSpline);
+            }
+
+            this.waypoints.splice(index, 0, newWaypoint);
+
+            regenerate = true;
+        }
+
+        this.newWaypoint = function (x, y, angle, spline_angle, name, speed, shared, index, undoable) {
             if (index === undefined) {
                 index = this.waypoints.length - 1;
             }
@@ -93,13 +214,18 @@ class Path {
                 }
                 splines.push(newSpline);
             }
-
+            
+            if (undoable) {
+                this.actionStack.push({"type": "add", "waypoint": newWaypoint, "index": index + 1});
+            }
             regenerate = true;
             return newWaypoint;
         };
 
-        this.removeWaypoint = function (index) {
+        this.removeWaypoint = function (index, undoable) {
+            let removedWaypoint = null
             if (index !== undefined) {
+                removedWaypoint = this.waypoints[index];
                 this.waypoints.splice(index, 1);
                 if(this.waypoints.length === index) {
                     splines.splice(index - 1, 1);
@@ -113,10 +239,13 @@ class Path {
                     splines[index - 1] = newSpline;
                 }
             } else {
-                this.waypoints.pop();
+                removedWaypoint = this.waypoints.pop();
+                index = this.waypoints.length;
                 splines.pop();
             }
-
+            if (undoable) {
+                this.actionStack.push({"type": "remove", "waypoint": removedWaypoint, "index": index});
+            }
             regenerate = true;
         };
 
@@ -282,6 +411,7 @@ class Path {
             });
         };
 
+        // TODO: use for history stack
         this.getWaypointIndexByName = function (name) {
             for (let i in this.waypoints) {
                 if (name === this.waypoints[i].name) {
