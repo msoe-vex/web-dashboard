@@ -65,6 +65,16 @@ function addPath(path) {
     return index;
 }
 
+function deletePath() {
+    if (paths.length > 1) {
+        const pathIndex = $("#pathSelector").val();
+        console.log(pathIndex)
+        paths.splice(pathIndex, 1);
+        $(`#pathSelector option[value='${pathIndex}']`).remove();
+        selectedPath = pathIndex > 0 ? pathIndex - 1 : 0;
+    }
+}
+
 /**
  * Allows user to change the selected path
  */
