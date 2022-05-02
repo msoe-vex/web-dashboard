@@ -446,7 +446,18 @@ function autonCreatorDataLoop() {
 
     switch (waypointAction) {
         case WaypointAction.MOVE:
-            path.setWaypointXY(selectedWaypointIndex, mousePos.x, mousePos.y, prevWaypointAction !== WaypointAction.MOVE);
+
+            // snap to tile edges
+            tileWidthIn = fieldWidthIn/6
+            snapPos = mousePos;
+            if (fieldKeyboard.control) {
+                snapPos.x = Math.round(mousePos.x / tileWidthIn) * tileWidthIn;
+            }
+            if (fieldKeyboard.shift) {
+                snapPos.y = Math.round(mousePos.y / tileWidthIn) * tileWidthIn;
+            }
+
+            path.setWaypointXY(selectedWaypointIndex, snapPos.x, snapPos.y, prevWaypointAction !== WaypointAction.MOVE);
             prevWaypointAction = WaypointAction.MOVE;
             xinput.val(selectedWaypoint.x);
             yinput.val(selectedWaypoint.y);
