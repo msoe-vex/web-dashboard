@@ -30,7 +30,6 @@ let path = null;
 let paths = [];
 let robotOpacity = localStorage.hasOwnProperty("robotOpacity") ? localStorage.getItem("robotOpacity") : 1.0;
 let rotationBall = localStorage.hasOwnProperty("toggleRotationBall") ? localStorage.getItem("toggleRotationBall") : true;
-let pathSelector = document.getElementById("pathSelector");
 let sharedWaypoints = [];
 let robotWidth = 0;
 let robotLength = 0;
@@ -53,6 +52,13 @@ let waypointAction = WaypointAction.NONE;
 
 fieldKeyboard.undoWait = false;
 fieldKeyboard.redoWait = false;
+
+// Elements
+let pathSelector = document.getElementById("pathSelector");
+const xinput = document.getElementById("x-value");
+const yinput = document.getElementById("y-value");
+const nameWaypointButton = document.getElementById("nameWaypointButton");
+
 
 /**
  * Update robot's opacity when slider is changed
@@ -77,16 +83,14 @@ function toggleRotationBall() {
 function addPath(path) {
     paths.push(path);
     let index = paths.length - 1;
-    $('#pathSelector').append($('<option/>', {
-        value: index
-    }).text(path.name).attr('selected', 'selected'));
+    pathSelector.add(new Option(path.name, index, false, true));
     return index;
 }
 
 /**
  * Allows user to change the selected path
  */
-$('#pathSelector').on('change', function () {
+pathSelector.addEventListener("change", function () {
     selectedPath = this.value;
 });
 
@@ -122,10 +126,11 @@ function newPath() {
  * Toggle button in the config menu
  */
 function setSwerve() {
+    swerveTankToggle = document.getElementById("swerveTankToggle");
     if (isTank) {
-        $("#swerveTankToggle").text("Swerve Drive");
+        swerveTankToggle.textContent = "Swerve Drive";
     } else {
-        $("#swerveTankToggle").text("Tank Drive");
+        swerveTankToggle.textContent = "Tank Drive";
     }
     isTank = !isTank;
 }
@@ -165,8 +170,9 @@ function newSharedWaypoint() {
  * @param name - name of the new button
  */
 function newSharedButton(name) {
-    let buttonList = $("#waypointsList");
-    let button = $("<button>" + name + "</button>");
+    let buttonList = document.getElementById("waypointsList");
+    let button = document.createElement('button');
+    button.textContent = name;
     // Function runs if dynamically created shared waypoint button is pressed
     const clickShared = (name) => {
         let inPath = false;
@@ -183,12 +189,12 @@ function newSharedButton(name) {
             })
         }
     };
-    button.attr("type", "button");
-    button.attr("class", "sharedWaypoint btn btn-block btn-secondary");
-    button.attr("data-trigger", "hover");
-    button.attr("data-toggle", "popover");
-    button.click(() => clickShared(name));
-    buttonList.append(button);
+    button.setAttribute("type", "button");
+    button.setAttribute("class", "sharedWaypoint btn btn-block btn-secondary");
+    button.setAttribute("data-trigger", "hover");
+    button.setAttribute("data-toggle", "popover");
+    button.addEventListener("click", function () { clickShared(name) });
+    buttonList.appendChild(button);
 }
 
 /**
@@ -261,26 +267,26 @@ function autonCreatorInit() {
  * Loads the configuration data into the popup
  */
 function loadConfig() {
-    $("#robotLength").val(robotLength);
-    $("#robotWidth").val(robotWidth);
-    $("#robotName").val(robotName);
-    $("#maxAccel").val(maxAccel);
-    $("#maxVel").val(maxVel);
-    $("#kPoints").val(k);
+    document.getElementById("robotLength").value = robotLength;
+    document.getElementById("robotWidth").value = robotWidth;
+    document.getElementById("robotName").value = robotName;
+    document.getElementById("maxAccel").value = maxAccel;
+    document.getElementById("maxVel").value = maxVel;
+    document.getElementById("kPoints").value = k;
     isTank = savedIsTank;
-    $("#swerveTankToggle").text(isTank ? "Tank Drive" : "Swerve Drive");
+    document.getElementById("swerveTankToggle").textContent = (isTank ? "Tank Drive" : "Swerve Drive");
 }
 
 /**
  * Saves the new configurations
  */
 function saveConfig() {
-    robotLength = $("#robotLength").val();
-    robotWidth = $("#robotWidth").val();
-    robotName = $("#robotName").val();
-    maxAccel = $("#maxAccel").val();
-    maxVel = $("#maxVel").val();
-    k = $("#kPoints").val();
+    robotLength = document.getElementById("robotLength").value;
+    robotWidth = document.getElementById("robotWidth").value;
+    robotName = document.getElementById("robotName").value;
+    maxAccel = document.getElementById("maxAccel").value;
+    maxVel = document.getElementById("maxVel").value;
+    k = document.getElementById("kPoints").value;
     if (robotWidth == 24 && robotLength == 24) {
         TFPCA = 20;
     }
@@ -293,8 +299,8 @@ function saveConfig() {
  * In particular, sets the shown path to the first selected path.
  */
 function loadWaypointConfig() {
-    $("#waypointName").val(selectedWaypoint.name);
-    $("#waypointSpeed").val(selectedWaypoint.speed);
+    document.getElementById("waypointName").value = selectedWaypoint.name;
+    document.getElementById("#waypointSpeed").value = selectedWaypoint.speed;
 }
 
 /**
@@ -302,8 +308,8 @@ function loadWaypointConfig() {
  */
 function saveWaypointConfig() {
     let previousName = selectedWaypoint.name;
-    let newName = $("#waypointName").val();
-    let newSpeed = $("#waypointSpeed").val();
+    let newName = document.getElementById("waypointName").value;
+    let newSpeed = document.getElementById("waypointSpeed").value;
 
     if (newName) {
         selectedWaypoint.name = newName;
@@ -330,13 +336,12 @@ function saveWaypointConfig() {
             }
 
             // Update button
-            let buttonList = $(".sharedWaypoint");
-            buttonList.each(function (index) {
-                let oldName = $(this).text();
-                if (oldName === previousName) {
-                    $(this).text(newName);
+            document.getElementsByClassName("sharedWaypoint").forEach(function () {
+                let oldName = this.textContent;
+                if (oldName == previousName) {
+                    this.textContent = newName;
                 }
-            });
+            })
         }
     }
 
@@ -355,8 +360,6 @@ function saveWaypointConfig() {
 function autonCreatorDataLoop() {
     let fieldHeightPxl = windowHeight;
     let robotWidthPxl = robotWidthIn * ratio;
-    const xinput = $("#x-value");
-    const yinput = $("#y-value");
 
     ratio = fieldHeightPxl / fieldWidthIn * (fieldImage.height / fieldImage.width);
 
@@ -411,22 +414,22 @@ function autonCreatorDataLoop() {
             selectedWaypointIndex = selectedIndex;
             waypointSelected = true;
             selectedWaypoint = path.getWaypoint(selectedWaypointIndex);
-            xinput.prop("disabled", false);
-            yinput.prop("disabled", false);
-            xinput.val(selectedWaypoint.x);
-            yinput.val(selectedWaypoint.y);
+            xinput.toggleAttribute("disabled", false);
+            yinput.toggleAttribute("disabled", false);
+            xinput.value = selectedWaypoint.x;
+            yinput.value = selectedWaypoint.y;
             loadWaypointConfig();
-            $("#nameWaypointButton").prop("disabled", false);
+            nameWaypointButton.toggleAttribute("disabled", false);
         } else {
             //Deselect waypoint
             selectedWaypointIndex = undefined;
             waypointSelected = false;
             selectedWaypoint = undefined;
-            xinput.val("");
-            yinput.val("");
-            xinput.prop("disabled", true);
-            yinput.prop("disabled", true);
-            $("#nameWaypointButton").prop("disabled", true);
+            xinput.value = "";
+            yinput.value = "";
+            xinput.toggleAttribute("disabled", true);
+            yinput.toggleAttribute("disabled", true);
+            nameWaypointButton.toggleAttribute("disabled", true);
         }
         waypointAction = WaypointAction.NONE;
     } else if (fieldKeyboardRising.delete) {
@@ -459,8 +462,8 @@ function autonCreatorDataLoop() {
 
             path.setWaypointXY(selectedWaypointIndex, snapPos.x, snapPos.y, prevWaypointAction !== WaypointAction.MOVE);
             prevWaypointAction = WaypointAction.MOVE;
-            xinput.val(selectedWaypoint.x);
-            yinput.val(selectedWaypoint.y);
+            xinput.value = selectedWaypoint.x;
+            yinput.value = selectedWaypoint.y;
             fieldCanvas.style.cursor = cursors.move;
             break;
         case WaypointAction.ROTATE:
@@ -540,8 +543,15 @@ function autonCreatorDrawLoop() {
     fieldContext.canvas.width = fieldWidthPxl;
     fieldContext.canvas.height = fieldHeightPxl;
 
+    windowDiv = document.getElementById("windowDiv");
     let smallScreen = parseInt(windowWidth) < fieldWidthPxl;
-    $("#windowDiv").toggleClass("justify-content-center", !smallScreen).toggleClass("justify-content-start", smallScreen);
+    if (smallScreen) {
+        windowDiv.classList.add("justify-content-start");
+        windowDiv.classList.remove("justify-content-center");
+    } else {
+        windowDiv.classList.remove("justify-content-start");
+        windowDiv.classList.add("justify-content-center");
+    }
 
     fieldContext.drawImage(fieldImage, 0, 0, fieldWidthPxl, fieldHeightPxl);
 
