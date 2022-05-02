@@ -18,6 +18,7 @@
 <nav class="navbar-vertical navbar-expand-sm bg-light p-0">
     <form class="form-inline py-0">
         <select name="pathSelector" class="custom-select" id="pathSelector"></select>
+        <button type="button" class="btn btn-success" onclick=renamePath()>Rename Path</button>
         <button type="button" class="btn btn-success" onclick=newPath()>New Path</button>
         <button type="button" class="btn btn-success" onclick=newWaypoint()>New Waypoint</button>
         <button type="button" class="btn btn-success" onclick=newSharedWaypoint()>New Shared Waypoint</button>
@@ -137,6 +138,16 @@
                             Tank Drive
                         </button>
                     </div>
+                    <div class="form-group">
+                        <div>
+                            <label for="opacityRange" style="margin-top: 10px">Robot Opacity:</label>
+                        </div>
+                        <input type="range" min="1" max="100" value="100" class="slider" oninput=changeOpacity() id="opacityRange">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="rotationBallCheckbox" onclick=toggleRotationBall() checked>
+                        <label class="form-check-label" for="rotationBallCheckbox">Rotation Ball</label>
+                      </div>
                 </form>
             </div>
             <div class="modal-footer">

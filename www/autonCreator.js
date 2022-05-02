@@ -28,6 +28,9 @@ let prevWaypointAction = WaypointAction.NONE;
 
 let path = null;
 let paths = [];
+let robotOpacity = localStorage.hasOwnProperty("robotOpacity") ? localStorage.getItem("robotOpacity") : 1.0;
+let rotationBall = localStorage.hasOwnProperty("toggleRotationBall") ? localStorage.getItem("toggleRotationBall") : true;
+let pathSelector = document.getElementById("pathSelector");
 let sharedWaypoints = [];
 let robotWidth = 0;
 let robotLength = 0;
@@ -52,6 +55,22 @@ fieldKeyboard.undoWait = false;
 fieldKeyboard.redoWait = false;
 
 /**
+ * Update robot's opacity when slider is changed
+ */
+function changeOpacity() {
+    robotOpacity = document.getElementById("opacityRange").value/100;
+    localStorage.setItem("robotOpacity", robotOpacity);
+}
+
+/**
+ * Toggle rotational ball when checkbox is changed
+ */
+function toggleRotationBall() {
+    rotationBall = document.getElementById("rotationBallCheckbox").checked;
+    localStorage.setItem("toggleRotationBall", rotationBall);
+}
+
+/**
  * Adds new path to the path selector and sets it as the selected path.
  * @param path
  */
@@ -72,14 +91,30 @@ $('#pathSelector').on('change', function () {
 });
 
 /**
+ * Renames a path
+ */
+function renamePath() {
+    let name = toCamelCase(prompt("New name for the path"));
+    if (name != "" && name != null) {
+        paths[selectedPath].name = name;
+        pathSelector.options[pathSelector.selectedIndex].text = name;
+    }
+}
+
+/**
  * Creates a new path
  */
 function newPath() {
     let name = prompt("Name the path");
-    let path = new Path(name, maxVel, maxAccel, k);
-    path.newWaypoint(20, 10, 0, 0, "start", 0);
-    path.newWaypoint(30, 70, 0, 0, "end", undefined);
-    selectedPath = addPath(path);
+    if (name != "" && name != null) {
+        let path = new Path(name, maxVel, maxAccel, k);
+        path.newWaypoint(20, 10, 0, 0, "start", 0);
+        path.newWaypoint(30, 70, 0, 0, "end", undefined);
+        selectedPath = addPath(path);
+    } else {
+        // ask again
+        newPath();
+    }
 }
 
 /**
@@ -319,6 +354,7 @@ function saveWaypointConfig() {
  */
 function autonCreatorDataLoop() {
     let fieldHeightPxl = windowHeight;
+    let robotWidthPxl = robotWidthIn * ratio;
     const xinput = $("#x-value");
     const yinput = $("#y-value");
 
@@ -342,13 +378,28 @@ function autonCreatorDataLoop() {
     }
 
     lastSelectedPath = selectedPath;
-
+    
+    // shifts mouse position from rotation ball to selected waypoint position for closest waypoint check
+    let adjustedMousePosPxl = {x: 0, y: 0};
+    if (waypointSelected) {
+        fieldMousePosIn = pixelsToInches(fieldMousePos);
+        rotateBack = rotatePoint(selectedWaypoint.x, selectedWaypoint.y, fieldMousePosIn.x,
+            fieldMousePosIn.y, selectedWaypoint.angle - 180);
+        positionBack = {x: rotateBack.x + robotWidthIn, y: rotateBack.y};
+        adjustedMousePosPxl = inchesToPixels(positionBack);
+    }
+    
     if (fieldMouseRising.l && waypointSelected &&
         path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.MOVE;
         tempMousePos = fieldMousePos;
         tempSelected = waypointSelected;
     } else if (fieldMouseRising.r && waypointSelected && path.getClosestWaypoint(fieldMousePos, robotWidthIn / 2) === selectedWaypointIndex) {
+        waypointAction = WaypointAction.ROTATE;
+        tempMousePos = fieldMousePos;
+        tempSelected = waypointSelected;
+    } else if (rotationBall && fieldMouseRising.l && waypointSelected &&
+        path.getClosestWaypoint(adjustedMousePosPxl, 2) === selectedWaypointIndex) {
         waypointAction = WaypointAction.ROTATE;
         tempMousePos = fieldMousePos;
         tempSelected = waypointSelected;
@@ -395,7 +446,18 @@ function autonCreatorDataLoop() {
 
     switch (waypointAction) {
         case WaypointAction.MOVE:
-            path.setWaypointXY(selectedWaypointIndex, mousePos.x, mousePos.y, prevWaypointAction !== WaypointAction.MOVE);
+
+            // snap to tile edges
+            tileWidthIn = fieldWidthIn/6
+            snapPos = mousePos;
+            if (fieldKeyboard.control) {
+                snapPos.x = Math.round(mousePos.x / tileWidthIn) * tileWidthIn;
+            }
+            if (fieldKeyboard.shift) {
+                snapPos.y = Math.round(mousePos.y / tileWidthIn) * tileWidthIn;
+            }
+
+            path.setWaypointXY(selectedWaypointIndex, snapPos.x, snapPos.y, prevWaypointAction !== WaypointAction.MOVE);
             prevWaypointAction = WaypointAction.MOVE;
             xinput.val(selectedWaypoint.x);
             yinput.val(selectedWaypoint.y);
@@ -447,6 +509,22 @@ function perc2color(perc) {
     let h = r * 0x10000 + g * 0x100 + b * 0x1;
     return '#' + ('000000' + h.toString(16)).slice(-6);
 }
+
+// function to draw circle to canvas
+function drawCircle(ctx, x, y, radius, fill, stroke, strokeWidth) {
+    ctx.beginPath()
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false)
+    if (fill) {
+      ctx.fillStyle = fill
+      ctx.fill()
+    }
+    if (stroke) {
+      ctx.lineWidth = strokeWidth
+      ctx.strokeStyle = stroke
+      ctx.stroke()
+    }
+  }
+  
 
 /**
  * Draws the updated path when actions are done to the selected waypoint
@@ -506,7 +584,19 @@ function autonCreatorDrawLoop() {
                 fieldContext.shadowColor = 'white';
             }
 
+            fieldContext.globalAlpha = robotOpacity;
             fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
+            
+            // draw rotation ball
+            if (rotationBall && parseInt(i) === selectedWaypointIndex) {
+                fieldContext.lineWidth = 3;
+                fieldContext.beginPath();
+                fieldContext.moveTo(0, 0);
+                fieldContext.lineTo(0, -robotWidthPxl);
+                fieldContext.stroke();
+                drawCircle(fieldContext, 0, -robotWidthPxl, 10, 'black', 'blue', 2);
+            }
+
             fieldContext.restore();
         }
     }
@@ -580,7 +670,7 @@ function autonCreatorDrawLoop() {
                     fieldContext.save();
                     fieldContext.translate(waypointPos.x, waypointPos.y);
                     fieldContext.rotate(toRadians(-waypointRotation + 180)); // same logic as above
-                    fieldContext.globalAlpha = 0.5;
+                    fieldContext.globalAlpha = 0.5*robotOpacity;
                     fieldContext.drawImage(robotImage, Math.floor(-robotWidthPxl * .5), Math.floor(-robotCenterPxl), Math.floor(robotWidthPxl), Math.floor(robotHeightPxl));
                     fieldContext.restore();
                 }

@@ -422,7 +422,7 @@ class Path {
         };
 
         this.getClosestWaypoint = function (coordinate, radius) {
-            let mousePosInInches = pixelsToInches(fieldMousePos);
+            let mousePosInInches = pixelsToInches(coordinate);
             let closestWaypoint = -1;
             let currentLeastDistance = radius;
             for (let i in this.waypoints) {
