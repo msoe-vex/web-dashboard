@@ -9,6 +9,10 @@ function initialize() {
 
     windowWidth = $("#windowCanvas").width();
     windowHeight = $("#windowCanvas").height();
+    
+    window.onbeforeunload = function() {
+        return true;
+    };
 
     autonCreatorInit();
     loop();
