@@ -25,4 +25,12 @@ export class Robot {
     get getMaxVelocity(): number {
         return this.maxVelocity;
     }
+
+    set setMaxAcceleration(maxAcceleration: number) {
+        this.maxAcceleration = maxAcceleration;
+    }
+
+    get getMaxAcceleration(): number {
+        return this.maxAcceleration;
+    }
 }
