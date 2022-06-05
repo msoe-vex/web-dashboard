@@ -2,11 +2,16 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+import { ApplicationNavbar } from './Navbar';
+
 import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
 
 function App() {
   return (
     <div className="App">
+      <ApplicationNavbar>
+      </ApplicationNavbar>
+
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
