@@ -8,10 +8,12 @@ import {
     NavbarDivider,
     NavbarGroup,
     NavbarHeading,
+    FocusStyleManager,
 } from "@blueprintjs/core";
 
 export class ApplicationNavbar extends React.PureComponent {
     public render() {
+        FocusStyleManager.onlyShowFocusOnTabs();
         return (
             <Navbar>
                 <NavbarGroup align={Alignment.LEFT}>
