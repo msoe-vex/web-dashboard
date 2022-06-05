@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 
 import { ApplicationNavbar } from './Navbar';
+import { WaypointMenu } from './WaypointMenu';
 
 import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
 
@@ -11,6 +12,9 @@ function App() {
     <div className="App">
       <ApplicationNavbar>
       </ApplicationNavbar>
+
+      <WaypointMenu>
+      </WaypointMenu>
 
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
