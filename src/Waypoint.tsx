@@ -1,16 +1,16 @@
-enum Shown { HIDE, GHOST, SHOW };
+import { DisplayStyle } from './DisplayStyle';
 
 export class Waypoint {
     private _name: string | undefined;
     private _actions: string[] | undefined;
     private _followsPath: boolean = true;
-    private _shown: Shown = Shown.SHOW;
+    private _displayStyle: DisplayStyle = DisplayStyle.SHOW;
 
-    constructor(name: string | undefined, actions: string[] | undefined, followsPath: boolean, shown: Shown) {
+    constructor(name: string | undefined, actions: string[] | undefined, followsPath: boolean, displayStyle: DisplayStyle) {
         this._name = name;
         this._actions = actions;
         this._followsPath = followsPath;
-        this._shown = shown;
+        this._displayStyle = displayStyle;
     }
 
     set name(name: string | undefined) {
@@ -37,11 +37,11 @@ export class Waypoint {
         return this._followsPath;
     }
 
-    set shown(shown: Shown) {
-        this._shown = shown;
+    set displayStyle(displayStyle: DisplayStyle) {
+        this._displayStyle = displayStyle;
     }
 
-    get shown(): Shown {
-        return this._shown;
+    get displayStyle(): DisplayStyle {
+        return this._displayStyle;
     }
 }
