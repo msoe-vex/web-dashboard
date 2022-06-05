@@ -1,7 +1,7 @@
-import { Robot } from "./Robot"
-import { Command } from "./Command"
-import { Routine } from "./Routine"
-import { History } from "./History"
+import { Robot } from './Robot'
+import { Command } from './Command'
+import { Routine } from './Routine'
+import { History } from './History'
 
 /**
  * A class defining the top level application.
