@@ -1,4 +1,4 @@
-enum Shown {HIDE, GHOST, SHOW};
+enum Shown { HIDE, GHOST, SHOW };
 
 export class Waypoint {
     private _name: string | undefined;
@@ -6,7 +6,7 @@ export class Waypoint {
     private _followsPath: boolean = true;
     private _shown: Shown = Shown.SHOW;
 
-    Waypoint(name: string | undefined, actions: string[] | undefined, followsPath: boolean, shown: Shown) {
+    constructor(name: string | undefined, actions: string[] | undefined, followsPath: boolean, shown: Shown) {
         this._name = name;
         this._actions = actions;
         this._followsPath = followsPath;
@@ -32,7 +32,7 @@ export class Waypoint {
     set followsPath(followsPath: boolean) {
         this._followsPath = followsPath;
     }
-    
+
     get followsPath(): boolean {
         return this._followsPath;
     }
