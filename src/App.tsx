@@ -2,6 +2,8 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
+
 function App() {
   return (
     <div className="App">
