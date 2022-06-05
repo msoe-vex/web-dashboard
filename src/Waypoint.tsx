@@ -1,12 +1,12 @@
 export class Waypoint {
-    private name: string | undefined;
+    private _name: string | undefined;
 
-    set setName(name: string | undefined) {
-        this.name = name;
+    set Name(name: string | undefined) {
+        this._name = name;
     }
 
-    get getName(): string | undefined {
-        return this.name;
+    get name(): string | undefined {
+        return this._name;
     }
     
 }

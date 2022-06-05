@@ -1,20 +1,20 @@
 export class Routine {
-    private name: string;
-    private history: History = new History();
+    private _name: string;
+    private _history: History = new History();
 
     constructor(name: string) {
-        this.name = name;
+        this._name = name;
     }
 
-    get getHistory(): History {
-        return this.history;
+    get history(): History {
+        return this._history;
     }
 
-    set setName(name: string) {
-        this.name = name;
+    set name(name: string) {
+        this._name = name;
     }
 
-    get getName(): string {
-        return this.name;
+    get name(): string {
+        return this._name;
     }
 }

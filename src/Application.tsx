@@ -7,19 +7,35 @@ import { History } from "./History"
  * A class defining the top level application.
  */
 export class Application {
-    robots: Robot[] = [];
-    routines: Routine[] = [];
-    activeRoutine: Routine | undefined;
+    _robots: Robot[] = [];
+    _routines: Routine[] = [];
+    _activeRoutine: Routine | undefined;
 
-    history: History = new History();
+    _history: History = new History();
 
     constructor(robots: Robot[], routines: Routine[]) {
-        this.robots = robots;
-        this.routines = routines;
+        this._robots = robots;
+        this._routines = routines;
     }
 
-    getHistory(): History {
-        return this.history;
+    get history(): History {
+        return this._history;
+    }
+
+    set robots(robots: Robot[]) {
+        this._robots = robots;
+    }
+
+    get robots(): Robot[] {
+        return this._robots;
+    }
+
+    set routines(routines: Routine[]) {
+        this._routines = routines;
+    }
+
+    get routines(): Routine[] {
+        return this._routines;
     }
 
     executeCommand(command: Command) {

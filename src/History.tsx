@@ -19,13 +19,21 @@ export class History {
 
     undo(): boolean {
         let status: boolean = this.commands[-1].undo();
-        // undo and then pop commands
-        // add command to undoneCommands
+        let undoneCommand: Command | undefined = this.commands.pop();
+        if (undoneCommand !== undefined) {
+            this.undoneCommands.push(undoneCommand);
+        }
         return status;
     }
 
     redo(): boolean {
         // execute and then pop undoneCommands
+        let command: Command | undefined = this.undoneCommands.pop();
+        if (command !== undefined) {
+            command.execute();
+            this.commands.push(command);
+            return true;
+        }
         return false;
     }
 }

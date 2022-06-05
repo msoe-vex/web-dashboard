@@ -1,36 +1,36 @@
 
 export class Robot {
-    private name: string;
-    private maxVelocity: number;
-    private maxAcceleration: number;
+    private _name: string;
+    private _maxVelocity: number;
+    private _maxAcceleration: number;
 
     constructor(name: string, maxVelocity: number, maxAcceleration: number) {
-        this.name = name;
-        this.maxVelocity = maxVelocity;
-        this.maxAcceleration = maxAcceleration;
+        this._name = name;
+        this._maxVelocity = maxVelocity;
+        this._maxAcceleration = maxAcceleration;
     }
 
-    set setName(name: string) {
-        this.name = name;
+    set name(name: string) {
+        this._name = name;
     }
 
-    get getName(): string {
-        return this.name;
+    get name(): string {
+        return this._name;
     }
 
-    set setMaxVelocity(maxVelocity: number) {
-        this.maxVelocity = maxVelocity;
+    set maxVelocity(maxVelocity: number) {
+        this._maxVelocity = maxVelocity;
     }
 
-    get getMaxVelocity(): number {
-        return this.maxVelocity;
+    get maxVelocity(): number {
+        return this._maxVelocity;
     }
 
-    set setMaxAcceleration(maxAcceleration: number) {
-        this.maxAcceleration = maxAcceleration;
+    set maxAcceleration(maxAcceleration: number) {
+        this._maxAcceleration = maxAcceleration;
     }
 
-    get getMaxAcceleration(): number {
-        return this.maxAcceleration;
+    get maxAcceleration(): number {
+        return this._maxAcceleration;
     }
 }
