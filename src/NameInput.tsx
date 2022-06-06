@@ -22,7 +22,7 @@ export class NameInput extends React.Component<NameInputProps, NameInputState> {
     private onEditButtonClick: React.MouseEventHandler = () =>
         // setState callback is used so focus is only set after inputField is enabled
         this.setState({ editName: true }, () => {
-            if (this.inputRef != null) {
+            if (this.inputRef !== null) {
                 this.inputRef.focus();
             }
         });
@@ -35,7 +35,7 @@ export class NameInput extends React.Component<NameInputProps, NameInputState> {
     }
 
     private onKeyPress: React.KeyboardEventHandler = (e: React.KeyboardEvent): void => {
-        if (e.key == 'Enter') { this.submitName(); }
+        if (e.key === 'Enter') { this.submitName(); }
     }
 
     render() {
