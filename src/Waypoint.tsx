@@ -2,14 +2,12 @@ import { DisplayStyle } from './DisplayStyle';
 
 export class Waypoint {
     private _name: string | undefined;
-    private _actions: string[] | undefined;
-    private _followsPath: boolean = true;
+    private _followPath: boolean = true;
     private _displayStyle: DisplayStyle = DisplayStyle.SHOW;
 
-    constructor(name: string | undefined, actions: string[] | undefined, followsPath: boolean, displayStyle: DisplayStyle) {
+    constructor(name: string | undefined, followPath: boolean, displayStyle: DisplayStyle) {
         this._name = name;
-        this._actions = actions;
-        this._followsPath = followsPath;
+        this._followPath = followPath;
         this._displayStyle = displayStyle;
     }
 
@@ -21,20 +19,12 @@ export class Waypoint {
         return this._name;
     }
 
-    set actions(actions: string[] | undefined) {
-        this._actions = actions;
+    set followPath(followPath: boolean) {
+        this._followPath = followPath;
     }
 
-    get actions(): string[] | undefined {
-        return this._actions;
-    }
-
-    set followsPath(followsPath: boolean) {
-        this._followsPath = followsPath;
-    }
-
-    get followsPath(): boolean {
-        return this._followsPath;
+    get followPath(): boolean {
+        return this._followPath;
     }
 
     set displayStyle(displayStyle: DisplayStyle) {
