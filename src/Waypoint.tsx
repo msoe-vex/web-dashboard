@@ -1,14 +1,25 @@
 import { DisplayStyle } from './DisplayStyle';
 
+/**
+ * An enum defining the location of a waypoint in a path. 
+ */
+export enum PathLocation {
+    START,
+    MIDDLE,
+    END
+}
+
 export class Waypoint {
     private _name: string | undefined;
     private _followPath: boolean = true;
     private _displayStyle: DisplayStyle = DisplayStyle.SHOW;
+    private _pathLocation: PathLocation = PathLocation.MIDDLE;
 
-    constructor(name: string | undefined, followPath: boolean, displayStyle: DisplayStyle) {
+    constructor(name: string | undefined, followPath: boolean, displayStyle: DisplayStyle, pathLocation: PathLocation) {
         this._name = name;
         this._followPath = followPath;
         this._displayStyle = displayStyle;
+        this._pathLocation = pathLocation;
     }
 
     set name(name: string | undefined) {
@@ -33,5 +44,13 @@ export class Waypoint {
 
     get displayStyle(): DisplayStyle {
         return this._displayStyle;
+    }
+
+    set pathLocation(pathLocation: PathLocation) {
+        this._pathLocation = pathLocation;
+    }
+
+    get pathLocation(): PathLocation {
+        return this._pathLocation;
     }
 }
