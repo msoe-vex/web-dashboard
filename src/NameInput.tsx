@@ -29,7 +29,7 @@ export class NameInput extends React.Component<NameInputProps, NameInputState> {
 
     private submitName = (): void => {
         this.setState({ editName: false });
-        if (this.inputRef != null && this.inputRef.value != this.props.name) {
+        if (this.inputRef !== null && this.inputRef.value !== this.props.name) {
             this.props.updateName(this.inputRef.value);
         }
     }
