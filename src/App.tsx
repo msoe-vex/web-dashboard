@@ -12,8 +12,7 @@ import { EndWaypoint } from './EndWaypoint';
 function App() {
   return (
     <div className="App">
-      <ApplicationNavbar>
-      </ApplicationNavbar>
+      <ApplicationNavbar />
 
       <WaypointMenu
         waypoint={new EndWaypoint("Waypoint 1")}

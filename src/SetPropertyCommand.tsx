@@ -15,6 +15,7 @@ export class SetPropertyCommand<PropertyType> implements Command {
         this.value = value;
         this.oldValue = oldValue;
         this.setter = setter;
+        setter(this.value);
     }
 
     undo(): boolean {
@@ -23,7 +24,7 @@ export class SetPropertyCommand<PropertyType> implements Command {
     }
 
     execute(): boolean {
-        this.setter(this.value);
+        // this.setter(this.value);
         return true;
     }
 }

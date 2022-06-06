@@ -40,6 +40,6 @@ export class Application {
 
     executeCommand(command: Command) {
         command.execute();
-        this.history.push(command);
+        this._history.push(command);
     }
 }
