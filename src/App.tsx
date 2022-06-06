@@ -4,6 +4,7 @@ import './App.css';
 
 import { ApplicationNavbar } from './Navbar';
 import { WaypointMenu } from './WaypointMenu';
+import { ApplicationTree } from './Tree';
 
 import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
 
@@ -12,6 +13,8 @@ function App() {
     <div className="App">
       <ApplicationNavbar>
       </ApplicationNavbar>
+      <ApplicationTree>
+      </ApplicationTree>
 
       <WaypointMenu>
       </WaypointMenu>
