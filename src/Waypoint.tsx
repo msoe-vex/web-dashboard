@@ -1,47 +1,53 @@
-enum Shown { HIDE, GHOST, SHOW };
+import { DisplayStyle } from './DisplayStyle';
 
-export class Waypoint {
-    private _name: string | undefined;
-    private _actions: string[] | undefined;
-    private _followsPath: boolean = true;
-    private _shown: Shown = Shown.SHOW;
+export enum WaypointType {
+    MIDDLE,
+    END
+}
 
-    constructor(name: string | undefined, actions: string[] | undefined, followsPath: boolean, shown: Shown) {
+export abstract class Waypoint {
+    private _name: string;
+    private _x: number; // meters
+    private _y: number; // meters
+    private _angle: number; // radians
+    private _heading: number; // radians
+    private _displayStyle: DisplayStyle;
+
+    constructor(
+        name: string,
+        x: number = 0,
+        y: number = 0,
+        angle: number = 0,
+        heading: number = 0,
+        displayStyle: DisplayStyle = DisplayStyle.SHOW
+    ) {
         this._name = name;
-        this._actions = actions;
-        this._followsPath = followsPath;
-        this._shown = shown;
+        this._x = x;
+        this._y = y;
+        this._angle = angle;
+        this._heading = heading;
+        this._displayStyle = displayStyle;
     }
 
-    set name(name: string | undefined) {
-        this._name = name;
-    }
+    set name(name: string) { this._name = name; }
+    get name(): string { return this._name; }
 
-    get name(): string | undefined {
-        return this._name;
-    }
+    set x(x: number) { this._x = x; }
+    get x(): number { return this._x; }
 
-    set actions(actions: string[] | undefined) {
-        this._actions = actions;
-    }
+    set y(y: number) { this._y = y; }
+    get y(): number { return this._y; }
 
-    get actions(): string[] | undefined {
-        return this._actions;
-    }
+    set angle(angle: number) { this._angle = angle; }
+    get angle(): number { return this._angle; }
 
-    set followsPath(followsPath: boolean) {
-        this._followsPath = followsPath;
-    }
+    set heading(heading: number) { this._heading = heading; }
+    get heading(): number { return this._heading; }
 
-    get followsPath(): boolean {
-        return this._followsPath;
-    }
+    set displayStyle(displayStyle: DisplayStyle) { this._displayStyle = displayStyle; }
+    get displayStyle(): DisplayStyle { return this._displayStyle; }
 
-    set shown(shown: Shown) {
-        this._shown = shown;
-    }
-
-    get shown(): Shown {
-        return this._shown;
-    }
+    abstract get maxVelocity(): number;
+    abstract get controlPath(): boolean;
+    abstract get waypointType(): WaypointType;
 }

@@ -1,7 +1,7 @@
-import { Robot } from "./Robot"
-import { Command } from "./Command"
-import { Routine } from "./Routine"
-import { History } from "./History"
+import { Robot } from './Robot'
+import { Command } from './Command'
+import { Routine } from './Routine'
+import { History } from './History'
 
 /**
  * A class defining the top level application.
@@ -40,6 +40,6 @@ export class Application {
 
     executeCommand(command: Command) {
         command.execute();
-        this.history.push(command);
+        this._history.push(command);
     }
 }

@@ -1,47 +1,42 @@
-import * as React from "react";
+import * as React from 'react';
+import { Card, Elevation } from '@blueprintjs/core';
 
-import {
-    Button,
-    Card,
-    Elevation,
-    InputGroup,
-} from "@blueprintjs/core";
+import { NameInput } from './NameInput';
 
-export class WaypointMenu extends React.Component {
-    // public waypoint: Waypoint;
+import { Application } from './Application'
+import { Waypoint, WaypointType } from './Waypoint';
+import { EndWaypoint } from './EndWaypoint';
+import { SetPropertyCommand } from './SetPropertyCommand';
 
-    public state = {
-        editName: false
-    };
+export interface WaypointMenuProps {
+    waypoint: Waypoint
+}
 
-    private handleEditNameClick = () => this.setState({ editName: true });
-    private handleNameChange = () => {
-        this.setState({ editName: false });
+interface WaypointMenuState {
+    waypoint: Waypoint
+}
+
+export class WaypointMenu extends React.Component<WaypointMenuProps, WaypointMenuState> {
+    private constructor(props: WaypointMenuProps) {
+        super(props);
+        this.state = { waypoint: this.props.waypoint };
+    }
+
+    private updateName = (newName: string): void => {
+        this.setState((state: WaypointMenuState) => {
+            state.waypoint.name = newName;
+            return state;
+        });
+        console.log("New waypoint name: " + newName);
     };
 
     public render() {
-        const { editName } = this.state;
-
-        const editNameButton = (
-            <Button
-                disabled={editName}
-                icon="edit"
-                minimal={true}
-                onClick={this.handleEditNameClick}
-            />
-        );
-
-        const nameInput = (
-            <InputGroup
-                disabled={!editName}
-                rightElement={editNameButton}
-                onChange={this.handleNameChange}
-            />
-        );
-
         return (
             <Card interactive={true} elevation={Elevation.TWO}>
-                {nameInput}
+                <NameInput
+                    name={this.state.waypoint.name}
+                    updateName={this.updateName}
+                />
             </Card >
         );
     }
