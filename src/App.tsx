@@ -3,9 +3,11 @@ import logo from './logo.svg';
 import './App.css';
 
 import { ApplicationNavbar } from './Navbar';
-import { WaypointMenu } from './WaypointMenu';
+import { WaypointMenu, WaypointMenuProps } from './WaypointMenu';
 
 import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
+import { Waypoint } from './Waypoint';
+import { EndWaypoint } from './EndWaypoint';
 
 function App() {
   return (
@@ -13,8 +15,9 @@ function App() {
       <ApplicationNavbar>
       </ApplicationNavbar>
 
-      <WaypointMenu>
-      </WaypointMenu>
+      <WaypointMenu
+        waypoint={new EndWaypoint("Waypoint 1")}
+      />
 
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
