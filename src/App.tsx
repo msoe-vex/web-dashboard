@@ -4,6 +4,7 @@ import './App.css';
 
 import { ApplicationNavbar } from './Navbar';
 import { WaypointMenu, WaypointMenuProps } from './WaypointMenu';
+import { ApplicationTree } from './Tree';
 
 import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
 import { Waypoint } from './Waypoint';
@@ -13,6 +14,7 @@ function App() {
   return (
     <div className="App">
       <ApplicationNavbar />
+      <ApplicationTree />
 
       <WaypointMenu
         waypoint={new EndWaypoint("Waypoint 1")}
