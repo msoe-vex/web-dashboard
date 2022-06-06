@@ -10,23 +10,23 @@ export enum PathLocation {
 }
 
 export class Waypoint {
-    private _name: string | undefined;
+    private _name: string;
     private _followPath: boolean = true;
     private _displayStyle: DisplayStyle = DisplayStyle.SHOW;
     private _pathLocation: PathLocation = PathLocation.MIDDLE;
 
-    constructor(name: string | undefined, followPath: boolean, displayStyle: DisplayStyle, pathLocation: PathLocation) {
+    constructor(name: string, followPath: boolean, displayStyle: DisplayStyle, pathLocation: PathLocation) {
         this._name = name;
         this._followPath = followPath;
         this._displayStyle = displayStyle;
         this._pathLocation = pathLocation;
     }
 
-    set name(name: string | undefined) {
+    set name(name: string) {
         this._name = name;
     }
 
-    get name(): string | undefined {
+    get name(): string {
         return this._name;
     }
 
