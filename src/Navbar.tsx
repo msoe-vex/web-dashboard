@@ -11,8 +11,7 @@ import {
     FocusStyleManager,
 } from "@blueprintjs/core";
 
-export class ApplicationNavbar extends React.PureComponent {
-    public render() {
+export function ApplicationNavbar(props: Object) {
         FocusStyleManager.onlyShowFocusOnTabs();
         return (
             <Navbar>
@@ -25,5 +24,4 @@ export class ApplicationNavbar extends React.PureComponent {
                 </NavbarGroup>
             </Navbar>
         );
-    }
 }
