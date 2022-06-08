@@ -4,7 +4,7 @@ export class Robot {
     private _maxVelocity: number;
     private _maxAcceleration: number;
 
-    constructor(name: string, maxVelocity: number, maxAcceleration: number) {
+    constructor(name: string, maxVelocity: number = 0, maxAcceleration: number = 0) {
         this._name = name;
         this._maxVelocity = maxVelocity;
         this._maxAcceleration = maxAcceleration;
@@ -32,5 +32,16 @@ export class Robot {
 
     get maxAcceleration(): number {
         return this._maxAcceleration;
+    }
+
+    /**
+     * Returns the first valid robot name of the form "Robot 1", "Robot 2", etc.
+     * @param robots - An array of robots to test against.
+     */
+    static getNewRobotName(robots: Robot[]): string {
+        let i = 1;
+        const testName = robots.some((robot: Robot): boolean => { return robot.name === "Robot " + i; });
+        while (testName) { ++i; }
+        return "Robot " + i;
     }
 }
