@@ -3,11 +3,9 @@ import logo from './logo.svg';
 import './App.css';
 
 import { ApplicationNavbar } from './Navbar';
-import { WaypointMenu, WaypointMenuProps } from './WaypointMenu';
+import { WaypointMenu } from './WaypointMenu';
 import { ApplicationTree } from './Tree';
 
-import { Alignment, Button, Classes, Navbar } from '@blueprintjs/core';
-import { Waypoint } from './Waypoint';
 import { EndWaypoint } from './EndWaypoint';
 
 function App() {

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from 'react';
 
 import {
     Alignment,
@@ -9,7 +9,7 @@ import {
     NavbarGroup,
     NavbarHeading,
     FocusStyleManager,
-} from "@blueprintjs/core";
+} from '@blueprintjs/core';
 
 export interface ApplicationNavbarProps {
 }

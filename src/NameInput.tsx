@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Button, InputGroup } from '@blueprintjs/core';
 
-export interface NameInputProps {
+interface NameInputProps {
     name: string,
     onNameUpdate: (newName: string) => void;
 }
