@@ -3,7 +3,7 @@ import { Button, InputGroup } from '@blueprintjs/core';
 
 export interface NameInputProps {
     name: string,
-    updateName: (newName: string) => void;
+    onNameUpdate: (newName: string) => void;
 }
 
 /**
@@ -29,7 +29,7 @@ export function NameInput(props: NameInputProps): JSX.Element {
     const submitName = (): void => {
         setEditName(false);
         if (inputRef !== null && inputRef.current.value !== props.name) {
-            props.updateName(inputRef.current.value);
+            props.onNameUpdate(inputRef.current.value);
         }
     }
 

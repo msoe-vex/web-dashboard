@@ -22,7 +22,7 @@ export class WaypointMenu extends React.Component<WaypointMenuProps, WaypointMen
         this.state = { waypoint: this.props.waypoint };
     }
 
-    private updateName = (newName: string): void => {
+    private onNameUpdate = (newName: string): void => {
         this.setState((state: WaypointMenuState) => {
             state.waypoint.name = newName;
             return state;
@@ -35,7 +35,7 @@ export class WaypointMenu extends React.Component<WaypointMenuProps, WaypointMen
             <Card interactive={true} elevation={Elevation.TWO}>
                 <NameInput
                     name={this.state.waypoint.name}
-                    updateName={this.updateName}
+                    onNameUpdate={this.onNameUpdate}
                 />
             </Card >
         );
