@@ -11,17 +11,20 @@ import {
     FocusStyleManager,
 } from "@blueprintjs/core";
 
-export function ApplicationNavbar(props: Object) {
-        FocusStyleManager.onlyShowFocusOnTabs();
-        return (
-            <Navbar>
-                <NavbarGroup align={Alignment.LEFT}>
-                    <NavbarHeading>Webdashboard</NavbarHeading>
-                    <NavbarDivider />
-                    <Button className={Classes.MINIMAL} icon="playbook" text="Routine" />
-                    <NavbarDivider />
-                    <Button className={Classes.MINIMAL} icon="home" text="Home" />
-                </NavbarGroup>
-            </Navbar>
-        );
+export interface ApplicationNavbarProps {
+}
+
+export function ApplicationNavbar(props: ApplicationNavbarProps): JSX.Element {
+    FocusStyleManager.onlyShowFocusOnTabs();
+    return (
+        <Navbar>
+            <NavbarGroup align={Alignment.LEFT}>
+                <NavbarHeading>Webdashboard</NavbarHeading>
+                <NavbarDivider />
+                <Button className={Classes.MINIMAL} icon="playbook" text="Routine" />
+                <NavbarDivider />
+                <Button className={Classes.MINIMAL} icon="home" text="Home" />
+            </NavbarGroup>
+        </Navbar>
+    );
 }
