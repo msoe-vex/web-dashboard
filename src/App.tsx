@@ -2,37 +2,41 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-import { ApplicationNavbar } from './Navbar';
-import { WaypointMenu } from './WaypointMenu';
+import { Provider } from 'react-redux'
+import { store } from './Store/store';
+
+
+import { AppNavbar } from './AppNavbar';
 import { ApplicationTree } from './Tree';
 
-import { EndWaypoint } from './EndWaypoint';
-
 function App() {
+
   return (
-    <div className="App">
-      <ApplicationNavbar />
-      <ApplicationTree />
+    <Provider store={store}>
 
-      <WaypointMenu
-        waypoint={new EndWaypoint("Waypoint 1")}
-      />
+      <div className="App">
 
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+        <AppNavbar />
+
+        <ApplicationTree />
+
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            Edit <code>src/App.tsx</code> and save to reload.
+          </p>
+          <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn React
+          </a>
+        </header>
+      </div>
+
+    </Provider>
   );
 }
 

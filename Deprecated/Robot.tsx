@@ -1,4 +1,3 @@
-
 export class Robot {
     private _name: string;
     private _maxVelocity: number;

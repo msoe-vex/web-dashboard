@@ -3,7 +3,7 @@ import { Card, Elevation } from '@blueprintjs/core';
 
 import { NameInput } from './NameInput';
 
-import { Waypoint, WaypointType } from './Waypoint';
+import { Waypoint } from './Waypoint';
 
 interface WaypointMenuProps {
     waypoint: Waypoint

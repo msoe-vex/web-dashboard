@@ -11,17 +11,23 @@ import {
     FocusStyleManager,
 } from '@blueprintjs/core';
 
-export interface ApplicationNavbarProps {
+import { RoutineSelect } from './RoutineSelect';
+
+export interface AppNavbarProps {
 }
 
-export function ApplicationNavbar(props: ApplicationNavbarProps): JSX.Element {
+export function AppNavbar(props: AppNavbarProps): JSX.Element {
     FocusStyleManager.onlyShowFocusOnTabs();
     return (
         <Navbar>
             <NavbarGroup align={Alignment.LEFT}>
-                <NavbarHeading>Webdashboard</NavbarHeading>
+                <NavbarHeading>Raider Robotics Web Dashboard</NavbarHeading>
                 <NavbarDivider />
-                <Button className={Classes.MINIMAL} icon="playbook" text="Routine" />
+                <RoutineSelect />
+
+                {/* <RobotMenu names={props.robotNames}/> */}
+
+                {/* <Button className={Classes.MINIMAL} icon="playbook" text="Routine" /> */}
                 <NavbarDivider />
                 <Button className={Classes.MINIMAL} icon="home" text="Home" />
             </NavbarGroup>
