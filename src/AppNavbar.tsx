@@ -11,7 +11,7 @@ import {
     FocusStyleManager,
 } from '@blueprintjs/core';
 
-import { RoutineSelect } from './RoutineSelect';
+import { RoutineMenu } from './RoutineMenu';
 
 export interface AppNavbarProps {
 }
@@ -23,7 +23,8 @@ export function AppNavbar(props: AppNavbarProps): JSX.Element {
             <NavbarGroup align={Alignment.LEFT}>
                 <NavbarHeading>Raider Robotics Web Dashboard</NavbarHeading>
                 <NavbarDivider />
-                <RoutineSelect />
+
+                <RoutineMenu />
 
                 {/* <RobotMenu names={props.robotNames}/> */}
 

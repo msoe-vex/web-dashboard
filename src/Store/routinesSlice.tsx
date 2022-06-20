@@ -1,4 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from '@reduxjs/toolkit';
+import { DUMMY_ID } from './dummyId';
 
 export interface Routine {
     readonly id: EntityId;
@@ -13,22 +14,25 @@ export const routinesAdapter = createEntityAdapter<Routine>({
 
 export const routinesSlice = createSlice({
     name: 'routines',
-    initialState: routinesAdapter.getInitialState({ activeRoutineId: "" as EntityId }),
+    initialState: routinesAdapter.getInitialState({ activeRoutineId: DUMMY_ID }),
     reducers: {
-        addedRoutine: {
-            reducer(state, action: PayloadAction<Routine>) {
-                routinesAdapter.addOne(state, action.payload);
-                state.activeRoutineId = action.payload.id;
-            },
-            prepare(name: string) {
-                return {
-                    payload: {
-                        id: nanoid(),
-                        name: name,
-                        pathIds: []
-                    }
-                };
-            }
+        addedRoutine(state, action: PayloadAction<undefined>) {
+            const routine = {
+                id: nanoid(),
+                name: "Routine 1",
+                pathIds: []
+            };
+            routinesAdapter.addOne(state, routine);
+            state.activeRoutineId = routine.id;
+            // prepare(name: string) {
+            //     return {
+            //         payload: {
+            //             id: nanoid(),
+            //             name: name,
+            //             pathIds: []
+            //         }
+            //     };
+            // }
         },
         changedRoutine: routinesAdapter.updateOne,
         deletedRoutine(state, action: PayloadAction<EntityId>) {
