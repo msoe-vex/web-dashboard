@@ -1,6 +1,9 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from '@reduxjs/toolkit';
 import { DUMMY_ID } from './dummyId';
 
+// JavaScript handles circular imports like a champ
+import { RootState } from './store';
+
 export interface Routine {
     readonly id: EntityId;
     readonly name: string;
@@ -12,6 +15,20 @@ export const routinesAdapter = createEntityAdapter<Routine>({
     sortComparer: (a, b) => (a.name.localeCompare(b.name))
 });
 
+// Selectors which can be used in the reducer
+const simpleSelectors = routinesAdapter.getSelectors();
+
+function getNextName(routines: Routine[]): string {
+    const checkName = (newName: string): boolean => {
+        return routines.every(routine => routine.name !== newName);
+    };
+    let i = 1;
+    for (; ; ++i) {
+        if (checkName("Routine " + i))
+            return "Routine " + i;
+    }
+}
+
 export const routinesSlice = createSlice({
     name: 'routines',
     initialState: routinesAdapter.getInitialState({ activeRoutineId: DUMMY_ID }),
@@ -19,20 +36,11 @@ export const routinesSlice = createSlice({
         addedRoutine(state, action: PayloadAction<undefined>) {
             const routine = {
                 id: nanoid(),
-                name: "Routine 1",
+                name: getNextName(simpleSelectors.selectAll(state)),
                 pathIds: []
             };
             routinesAdapter.addOne(state, routine);
             state.activeRoutineId = routine.id;
-            // prepare(name: string) {
-            //     return {
-            //         payload: {
-            //             id: nanoid(),
-            //             name: name,
-            //             pathIds: []
-            //         }
-            //     };
-            // }
         },
         changedRoutine: routinesAdapter.updateOne,
         deletedRoutine(state, action: PayloadAction<EntityId>) {
@@ -71,3 +79,12 @@ export const {
     copiedRoutine,
     renamedRoutine
 } = routinesSlice.actions;
+
+// Runtime selectors
+export const {
+    selectById: selectRoutineById,
+    selectIds: selectRoutineIds,
+    selectAll: selectAllRoutines,
+} = routinesAdapter.getSelectors<RootState>((state) => state.routines);
+
+export const selectActiveRoutineId = (state: RootState) => state.routines.activeRoutineId;

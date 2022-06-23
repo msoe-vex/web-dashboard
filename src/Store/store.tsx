@@ -1,6 +1,6 @@
 import { configureStore, EntityState, EntityId, nanoid } from '@reduxjs/toolkit';
 
-import { routinesSlice, routinesAdapter, Routine } from './routinesSlice';
+import { routinesSlice, Routine } from './routinesSlice';
 
 export interface RootState {
     readonly routines: EntityState<Routine> & { activeRoutineId: EntityId };
@@ -25,11 +25,3 @@ export const store = configureStore({
         // robots: robotsSlice.reducer,
     }
 });
-
-export const {
-    selectById: selectRoutineById,
-    selectIds: selectRoutineIds,
-    selectAll: selectAllRoutines,
-} = routinesAdapter.getSelectors<RootState>((state) => state.routines);
-
-export const selectActiveRoutineId = (state: RootState) => state.routines.activeRoutineId;

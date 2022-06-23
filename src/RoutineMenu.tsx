@@ -3,9 +3,12 @@ import { Button, Menu, MenuDivider, MenuItem } from '@blueprintjs/core';
 import { Popover2 } from '@blueprintjs/popover2';
 import { EntityId } from '@reduxjs/toolkit';
 
-import { selectRoutineIds, selectRoutineById, selectActiveRoutineId } from './Store/store';
-import { addedRoutine, deletedRoutine, selectedRoutine, copiedRoutine, renamedRoutine } from './Store/routinesSlice';
 import { useAppDispatch, useAppSelector } from './Store/hooks';
+import {
+    selectRoutineIds, selectRoutineById, selectActiveRoutineId,
+    addedRoutine, deletedRoutine, selectedRoutine, copiedRoutine, renamedRoutine
+} from './Store/routinesSlice';
+
 import { EditSubmenu } from './EditSubmenu';
 import { NameInput } from './NameInput';
 
