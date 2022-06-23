@@ -1,6 +1,6 @@
 import { configureStore, EntityState, EntityId, nanoid } from '@reduxjs/toolkit';
 
-import { routinesSlice, Routine } from './routinesSlice';
+import { routinesSlice, Routine } from '../Navbar/routinesSlice';
 
 export interface RootState {
     readonly routines: EntityState<Routine> & { activeRoutineId: EntityId };

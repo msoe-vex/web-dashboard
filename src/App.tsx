@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import { store } from './Store/store';
 
 
-import { AppNavbar } from './AppNavbar';
+import { AppNavbar } from './Navbar/AppNavbar';
 import { ApplicationTree } from './Tree';
 
 function App() {
