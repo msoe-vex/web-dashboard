@@ -19,9 +19,9 @@ export const routinesAdapter = createEntityAdapter<Routine>({
 const simpleSelectors = routinesAdapter.getSelectors();
 
 function getNextName(routines: Routine[]): string {
-    const checkName = (newName: string): boolean => {
-        return routines.every(routine => routine.name !== newName);
-    };
+    const checkName = (newName: string): boolean =>
+        routines.every(routine => routine.name !== newName);
+
     let i = 1;
     for (; ; ++i) {
         if (checkName("Routine " + i))
