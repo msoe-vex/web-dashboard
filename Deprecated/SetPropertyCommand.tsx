@@ -1,4 +1,4 @@
-import { Command } from "./Command"
+import { Command } from './Command'
 
 /**
  * A generic command which can be used to update the value of a property 

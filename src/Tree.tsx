@@ -1,5 +1,4 @@
-
-import * as React from "react";
+import React from "react";
 
 import {
     Alignment,
@@ -57,7 +56,7 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
     }
 }
 
-export const ApplicationTree: React.FC<React.PropsWithChildren<Props>> = ({children}) => {
+export const ApplicationTree: React.FC<React.PropsWithChildren<Props>> = ({ children }) => {
     const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
 
     const handleNodeClick = React.useCallback(
@@ -170,12 +169,5 @@ const INITIAL_STATE: TreeNodeInfo[] = [
                 ],
             },
         ],
-    },
-    {
-        id: 2,
-        hasCaret: true,
-        icon: "folder-close",
-        label: "Super secret files",
-        disabled: true,
-    },
+    }
 ];
