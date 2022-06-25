@@ -28,11 +28,11 @@ export function NameInput(props: NameInputProps): JSX.Element {
         }
     }
 
-    const onKeyDown: React.KeyboardEventHandler = (event: React.KeyboardEvent) => {
-        if (event.key === "Enter") {
+    const onKeyDown: React.KeyboardEventHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
             props.newNameSubmitted(newName);
         }
-        else if (event.key === "Escape") {
+        else if (e.key === "Escape") {
             props.newNameSubmitted(undefined);
         }
     }
@@ -42,7 +42,7 @@ export function NameInput(props: NameInputProps): JSX.Element {
             inputRef={inputRef}
             value={newName}
             key={props.id}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewName(event.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
             placeholder={props.placeholder}
             leftIcon={props.icon}
             onBlur={() => props.newNameSubmitted(newName)}
