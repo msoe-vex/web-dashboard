@@ -1,17 +1,17 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from '@reduxjs/toolkit';
-import { DUMMY_ID } from '../Store/dummyId';
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from "@reduxjs/toolkit";
+import { DUMMY_ID } from "../Store/dummyId";
 
 // JavaScript handles circular imports like a champ
-import { RootState } from '../Store/store';
+import { RootState } from "../Store/store";
 
 export interface Routine {
     readonly id: EntityId;
     readonly name: string;
+    // should probably be two pathIds only
     readonly pathIds: EntityId[];
 }
 
 export const routinesAdapter = createEntityAdapter<Routine>({
-    // selectId: (routine: Routine) => { return routine.id; },
     sortComparer: (a, b) => (a.name.localeCompare(b.name))
 });
 
@@ -22,48 +22,47 @@ function getNextName(routines: Routine[]): string {
     const checkName = (newName: string): boolean =>
         routines.every(routine => routine.name !== newName);
 
-    let i = 1;
-    for (; ; ++i) {
+    for (let i = 1; ; ++i) {
         if (checkName("Routine " + i))
             return "Routine " + i;
     }
 }
 
 export const routinesSlice = createSlice({
-    name: 'routines',
+    name: "routines",
     initialState: routinesAdapter.getInitialState({ activeRoutineId: DUMMY_ID }),
     reducers: {
-        addedRoutine(state, action: PayloadAction<undefined>) {
+        addedRoutine(routineState, action: PayloadAction<undefined>) {
             const routine = {
                 id: nanoid(),
-                name: getNextName(simpleSelectors.selectAll(state)),
+                name: getNextName(simpleSelectors.selectAll(routineState)),
                 pathIds: []
             };
-            routinesAdapter.addOne(state, routine);
-            state.activeRoutineId = routine.id;
+            routinesAdapter.addOne(routineState, routine);
+            routineState.activeRoutineId = routine.id;
         },
         changedRoutine: routinesAdapter.updateOne,
-        deletedRoutine(state, action: PayloadAction<EntityId>) {
-            routinesAdapter.removeOne(state, action);
-            if (action.payload === state.activeRoutineId) {
+        deletedRoutine(routineState, action: PayloadAction<EntityId>) {
+            routinesAdapter.removeOne(routineState, action);
+            if (action.payload === routineState.activeRoutineId) {
                 // what happens if state.ids is empty?
-                state.activeRoutineId = state.ids[0];
+                routineState.activeRoutineId = routineState.ids[0];
             }
         },
-        selectedRoutine(state, action: PayloadAction<EntityId>) {
-            state.activeRoutineId = action.payload;
+        selectedRoutine(routineState, action: PayloadAction<EntityId>) {
+            routineState.activeRoutineId = action.payload;
         },
-        copiedRoutine(state, action: PayloadAction<EntityId>) {
-            const routine = Object.assign({}, state.entities[action.payload]);
+        copiedRoutine(routineState, action: PayloadAction<EntityId>) {
+            const routine = Object.assign({}, routineState.entities[action.payload]);
             if (routine !== undefined) {
                 routine.id = nanoid();
                 routine.name = "Copy of " + routine.name;
-                routinesAdapter.addOne(state, routine);
-                state.activeRoutineId = routine.id;
+                routinesAdapter.addOne(routineState, routine);
+                routineState.activeRoutineId = routine.id;
             }
         },
-        renamedRoutine(state, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            let routine = state.entities[action.payload.id];
+        renamedRoutine(routineState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+            let routine = routineState.entities[action.payload.id];
             if (routine !== undefined) {
                 routine.name = action.payload.newName;
             }
