@@ -22,7 +22,6 @@ function forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNod
     if (nodes === undefined) {
         return;
     }
-
     for (const node of nodes) {
         callback(node);
         forEachNode(node.childNodes, callback);
@@ -52,7 +51,12 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
     }
 }
 
-export function ApplicationTree(props: object): JSX.Element {
+/**
+ * @param props 
+ * 
+ * @returns 
+ */
+export function AppTree(props: object): JSX.Element {
     const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
 
     const handleNodeClick = React.useCallback(
@@ -65,9 +69,7 @@ export function ApplicationTree(props: object): JSX.Element {
                 payload: { path: nodePath, isSelected: originallySelected == null ? true : !originallySelected },
                 type: "SET_IS_SELECTED",
             });
-        },
-        [],
-    );
+        }, []);
 
     const handleNodeCollapse = React.useCallback((_node: TreeNodeInfo, nodePath: NodePath) => {
         dispatch({

@@ -7,7 +7,7 @@ import { store } from './Store/store';
 
 
 import { AppNavbar } from './Navbar/AppNavbar';
-import { ApplicationTree } from './Tree';
+import { AppTree } from './AppTree';
 
 function App() {
 
@@ -18,7 +18,7 @@ function App() {
 
         <AppNavbar />
 
-        <ApplicationTree />
+        <AppTree />
 
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
