@@ -1,15 +1,11 @@
 import React from "react";
 
 import {
-    Alignment,
-    Button,
     Classes,
     Tree,
-    FocusStyleManager,
     TreeNodeInfo,
     Icon,
     Intent,
-    Props,
 } from "@blueprintjs/core";
 
 import { ContextMenu2, Tooltip2, Classes as Popover2Classes } from "@blueprintjs/popover2";
