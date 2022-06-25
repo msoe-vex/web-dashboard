@@ -7,7 +7,7 @@ import { store } from './Store/store';
 
 
 import { AppNavbar } from './Navbar/AppNavbar';
-import { AppTree } from './AppTree';
+import { AppTree } from './Tree/AppTree';
 
 function App() {
 
