@@ -56,7 +56,7 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
     }
 }
 
-export const ApplicationTree: React.FC<React.PropsWithChildren<Props>> = ({ children }) => {
+export function ApplicationTree(props: object): JSX.Element {
     const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
 
     const handleNodeClick = React.useCallback(
