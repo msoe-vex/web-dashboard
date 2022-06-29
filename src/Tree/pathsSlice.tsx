@@ -39,7 +39,7 @@ export const pathsSlice = createSlice({
                 pathsAdapter.addOne(pathState, {
                     ...action.payload,
                     id: action.payload.pathId,
-                    waypointIds: []
+                    waypointIds: action.payload.waypointIds
                 });
             })
             .addCase(deletedRoutineInternal, (pathState, action) => {

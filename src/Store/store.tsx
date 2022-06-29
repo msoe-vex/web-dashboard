@@ -29,7 +29,7 @@ const preloadedState = {
 }
 
 export const store = configureStore({
-    preloadedState: preloadedState,
+    // preloadedState: preloadedState,
     reducer: {
         routines: routinesSlice.reducer,
         // robots: robotsSlice.reducer,

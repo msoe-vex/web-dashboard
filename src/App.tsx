@@ -7,20 +7,18 @@ import { store } from "./Store/store";
 
 
 import { AppNavbar } from "./Navbar/AppNavbar";
-import { AppTree } from "./Tree/AppTree";
+import { AppBody } from "./AppBody";
 
 function App() {
-
   return (
     <Provider store={store}>
 
-      <div className="App">
 
         <AppNavbar />
 
-        <AppTree />
+        <AppBody />
 
-        <header className="App-header">
+        {/* <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
             Edit <code>src/App.tsx</code> and save to reload.
@@ -33,8 +31,7 @@ function App() {
           >
             Learn React
           </a>
-        </header>
-      </div>
+        </header> */}
 
     </Provider>
   );

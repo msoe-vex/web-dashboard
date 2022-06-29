@@ -6,10 +6,20 @@ import {
     TreeNodeInfo,
     Icon,
     Intent,
+    IconName,
+    Button,
 } from "@blueprintjs/core";
 
 import { ContextMenu2, Tooltip2, Classes as Popover2Classes } from "@blueprintjs/popover2";
 import { cloneDeep } from "lodash-es";
+
+import { EntityId } from "@reduxjs/toolkit";
+
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { Path, selectPathById } from "./pathsSlice";
+import { selectWaypointById } from "./waypointsSlice";
+import { selectedWaypoint, selectHiddenWaypointIds, selectHighlightedWaypointIds, waypointVisibilityToggled } from "./uiSlice";
+import { AppDispatch } from "../Store/store";
 
 type NodePath = number[];
 
@@ -51,119 +61,75 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
     }
 }
 
-/**
- * @param props 
- */
-export function AppTree(props: object): JSX.Element {
-    const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
+interface AppTreeProps {
+    pathId: EntityId;
+}
+
+export function AppTree(props: AppTreeProps): JSX.Element {
+    const dispatch = useAppDispatch();
+
+    const path = useAppSelector(state => selectPathById(state, props.pathId));
+    if (path === undefined) {
+        throw Error("Expected valid pathId.");
+    }
+    const highlightedWaypointIds = useAppSelector(selectHighlightedWaypointIds);
+    const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
+    const content = getNodes(path, dispatch, highlightedWaypointIds, hiddenWaypointIds);
 
     const handleNodeClick = React.useCallback(
         (node: TreeNodeInfo, nodePath: NodePath, e: React.MouseEvent<HTMLElement>) => {
-            const originallySelected = node.isSelected;
-            if (!e.shiftKey) {
-                dispatch({ type: "DESELECT_ALL" });
-            }
-            dispatch({
-                payload: { path: nodePath, isSelected: originallySelected == null ? true : !originallySelected },
-                type: "SET_IS_SELECTED",
-            });
-        }, []);
+            dispatch(selectedWaypoint({
+                selectedWaypointId: node.id,
+                shiftKeyHeld: e.shiftKey,
+                controlKeyHeld: e.ctrlKey
+            }));
+        }, [dispatch]);
 
-    const handleNodeCollapse = React.useCallback((_node: TreeNodeInfo, nodePath: NodePath) => {
-        dispatch({
-            payload: { path: nodePath, isExpanded: false },
-            type: "SET_IS_EXPANDED",
-        });
-    }, []);
+    // const handleNodeCollapse = React.useCallback((_node: TreeNodeInfo, nodePath: NodePath) => {
+    //     dispatch({
+    //         payload: { path: nodePath, isExpanded: false },
+    //         type: "SET_IS_EXPANDED",
+    //     });
+    // }, []);
 
-    const handleNodeExpand = React.useCallback((_node: TreeNodeInfo, nodePath: NodePath) => {
-        dispatch({
-            payload: { path: nodePath, isExpanded: true },
-            type: "SET_IS_EXPANDED",
-        });
-    }, []);
+    // const handleNodeExpand = React.useCallback((_node: TreeNodeInfo, nodePath: NodePath) => {
+    //     dispatch({
+    //         payload: { path: nodePath, isExpanded: true },
+    //         type: "SET_IS_EXPANDED",
+    //     });
+    // }, []);
 
     return (
         <Tree
-            contents={nodes}
+            contents={content}
             onNodeClick={handleNodeClick}
-            onNodeCollapse={handleNodeCollapse}
-            onNodeExpand={handleNodeExpand}
+            // onNodeCollapse={handleNodeCollapse}
+            // onNodeExpand={handleNodeExpand}
             className={Classes.ELEVATION_0}
         />
     );
 };
 
-const contentSizing = { popoverProps: { popoverClassName: Popover2Classes.POPOVER2_CONTENT_SIZING } };
+function getNodes(path: Path, dispatch: AppDispatch, highlightedWaypointIds: EntityId[], hiddenWaypointIds: EntityId[]): TreeNodeInfo[] {
+    const treeNodeInfo = path.waypointIds.map((id: EntityId) => {
+        const waypoint = useAppSelector(state => selectWaypointById(state, id));
+        if (waypoint === undefined) {
+            throw new Error("Expected valid waypoint id.");
+        }
 
-const INITIAL_STATE: TreeNodeInfo[] = [
-    {
-        id: 0,
-        hasCaret: true,
-        icon: "folder-close",
-        label: (
-            <ContextMenu2 {...contentSizing} content={<div>Hello there!</div>}>
-                Folder 0
-            </ContextMenu2>
-        ),
-    },
-    {
-        id: 1,
-        icon: "folder-close",
-        isExpanded: true,
-        label: (
-            <ContextMenu2 {...contentSizing} content={<div>Hello there!</div>}>
-                <Tooltip2 content="I'm a folder <3" placement="right">
-                    Folder 1
-                </Tooltip2>
-            </ContextMenu2>
-        ),
-        childNodes: [
-            {
-                id: 2,
-                icon: "document",
-                label: "Item 0",
-                secondaryLabel: (
-                    <Tooltip2 content="An eye!">
-                        <Icon icon="eye-open" />
-                    </Tooltip2>
-                ),
-            },
-            {
-                id: 3,
-                icon: <Icon icon="tag" intent={Intent.PRIMARY} className={Classes.TREE_NODE_ICON} />,
-                label: "Organic meditation gluten-free, sriracha VHS drinking vinegar beard man.",
-            },
-            {
-                id: 4,
-                hasCaret: true,
-                icon: "folder-close",
-                label: (
-                    <ContextMenu2 {...contentSizing} content={<div>Hello there!</div>}>
-                        <Tooltip2 content="foo" placement="right">
-                            Folder 2
-                        </Tooltip2>
-                    </ContextMenu2>
-                ),
-                childNodes: [
-                    { id: 5, label: "No-Icon Item" },
-                    { id: 6, icon: "tag", label: "Item 1" },
-                    {
-                        id: 7,
-                        hasCaret: true,
-                        icon: "folder-close",
-                        label: (
-                            <ContextMenu2 {...contentSizing} content={<div>Hello there!</div>}>
-                                Folder 3
-                            </ContextMenu2>
-                        ),
-                        childNodes: [
-                            { id: 8, icon: "document", label: "Item 0" },
-                            { id: 9, icon: "tag", label: "Item 1" },
-                        ],
-                    },
-                ],
-            },
-        ],
-    }
-];
+        const secondaryLabel = (<Button
+            icon={hiddenWaypointIds.includes(id) ? "eye-off" : "eye-open"}
+            onClick={() => dispatch(waypointVisibilityToggled(id))}
+            minimal={true}
+        />);
+
+        return {
+            id,
+            icon: "flow-linear" as IconName,
+            label: waypoint.name,
+            secondaryLabel,
+            isSelected: highlightedWaypointIds.includes(id)
+        };
+    });
+    return treeNodeInfo;
+}

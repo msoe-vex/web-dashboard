@@ -5,6 +5,7 @@ import { RootState } from "../Store/store";
 
 export interface Waypoint {
     readonly id: EntityId;
+    readonly name: string;
     // Whether the waypoint is at the end of a path
     // Causes the velocity to be 0 and prevents it from being marked as a follower
     readonly end: boolean;
@@ -29,6 +30,7 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     end: false,
+                    name: "Waypoint"
                     // default waypoint props
                 });
             },
@@ -51,7 +53,8 @@ export const waypointsSlice = createSlice({
                 action.payload.waypointIds.forEach(waypointId => {
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
-                        end: true
+                        end: true,
+                        name: "Waypoint"
                     })
                 });
             })
