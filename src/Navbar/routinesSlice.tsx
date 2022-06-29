@@ -93,7 +93,7 @@ export const deletedRoutine = (routineId: EntityId): AppThunk => {
             arg.pathIds.forEach(pathId => {
                 const path = selectPathById(getState(), pathId);
                 if (path !== undefined) {
-                    arg.waypointIds.concat(path.waypointIds);
+                    arg.waypointIds = arg.waypointIds.concat(path.waypointIds);
                 }
             });
         }
