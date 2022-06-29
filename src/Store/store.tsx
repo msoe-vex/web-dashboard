@@ -2,6 +2,7 @@ import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit
 
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
+import { uiSlice } from "../Tree/uiSlice";
 import { waypointsSlice } from "../Tree/waypointsSlice"
 
 const preloadedId = nanoid();
@@ -34,6 +35,7 @@ export const store = configureStore({
         // robots: robotsSlice.reducer,
         paths: pathsSlice.reducer,
         waypoints: waypointsSlice.reducer,
+        ui: uiSlice.reducer
     }
 });
 

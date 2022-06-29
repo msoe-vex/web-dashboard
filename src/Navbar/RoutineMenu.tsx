@@ -5,9 +5,10 @@ import { EntityId } from '@reduxjs/toolkit';
 
 import { useAppDispatch, useAppSelector } from '../Store/hooks';
 import {
-    selectRoutineIds, selectRoutineById, selectActiveRoutineId,
-    addedRoutine, deletedRoutine, selectedRoutine, copiedRoutine, renamedRoutine
+    selectRoutineIds, selectRoutineById,
+    addedRoutine, deletedRoutine, copiedRoutine, renamedRoutine
 } from './routinesSlice';
+import { selectActiveRoutineId, selectedActiveRoutine } from '../Tree/uiSlice';
 
 import { EditSubmenu } from './EditSubmenu';
 import { NameInput } from './NameInput';
@@ -117,7 +118,7 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
             text={name}
             key={props.id}
             selected={props.selected}
-            onClick={() => dispatch(selectedRoutine(props.id))}
+            onClick={() => dispatch(selectedActiveRoutine(props.id))}
             children={
                 <EditSubmenu
                     onRenameClick={() => setIsRenaming(true)}

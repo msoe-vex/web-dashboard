@@ -3,7 +3,8 @@ import { DUMMY_ID } from "../Store/dummyId";
 
 // JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
-import { addedPath, deletedPath, selectPathById } from "../Tree/pathsSlice";
+import { selectPathById } from "../Tree/pathsSlice";
+import { selectActiveRoutineId } from "../Tree/uiSlice";
 
 export interface Routine {
     readonly id: EntityId;
@@ -31,7 +32,7 @@ function getNextName(routines: Routine[]): string {
 
 export const routinesSlice = createSlice({
     name: "routines",
-    initialState: routinesAdapter.getInitialState({ activeRoutineId: DUMMY_ID }),
+    initialState: routinesAdapter.getInitialState(),
     reducers: {
         addedRoutineInternal(routineState, action: PayloadAction<{
             routineId: EntityId,
@@ -46,30 +47,22 @@ export const routinesSlice = createSlice({
                 name: getNextName(simpleSelectors.selectAll(routineState)),
             };
             routinesAdapter.addOne(routineState, routine);
-            routineState.activeRoutineId = routine.id;
         },
         deletedRoutineInternal(routineState, action: PayloadAction<{
             routineId: EntityId,
             pathIds: EntityId[],
-            waypointIds: EntityId[]
+            waypointIds: EntityId[],
+            newActiveRoutineId?: EntityId
         }>) {
             routinesAdapter.removeOne(routineState, action.payload.routineId);
-            if (action.payload.routineId === routineState.activeRoutineId) {
-                // what happens if state.ids is empty?
-                routineState.activeRoutineId = routineState.ids[0];
-            }
         },
         updatedRoutine: routinesAdapter.updateOne,
-        selectedRoutine(routineState, action: PayloadAction<EntityId>) {
-            routineState.activeRoutineId = action.payload;
-        },
         copiedRoutine(routineState, action: PayloadAction<EntityId>) {
             const routine = Object.assign({}, routineState.entities[action.payload]);
             if (routine !== undefined) {
                 routine.id = nanoid();
                 routine.name = "Copy of " + routine.name;
                 routinesAdapter.addOne(routineState, routine);
-                routineState.activeRoutineId = routine.id;
             }
         },
         renamedRoutine(routineState, action: PayloadAction<{ newName: string, id: EntityId }>) {
@@ -87,24 +80,28 @@ export const routinesSlice = createSlice({
  */
 export const deletedRoutine = (routineId: EntityId): AppThunk => {
     return (dispatch, getState) => {
+        let arg = {
+            routineId,
+            pathIds: [] as EntityId[],
+            waypointIds: [] as EntityId[],
+            newActiveRoutineId: undefined as EntityId | undefined
+        };
+
         const routineToDelete = selectRoutineById(getState(), routineId);
-        let pathIds: EntityId[] = [];
-        let waypointIds: EntityId[] = [];
         if (routineToDelete !== undefined) {
-            pathIds = routineToDelete.pathIds;
-            pathIds.forEach(pathId => {
+            arg.pathIds = routineToDelete.pathIds;
+            arg.pathIds.forEach(pathId => {
                 const path = selectPathById(getState(), pathId);
                 if (path !== undefined) {
-                    waypointIds.concat(path.waypointIds);
+                    arg.waypointIds.concat(path.waypointIds);
                 }
             });
         }
 
-        dispatch(deletedRoutineInternal({
-            routineId: routineId,
-            pathIds: pathIds,
-            waypointIds: waypointIds
-        }));
+        if (selectActiveRoutineId(getState()) === routineId) {
+            arg.newActiveRoutineId = selectAllRoutines(getState())[0].id;
+        }
+        dispatch(deletedRoutineInternal(arg));
     };
 }
 
@@ -124,7 +121,6 @@ export const {
     addedRoutineInternal,
     deletedRoutineInternal,
     updatedRoutine,
-    selectedRoutine,
     copiedRoutine,
     renamedRoutine
 } = routinesSlice.actions;
@@ -135,5 +131,3 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
 } = routinesAdapter.getSelectors<RootState>((state) => state.routines);
-
-export const selectActiveRoutineId = (state: RootState) => state.routines.activeRoutineId;
