@@ -1,27 +1,30 @@
-import { configureStore, EntityState, EntityId, nanoid } from '@reduxjs/toolkit';
+import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit";
 
-import { routinesSlice, Routine } from '../Navbar/routinesSlice';
-import { pathsSlice, Path } from '../Tree/pathsSlice';
-
-export interface RootState {
-    readonly routines: EntityState<Routine> & { activeRoutineId: EntityId };
-    readonly paths: EntityState<Path>;
-}
+import { routinesSlice } from "../Navbar/routinesSlice";
+import { pathsSlice } from "../Tree/pathsSlice";
+import { waypointsSlice } from "../Tree/waypointsSlice"
 
 const preloadedId = nanoid();
-
-const preloadedState: RootState = {
+const preloadedState = {
     routines: {
         ids: [preloadedId],
         entities: {
-            [preloadedId]: { id: preloadedId, name: "Routine 1", pathIds: [] as EntityId[] },
+            [preloadedId]: { id: preloadedId, name: "Routine 1", pathIds: [] },
         },
         activeRoutineId: preloadedId
     },
-    paths: {
-        ids: [],
-        entities: {}
-    }
+    // paths: {
+    //     ids: [],
+    //     entities: {}
+    // },
+    // waypoints: {
+    //     ids: [],
+    //     entities: {}
+    // },
+    // endWaypoints: {
+    //     ids: [],
+    //     entities: {}
+    // }
 }
 
 export const store = configureStore({
@@ -30,5 +33,10 @@ export const store = configureStore({
         routines: routinesSlice.reducer,
         // robots: robotsSlice.reducer,
         paths: pathsSlice.reducer,
+        waypoints: waypointsSlice.reducer,
     }
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, AnyAction>;

@@ -1,13 +1,13 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
 
-import { Provider } from 'react-redux';
-import { store } from './Store/store';
+import { Provider } from "react-redux";
+import { store } from "./Store/store";
 
 
-import { AppNavbar } from './Navbar/AppNavbar';
-import { AppTree } from './Tree/AppTree';
+import { AppNavbar } from "./Navbar/AppNavbar";
+import { AppTree } from "./Tree/AppTree";
 
 function App() {
 

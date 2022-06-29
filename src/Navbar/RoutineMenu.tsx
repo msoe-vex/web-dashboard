@@ -28,14 +28,14 @@ export function RoutineMenu(): JSX.Element {
         globalIsRenaming = isRenaming;
     }
 
-    const ownerButton = activeRoutineName === undefined ? (
+    const ownerButton = (!activeRoutineName ?
         <Button
             icon="add"
             text={"Add routine"}
             minimal={true}
             onClick={() => dispatch(addedRoutine())}
-        />) :
-        (<Button
+        /> :
+        <Button
             icon="playbook"
             rightIcon="chevron-down"
             text={activeRoutineName}
@@ -47,6 +47,7 @@ export function RoutineMenu(): JSX.Element {
         <MenuItem
             icon="add"
             text="Add routine"
+            key="addRoutine"
             onClick={() => dispatch(addedRoutine())}
             shouldDismissPopover={false}
         />);
@@ -64,7 +65,7 @@ export function RoutineMenu(): JSX.Element {
             {addRoutineItem}
         </Menu>);
 
-    return (activeRoutineName === undefined) ? (ownerButton) : (
+    return (!activeRoutineName ? ownerButton :
         <Popover2
             children={ownerButton}
             content={routineMenu}
