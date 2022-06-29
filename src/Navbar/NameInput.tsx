@@ -4,7 +4,7 @@ import { BlueprintIcons_16Id } from "@blueprintjs/icons/lib/esm/generated/16px/b
 import { EntityId } from "@reduxjs/toolkit";
 
 interface NameInputProps {
-    id: EntityId;
+    key: EntityId;
     newNameSubmitted: (newName: string | undefined) => void;
     initialName?: string;
     placeholder?: string;
@@ -41,7 +41,7 @@ export function NameInput(props: NameInputProps): JSX.Element {
         <InputGroup
             inputRef={inputRef}
             value={newName}
-            key={props.id}
+            key={props.key}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
             placeholder={props.placeholder}
             leftIcon={props.icon}

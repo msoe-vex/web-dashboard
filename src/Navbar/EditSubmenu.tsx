@@ -20,6 +20,7 @@ export function EditSubmenu(props: EditSubmenuProps): JSX.Element {
     const editItem = onEditClick && (
         <MenuItem
             text="Edit"
+            key="edit"
             icon="edit"
             onClick={onEditClick}
             shouldDismissPopover={false} // could be true?
@@ -28,6 +29,7 @@ export function EditSubmenu(props: EditSubmenuProps): JSX.Element {
     const renameItem = onRenameClick && (
         <MenuItem
             text="Rename"
+            key="rename"
             icon="edit"
             onClick={onRenameClick}
             shouldDismissPopover={false}
@@ -36,6 +38,7 @@ export function EditSubmenu(props: EditSubmenuProps): JSX.Element {
     const copyItem = onCopyClick && (
         <MenuItem
             text="Copy"
+            key="copy"
             icon="duplicate"
             onClick={onCopyClick}
             shouldDismissPopover={false}
@@ -45,6 +48,7 @@ export function EditSubmenu(props: EditSubmenuProps): JSX.Element {
         <MenuItem
             intent={Intent.DANGER}
             text="Delete"
+            key="delete"
             icon="trash"
             onClick={onDeleteClick}
             shouldDismissPopover={false}

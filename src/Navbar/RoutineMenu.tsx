@@ -105,7 +105,7 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
     return isRenaming ? (<NameInput
         initialName={name}
         icon="playbook"
-        id={props.id}
+        key={props.id}
         newNameSubmitted={(newName) => {
             if (newName !== undefined) {
                 dispatch(renamedRoutine({ newName: newName, id: props.id }))
