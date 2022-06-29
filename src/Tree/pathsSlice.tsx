@@ -1,74 +1,101 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from '@reduxjs/toolkit';
-import { DUMMY_ID } from '../Store/dummyId';
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from "@reduxjs/toolkit";
+import { batch } from "react-redux";
+import { addedRoutineInternal, deletedRoutineInternal } from "../Navbar/routinesSlice";
+import { DUMMY_ID } from "../Store/dummyId";
 
-import { RootState } from '../Store/store';
+import { AppThunk, RootState } from "../Store/store";
+import { addedWaypoint, deletedWaypoint } from "./waypointsSlice";
 
 export interface Path {
     readonly id: EntityId;
-    readonly name: string; // maybe not required?
 
-    readonly robotId: EntityId;
-    readonly startWaypointId: EntityId;
-    readonly endWaypointId: EntityId;
+    readonly robotId: EntityId | undefined;
     readonly waypointIds: EntityId[];
 }
 
-export const pathsAdapter = createEntityAdapter<Path>({
-    sortComparer: (a, b) => (a.name.localeCompare(b.name))
-});
-
-// Selectors which can be used in the reducer
+export const pathsAdapter = createEntityAdapter<Path>();
 const simpleSelectors = pathsAdapter.getSelectors();
 
-function getNextName(paths: Path[]): string {
-    const checkName = (newName: string): boolean =>
-        paths.every(path => path.name !== newName);
-
-    let i = 1;
-    for (; ; ++i) {
-        if (checkName("Path " + i))
-            return "Path " + i;
-    }
-}
-
 export const pathsSlice = createSlice({
-    name: 'paths',
+    name: "paths",
     initialState: pathsAdapter.getInitialState(),
     reducers: {
-        addedPath(state, action: PayloadAction<undefined>) {
-            const path = {
-                id: nanoid(),
-                name: getNextName(simpleSelectors.selectAll(state)),
-            };
-            // pathsAdapter.addOne(state, path);
+        addedPathInternal(pathState, action: PayloadAction<{
+            id: EntityId,
+            routineId: EntityId,
+            robotId: EntityId,
+            waypointIds: EntityId[]
+        }>) {
+            pathsAdapter.addOne(pathState, {
+                ...action.payload // not routineId
+            });
         },
+        deletedPathInternal: pathsAdapter.removeOne,
         changedPath: pathsAdapter.updateOne,
-        deletedPath(state, action: PayloadAction<EntityId>) {
-            pathsAdapter.removeOne(state, action);
-        },
-        copiedPath(state, action: PayloadAction<EntityId>) {
-            const path = Object.assign({}, state.entities[action.payload]);
-            if (path !== undefined) {
-                path.id = nanoid();
-                path.name = "Copy of " + path.name;
-                pathsAdapter.addOne(state, path);
-            }
-        },
-        renamedPath(state, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            let path = state.entities[action.payload.id];
-            if (path !== undefined) {
-                path.name = action.payload.newName;
-            }
-        }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(addedRoutineInternal, (pathState, action) => {
+                pathsAdapter.addOne(pathState, {
+                    ...action.payload,
+                    id: action.payload.pathId,
+                    waypointIds: []
+                });
+            })
+            .addCase(deletedRoutineInternal, (pathState, action) => {
+                pathsAdapter.removeMany(pathState, action.payload.pathIds);
+            })
+            .addCase(addedWaypoint, (pathState, action) => {
+                const path = simpleSelectors.selectById(pathState, action.payload.pathId);
+                if (path !== undefined) {
+                    if (action.payload.index !== undefined && action.payload.index < path.waypointIds.length) {
+                        // this inserts into the array (after deleting 0 items). Yay jaascript!
+                        path.waypointIds.splice(action.payload.index, 0, action.payload.waypointId);
+                    }
+                    else {
+                        path.waypointIds.push(action.payload.waypointId);
+                    }
+                }
+            })
+            .addCase(deletedWaypoint, (pathState, action) => {
+                simpleSelectors.selectAll(pathState).forEach(path => {
+                    const index = path.waypointIds.findIndex(waypointId => waypointId === action.payload);
+                    if (index !== -1) {
+                        path.waypointIds.splice(index, 1);
+                    }
+                });
+            })
     }
 });
 
+export const deletedPath = (pathId: EntityId): AppThunk => {
+    return (dispatch, getState) => {
+        batch(() => {
+            const path = selectPathById(getState(), pathId);
+            if (path !== undefined) {
+                path.waypointIds.forEach(waypointId => {
+                    // dispatch(deletedWaypoint(waypointId));
+                });
+            }
+            dispatch(pathsSlice.actions.deletedPathInternal(pathId));
+        });
+    };
+};
+
+export const addedPath = (routineId: EntityId): AppThunk => {
+    return (dispatch, getState) => {
+        dispatch(pathsSlice.actions.addedPathInternal({
+            id: nanoid(),
+            routineId,
+            robotId: DUMMY_ID, // selectFirstRobotId(getState(),
+            // set waypoints as ends
+            waypointIds: [nanoid(), nanoid()]
+        }));
+    };
+};
+
 export const {
-    addedPath,
-    deletedPath,
-    changedPath,
-    copiedPath,
-    renamedPath
+    changedPath
 } = pathsSlice.actions;
 
 // Runtime selectors

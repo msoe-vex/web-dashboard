@@ -53,8 +53,6 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
 
 /**
  * @param props 
- * 
- * @returns 
  */
 export function AppTree(props: object): JSX.Element {
     const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
