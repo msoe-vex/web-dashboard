@@ -1,11 +1,10 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { parseJsonSourceFileConfigFileContent } from "typescript";
 import { addedRoutineInternal, deletedRoutineInternal, selectRoutineById } from "../Navbar/routinesSlice";
 import { DUMMY_ID } from "../Store/dummyId";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
 import { selectPathById } from "./pathsSlice";
-import { selectAllTreeContainerIds, selectAllTreeWaypointIds } from "./treeActions";
+import { selectAllTreeWaypointIds } from "./treeActions";
 import { selectWaypointById } from "./waypointsSlice";
 
 /**
