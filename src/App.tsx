@@ -1,6 +1,7 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
+import { FocusStyleManager } from "@blueprintjs/core";
+// import logo from "./logo.svg";
 
 import { Provider } from "react-redux";
 import { store } from "./Store/store";
@@ -10,15 +11,12 @@ import { AppNavbar } from "./Navbar/AppNavbar";
 import { AppBody } from "./AppBody";
 
 function App() {
+  FocusStyleManager.onlyShowFocusOnTabs();
   return (
     <Provider store={store}>
-
-
-        <AppNavbar />
-
-        <AppBody />
-
-        {/* <header className="App-header">
+      <AppNavbar />
+      <AppBody className="App-body" />
+      {/* <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
             Edit <code>src/App.tsx</code> and save to reload.

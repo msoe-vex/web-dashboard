@@ -1,16 +1,17 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { batch } from "react-redux";
-import { addedRoutineInternal, deletedRoutineInternal } from "../Navbar/routinesSlice";
+import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { DUMMY_ID } from "../Store/dummyId";
 
 import { AppThunk, RootState } from "../Store/store";
-import { addedWaypoint, deletedWaypoint } from "./waypointsSlice";
+import { addedFolderInternal, deletedFolderInternal } from "./foldersSlice";
+import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "./waypointsSlice";
 
 export interface Path {
-    readonly id: EntityId;
+    id: EntityId;
 
-    readonly robotId: EntityId | undefined;
-    readonly waypointIds: EntityId[];
+    robotId: EntityId | undefined;
+    folderIds: EntityId[];
+    waypointIds: EntityId[];
 }
 
 export const pathsAdapter = createEntityAdapter<Path>();
@@ -27,10 +28,17 @@ export const pathsSlice = createSlice({
             waypointIds: EntityId[]
         }>) {
             pathsAdapter.addOne(pathState, {
-                ...action.payload // not routineId
+                ...action.payload, // not routineId
+                folderIds: []
             });
         },
-        deletedPathInternal: pathsAdapter.removeOne,
+        deletedPathInternal(pathState, action: PayloadAction<{
+            id: EntityId,
+            folderIds: EntityId[],
+            waypointIds: EntityId[]
+        }>) {
+            pathsAdapter.removeOne(pathState, action.payload.id);
+        },
         changedPath: pathsAdapter.updateOne,
     },
     extraReducers: (builder) => {
@@ -39,63 +47,90 @@ export const pathsSlice = createSlice({
                 pathsAdapter.addOne(pathState, {
                     ...action.payload,
                     id: action.payload.pathId,
-                    waypointIds: action.payload.waypointIds
+                    folderIds: []
                 });
             })
             .addCase(deletedRoutineInternal, (pathState, action) => {
                 pathsAdapter.removeMany(pathState, action.payload.pathIds);
             })
             .addCase(addedWaypoint, (pathState, action) => {
-                const path = simpleSelectors.selectById(pathState, action.payload.pathId);
-                if (path !== undefined) {
-                    if (action.payload.index !== undefined && action.payload.index < path.waypointIds.length) {
-                        // this inserts into the array (after deleting 0 items). Yay jaascript!
+                const path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(action.payload.waypointId));
+                if (path) {
+                    if (action.payload.index && action.payload.index < path.waypointIds.length) {
+                        // this inserts into the array at index
                         path.waypointIds.splice(action.payload.index, 0, action.payload.waypointId);
                     }
                     else {
                         path.waypointIds.push(action.payload.waypointId);
                     }
+                    pathsAdapter.upsertOne(pathState, path);
                 }
             })
             .addCase(deletedWaypoint, (pathState, action) => {
-                simpleSelectors.selectAll(pathState).forEach(path => {
-                    const index = path.waypointIds.findIndex(waypointId => waypointId === action.payload);
-                    if (index !== -1) {
-                        path.waypointIds.splice(index, 1);
-                    }
-                });
+                const id = action.payload;
+                let path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(id));
+                if (path) {
+                    const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== id);
+                    pathsAdapter.updateOne(pathState, { id: path.id, changes: { waypointIds: newWaypointIds } });
+                }
+            })
+            // Add newWaypointId after waypointId in correct path
+            .addCase(duplicatedWaypointInternal, (pathState, action) => {
+                const path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(action.payload.waypointId));
+                if (path) {
+                    const newWaypointIds = path.waypointIds.slice();
+                    const waypointIndex = path.waypointIds.findIndex(waypointId => waypointId === action.payload.waypointId);
+                    newWaypointIds.splice(waypointIndex + 1, 0, action.payload.newWaypointId);
+                    pathsAdapter.updateOne(pathState, { id: path.id, changes: { waypointIds: newWaypointIds } });
+                }
+            })
+            .addCase(addedFolderInternal, (pathState, action) => {
+                const path = simpleSelectors.selectById(pathState, action.payload.pathId);
+                if (path) {
+                    const newFolderIds = path.folderIds.slice();
+                    newFolderIds.push(action.payload.id);
+                    pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds } });
+                }
+            })
+            .addCase(deletedFolderInternal, (pathState, action) => {
+                const path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(action.payload.id));
+                if (path) {
+                    const newFolderIds = path.folderIds.filter(folderId => folderId !== action.payload.id);
+                    const newWaypointIds = path.waypointIds.filter(waypointId => !action.payload.waypointIds.includes(waypointId));
+                    pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds, waypointIds: newWaypointIds } });
+                }
+            })
+            .addCase(duplicatedRoutineInternal, (pathState, action) => {
+                pathsAdapter.addMany(pathState, action.payload.paths);
             })
     }
 });
 
 export const deletedPath = (pathId: EntityId): AppThunk => {
     return (dispatch, getState) => {
-        batch(() => {
-            const path = selectPathById(getState(), pathId);
-            if (path !== undefined) {
-                path.waypointIds.forEach(waypointId => {
-                    // dispatch(deletedWaypoint(waypointId));
-                });
-            }
-            dispatch(pathsSlice.actions.deletedPathInternal(pathId));
-        });
+        const path = selectPathById(getState(), pathId);
+        dispatch(deletedPathInternal({
+            id: pathId,
+            folderIds: path?.folderIds ?? [],
+            waypointIds: path?.waypointIds ?? []
+        }));
     };
 };
 
 export const addedPath = (routineId: EntityId): AppThunk => {
-    return (dispatch, getState) => {
+    return (dispatch, _getState) => {
         dispatch(pathsSlice.actions.addedPathInternal({
             id: nanoid(),
             routineId,
             robotId: DUMMY_ID, // selectFirstRobotId(getState(),
-            // set waypoints as ends
             waypointIds: [nanoid(), nanoid()]
         }));
     };
 };
 
 export const {
-    changedPath
+    changedPath,
+    deletedPathInternal
 } = pathsSlice.actions;
 
 // Runtime selectors
@@ -103,4 +138,23 @@ export const {
     selectById: selectPathById,
     selectIds: selectPathIds,
     selectAll: selectAllPaths,
+    selectEntities: selectPathDictionary,
 } = pathsAdapter.getSelectors<RootState>((state) => state.paths);
+
+/**
+ * Selects the path which owns a given waypoint id.
+ * @param {EntityId} waypointId - The waypoint id to use.
+ * @returns {Path | undefined}
+ */
+export const selectPathOwnerOfWaypointId = (state: RootState, waypointId: EntityId): Path | undefined => {
+    return selectAllPaths(state).find(path => path.waypointIds.includes(waypointId));
+};
+
+/**
+ * Selects the path which owns a given folder id. 
+ * @param {EntityId} folderId - The folder id to use.
+ * @returns {Path | undefined}
+ */
+export const selectPathOwnerOfFolderId = (state: RootState, folderId: EntityId): Path | undefined => {
+    return selectAllPaths(state).find(path => path.folderIds.includes(folderId));
+};

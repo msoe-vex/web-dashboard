@@ -1,17 +1,21 @@
 import React from 'react';
-import { Button, Menu, MenuDivider, MenuItem } from '@blueprintjs/core';
+import { Button, Classes, Menu, MenuDivider, MenuItem, Position } from '@blueprintjs/core';
 import { Popover2 } from '@blueprintjs/popover2';
 import { EntityId } from '@reduxjs/toolkit';
 
 import { useAppDispatch, useAppSelector } from '../Store/hooks';
 import {
-    selectRoutineIds, selectRoutineById,
-    addedRoutine, deletedRoutine, copiedRoutine, renamedRoutine
+    selectRoutineIds,
+    selectRoutineById,
+    addedRoutine,
+    deletedRoutine,
+    renamedRoutine,
+    duplicatedRoutine
 } from './routinesSlice';
 import { selectActiveRoutineId, selectedActiveRoutine } from '../Tree/uiSlice';
 
-import { EditSubmenu } from './EditSubmenu';
 import { NameInput } from './NameInput';
+import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from '../Tree/MenuItems';
 
 export function RoutineMenu(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -19,15 +23,11 @@ export function RoutineMenu(): JSX.Element {
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
     const activeRoutineName = useAppSelector((state) => {
         const routine = selectRoutineById(state, activeRoutineId);
-        return routine === undefined ? "" : routine.name;
+        return routine?.name;
     });
 
     const [isOpen, setIsOpen] = React.useState(false);
-
-    let globalIsRenaming = false;
-    const setGlobalIsRenaming = (isRenaming: boolean) => {
-        globalIsRenaming = isRenaming;
-    }
+    const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
     const ownerButton = (!activeRoutineName ?
         <Button
@@ -41,26 +41,27 @@ export function RoutineMenu(): JSX.Element {
             rightIcon="chevron-down"
             text={activeRoutineName}
             minimal={true}
-            onClick={() => setIsOpen(true)}
+            onClick={() => setIsOpen(true)} // open popover
         />);
 
     const addRoutineItem = (
         <MenuItem
             icon="add"
             text="Add routine"
-            key="addRoutine"
             onClick={() => dispatch(addedRoutine())}
             shouldDismissPopover={false}
         />);
 
     const ids = useAppSelector(selectRoutineIds);
     const routineMenu = (
-        <Menu>
+        <Menu className={Classes.ELEVATION_2}>
             {ids.map((id) =>
                 <RoutineItem
+                    key={id} // key here to make React happy
                     id={id}
                     selected={id === activeRoutineId}
                     setGlobalIsRenaming={setGlobalIsRenaming}
+                    setIsOpen={setIsOpen}
                 />)}
             <MenuDivider />
             {addRoutineItem}
@@ -70,13 +71,12 @@ export function RoutineMenu(): JSX.Element {
         <Popover2
             children={ownerButton}
             content={routineMenu}
+            usePortal={true}
             minimal={true}
-            placement={"bottom-start"}
+            position={Position.BOTTOM_LEFT}
             matchTargetWidth={true}
             isOpen={isOpen}
-            onClose={() => {
-                setIsOpen(globalIsRenaming);
-            }}
+            onClose={() => setIsOpen(globalIsRenaming)} // setIsOpen to globalIsRenaming (which is usually false)
         />);
 }
 
@@ -84,46 +84,60 @@ interface RoutineItemProps {
     id: EntityId;
     selected: boolean;
     setGlobalIsRenaming: (isRenaming: boolean) => void;
+    setIsOpen: (state: boolean) => void;
 }
 
 function RoutineItem(props: RoutineItemProps): JSX.Element {
     const dispatch = useAppDispatch();
 
-    const name = useAppSelector((state) => {
-        const routine = selectRoutineById(state, props.id);
-        return (routine === undefined) ? "" : routine.name;
-    });
+    const name = useAppSelector((state) => selectRoutineById(state, props.id)?.name);
+    if (!name) { throw Error("Expected valid routine name."); }
 
     const [isRenaming, setIsRenaming] = React.useState(false);
-
-    const setGlobalIsRenaming = props.setGlobalIsRenaming;
-    React.useEffect(() => {
-        if (isRenaming)
-            setGlobalIsRenaming(true);
-    }, [setGlobalIsRenaming, isRenaming]);
 
     return isRenaming ? (<NameInput
         initialName={name}
         icon="playbook"
-        key={props.id}
         newNameSubmitted={(newName) => {
-            if (newName !== undefined) {
-                dispatch(renamedRoutine({ newName: newName, id: props.id }))
-            }
+            if (newName) { dispatch(renamedRoutine({ newName: newName, id: props.id })); }
             setIsRenaming(false);
+            props.setGlobalIsRenaming(false);
         }}
     />) :
         (<MenuItem
             icon="playbook"
             text={name}
-            key={props.id}
             selected={props.selected}
-            onClick={() => dispatch(selectedActiveRoutine(props.id))}
+            onClick={() => {
+                props.setIsOpen(false);
+                dispatch(selectedActiveRoutine(props.id));
+            }}
+            // doesn't work for some reason
+            // submenuProps={{ className: Classes.ELEVATION_2 }}
             children={
-                <EditSubmenu
-                    onRenameClick={() => setIsRenaming(true)}
-                    onCopyClick={() => dispatch(copiedRoutine(props.id))}
-                    onDeleteClick={() => dispatch(deletedRoutine(props.id))}
+                < RoutineSubmenu
+                    id={props.id}
+                    handleRenameClick={() => {
+                        setIsRenaming(true);
+                        props.setGlobalIsRenaming(true);
+                    }}
                 />}
         />);
+}
+
+interface RoutineSubmenuProps {
+    id: EntityId;
+    handleRenameClick: React.MouseEventHandler;
+}
+
+function RoutineSubmenu(props: RoutineSubmenuProps): JSX.Element {
+    const dispatch = useAppDispatch();
+    const shouldDismissPopover = { shouldDismissPopover: false };
+    return (<>
+        <EditMenuItem onClick={() => dispatch(selectedActiveRoutine(props.id))} />
+        <RenameMenuItem {...shouldDismissPopover} onClick={props.handleRenameClick} />
+        <DuplicateMenuItem {...shouldDismissPopover} onClick={() => dispatch(duplicatedRoutine(props.id))} />
+        <MenuDivider />
+        <DeleteMenuItem {...shouldDismissPopover} onClick={() => dispatch(deletedRoutine(props.id))} />
+    </>);
 }

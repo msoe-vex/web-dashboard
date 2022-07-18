@@ -24,7 +24,6 @@ export class WaypointMenu extends React.Component<WaypointMenuProps, WaypointMen
             state.waypoint.name = newName;
             return state;
         });
-        console.log("New waypoint name: " + newName);
     };
 
     public render() {

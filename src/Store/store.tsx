@@ -1,6 +1,7 @@
 import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit";
 
 import { routinesSlice } from "../Navbar/routinesSlice";
+import { foldersSlice } from "../Tree/foldersSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
 import { uiSlice } from "../Tree/uiSlice";
 import { waypointsSlice } from "../Tree/waypointsSlice"
@@ -35,6 +36,7 @@ export const store = configureStore({
         // robots: robotsSlice.reducer,
         paths: pathsSlice.reducer,
         waypoints: waypointsSlice.reducer,
+        folders: foldersSlice.reducer,
         ui: uiSlice.reducer
     }
 });
