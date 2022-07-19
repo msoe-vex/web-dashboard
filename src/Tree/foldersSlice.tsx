@@ -4,6 +4,7 @@ import { AppThunk, RootState } from "../Store/store";
 import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { deletedPathInternal, selectPathOwnerOfWaypointId } from "./pathsSlice";
 import { getNextName } from "./Utils";
+import { duplicatedWaypointInternal } from "./waypointsSlice";
 
 export interface Folder {
     id: EntityId;
@@ -52,6 +53,15 @@ export const foldersSlice = createSlice({
         builder
             .addCase(duplicatedRoutineInternal, (folderState, action) => {
                 foldersAdapter.addMany(folderState, action.payload.folders);
+            })
+            .addCase(duplicatedWaypointInternal, (folderState, action) => {
+                const existingFolder = simpleSelectors.selectAll(folderState).find(folder => folder.waypointIds.includes(action.payload.waypointId));
+                if (existingFolder) {
+                    const newWaypointIds = existingFolder.waypointIds.slice();
+                    const index = newWaypointIds.findIndex(waypointId => waypointId === action.payload.waypointId);
+                    newWaypointIds.splice(index, 0, action.payload.newWaypointId);
+                    foldersAdapter.updateOne(folderState, { id: existingFolder.id, changes: { waypointIds: newWaypointIds } });
+                }
             })
             .addMatcher(isAnyOf(deletedRoutineInternal, deletedPathInternal),
                 (folderState, action) => foldersAdapter.removeMany(folderState, action.payload.folderIds))
@@ -117,7 +127,7 @@ export const selectFolderOwnerOfWaypointId = (state: RootState, waypointId: Enti
     selectAllFolders(state).find(folder => folder.waypointIds.includes(waypointId));
 
 /**
- * Returns true if a waypointId is in a folder, and false otherwise. 
+ * Returns true if a waypointId is in a folder, and false otherwise.
  * @param {EntityId} waypointId - The waypoint id to use.
  * @returns {boolean}
  */
