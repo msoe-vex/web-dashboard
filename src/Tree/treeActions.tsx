@@ -1,16 +1,16 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
-import { selectActiveRoutineId, selectHighlightedWaypointIds, TreeItemType } from "./uiSlice";
+import { selectActiveRoutineId, selectHighlightedWaypointIds, ItemType } from "./uiSlice";
 import { Path, selectPathById, selectPathOwnerOfWaypointId } from "./pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { renamedWaypoint } from "./waypointsSlice";
 
-export const treeItemRenamed = (id: EntityId, treeItemType: TreeItemType, newName: string): AppThunk => {
+export const treeItemRenamed = (id: EntityId, treeItemType: ItemType, newName: string): AppThunk => {
     return (dispatch, _getState) => {
-        if (treeItemType === TreeItemType.WAYPOINT) {
+        if (treeItemType === ItemType.WAYPOINT) {
             dispatch(renamedWaypoint({ newName, id }));
-        } else if (treeItemType === TreeItemType.FOLDER) {
+        } else if (treeItemType === ItemType.FOLDER) {
             dispatch(renamedFolder({ newName, id }));
         }
     };
@@ -23,31 +23,31 @@ export const selectionAddedToNewFolder = (): AppThunk => {
     };
 };
 
-export const waypointAddedBefore = (id: EntityId): AppThunk => {
-    return (dispatch, getState) => {
+// export const waypointAddedBefore = (id: EntityId): AppThunk => {
+//     return (dispatch, getState) => {
 
-    };
-};
+//     };
+// };
 
-export const waypointAddedAfter = (id: EntityId): AppThunk => {
-    return (dispatch, getState) => {
-        const treePaths = selectAllTreePaths(getState());
-        let treeIndex = -1;
-        let waypointIndex = -1;
-        for (let i = 0; i < treePaths.length; i++) {
-            const tIndex = treePaths[i].waypointIds.findIndex(waypointId => waypointId === id);
-            if (tIndex !== -1) {
-                waypointIndex = tIndex;
-                treeIndex = i;
-                break;
-            }
-        }
-        if (waypointIndex === -1) { return; }
-        // dispatch waypointAdded
-        // eventually, poll previous and next waypoint, and calculate new state, then pass into waypointAdded
-        // sigh
-    };
-};
+// export const waypointAddedAfter = (id: EntityId): AppThunk => {
+//     return (dispatch, getState) => {
+//         const treePaths = selectAllTreePaths(getState());
+//         let treeIndex = -1;
+//         let waypointIndex = -1;
+//         for (let i = 0; i < treePaths.length; i++) {
+//             const tIndex = treePaths[i].waypointIds.findIndex(waypointId => waypointId === id);
+//             if (tIndex !== -1) {
+//                 waypointIndex = tIndex;
+//                 treeIndex = i;
+//                 break;
+//             }
+//         }
+//         if (waypointIndex === -1) { return; }
+//         // dispatch waypointAdded
+//         // eventually, poll previous and next waypoint, and calculate new state, then pass into waypointAdded
+//         // sigh
+//     };
+// };
 
 export const selectAllTreePaths = (state: RootState): Path[] => {
     const activeRoutine = selectRoutineById(state, selectActiveRoutineId(state));

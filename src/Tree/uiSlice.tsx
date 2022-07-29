@@ -24,8 +24,8 @@ export interface UI {
     editMenuActive: boolean,
 }
 
-export enum TreeItemType {
-    PATH, FOLDER, WAYPOINT
+export enum ItemType {
+    PATH, FOLDER, WAYPOINT // CONTROL_WAYPOINT, FOLLOWER_WAYPOINT
 }
 
 /**
@@ -201,13 +201,13 @@ export const allTreeItemsHidden = (): AppThunk => {
 
 export const treeItemSelected = (
     selectedItemId: EntityId,
-    selectedItemType: TreeItemType,
+    itemType: ItemType,
     shiftKeyHeld: boolean,
     controlKeyHeld: boolean
 ): AppThunk => {
     return (dispatch, getState) => {
         const state = getState();
-        const containedWaypointIds = selectContainedWaypointIds(state, selectedItemType, selectedItemId);
+        const containedWaypointIds = selectContainedWaypointIds(state, selectedItemId, itemType);
         if (shiftKeyHeld) {
             dispatch(uiSlice.actions.treeItemBatchSelectedInternal({
                 treeWaypointIds: selectAllTreeWaypointIds(state),
@@ -222,13 +222,10 @@ export const treeItemSelected = (
     };
 };
 
-export const treeItemVisibilityToggled = (
-    itemId: EntityId,
-    treeItemType: TreeItemType
-): AppThunk => {
+export const treeItemVisibilityToggled = (itemId: EntityId, itemType: ItemType): AppThunk => {
     return (dispatch, getState) =>
         dispatch(uiSlice.actions.treeItemVisibilityToggledInternal({
-            containedWaypointIds: selectContainedWaypointIds(getState(), treeItemType, itemId)
+            containedWaypointIds: selectContainedWaypointIds(getState(), itemId, itemType)
         }));
 };
 
@@ -257,16 +254,18 @@ export const {
 /**
  * Returns an array containing the waypointIds contained by a treeItem.
  */
-export const selectContainedWaypointIds = (state: RootState, treeItemType: TreeItemType, id: EntityId): EntityId[] => {
-    switch (treeItemType) {
-        case TreeItemType.FOLDER:
+export const selectContainedWaypointIds = (state: RootState, id: EntityId, itemType: ItemType): EntityId[] => {
+    switch (itemType) {
+        case ItemType.FOLDER:
             return selectFolderWaypointIds(state, id) ?? [];
-        case TreeItemType.PATH:
+        case ItemType.PATH:
             return selectPathById(state, id)?.waypointIds ?? [];
-        case TreeItemType.WAYPOINT:
+        case ItemType.WAYPOINT:
             const waypointId = selectWaypointById(state, id)?.id;
             return waypointId ? [waypointId] : [];
+        // case ItemType.FOLLOWER_WAYPOINT:
     };
+    return [];
 };
 
 export const selectActiveRoutineId = (state: RootState) => state.ui.activeRoutineId;

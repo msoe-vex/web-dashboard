@@ -1,11 +1,10 @@
 import React from "react";
-import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppSelector } from "../Store/hooks";
 import { AppDispatch } from "../Store/store";
+import { MenuDivider, MenuItem } from "@blueprintjs/core";
+
 import {
-    waypointAddedBefore,
-    waypointAddedAfter,
     checkIfAllTreeItemsAreHidden,
     checkIfAllTreeItemsAreShown,
     checkIfSelectionCanBePutInFolder,
@@ -14,21 +13,14 @@ import {
     selectAllTreeContainerIds
 } from "./treeActions";
 import { allTreeItemsShown, allTreeItemsHidden, selectCollapsedIds, treeItemsCollapsed, treeItemsExpanded } from "./uiSlice";
-import { MenuDivider, MenuItem } from "@blueprintjs/core";
 
 interface DispatchProps {
     dispatch: AppDispatch;
 }
 
-interface IdProps {
-    id: EntityId;
-}
-
 interface OnClickProps {
     onClick: React.MouseEventHandler;
 }
-
-interface DispatchAndIdProps extends DispatchProps, IdProps { };
 
 interface ShouldDismissPopoverProps {
     shouldDismissPopover?: boolean;
@@ -173,18 +165,18 @@ function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
         /> : null);
 }
 
-function AddWaypointBeforeMenuItem(props: DispatchAndIdProps): JSX.Element {
-    return (<MenuItem
-        text="Add waypoint before"
-        icon="add"
-        onClick={() => props.dispatch(waypointAddedBefore(props.id))}
-    />);
-}
+// function AddWaypointBeforeMenuItem(props: DispatchProps & IdProps): JSX.Element {
+//     return (<MenuItem
+//         text="Add waypoint before"
+//         icon="add"
+//         onClick={() => props.dispatch(waypointAddedBefore(props.id))}
+//     />);
+// }
 
-function AddWaypointAfterMenuItem(props: DispatchAndIdProps): JSX.Element {
-    return (< MenuItem
-        text="Add waypoint after"
-        icon="add"
-        onClick={() => props.dispatch(waypointAddedAfter(props.id))}
-    />);
-}
+// function AddWaypointAfterMenuItem(props: DispatchProps & IdProps): JSX.Element {
+//     return (< MenuItem
+//         text="Add waypoint after"
+//         icon="add"
+//         onClick={() => props.dispatch(waypointAddedAfter(props.id))}
+//     />);
+// }

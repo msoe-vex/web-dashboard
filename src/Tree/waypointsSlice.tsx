@@ -5,13 +5,47 @@ import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
 import { getNextName } from "./Utils";
 
-export interface Waypoint {
+// We need to add some special types to Waypoint
+// Could we create a special configurator class or something?
+
+export enum WaypointType {
+    CONTROL, FOLLOWER
+}
+
+/**
+ * @param {number} robotAngle - The angle of the robot at the waypoint.
+ *      Should be undefined for tank drives, as the angle is computed automatically/the same as the waypoint angle.
+ */
+export interface WaypointBase {
     id: EntityId;
     name: string;
-    // Whether the waypoint is at the end of a path
-    // Causes the velocity to be 0 and prevents it from being marked as a follower
-    end: boolean;
+    robotAngle?: number;
 }
+
+/**
+ * The reference for x and y is as follows. The position is assumed to be relative to the starting position of the robot,
+ * so the origin is at the left middle of the screen. y varies from 0 to the width of the field. x varies from -height / 2 to
+ * height / 2.
+ * 
+ * @param {number} x - The x position of the waypoint. Units in meters.
+ * @param {number} y - The y position of the waypoint. Units in meters.
+ * @param {number} angle - The angle of the waypoint. Units in degrees.
+ */
+export interface ControlWaypoint extends WaypointBase {
+    x: number;
+    y: number;
+    angle: number;
+}
+
+/**
+ * @param {number} parameter - The position of the waypoint relative to the spline defined
+ *      by the previous and next control waypoints in the path. Is in the range [0, 1].
+ */
+export interface FollowerWaypoint extends WaypointBase {
+    parameter: number;
+}
+
+export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
 export const waypointsAdapter = createEntityAdapter<Waypoint>();
 const simpleSelectors = waypointsAdapter.getSelectors();
@@ -31,9 +65,10 @@ export const waypointsSlice = createSlice({
             }>) => {
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
-                    end: false,
-                    name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint")
-                    // default waypoint props
+                    name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
+                    x: 0,
+                    y: 0,
+                    angle: 0
                 });
             },
             prepare: (index?: number) => {
@@ -64,8 +99,10 @@ export const waypointsSlice = createSlice({
                 action.payload.waypointIds.forEach(waypointId => {
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
-                        end: true,
-                        name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint")
+                        name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
+                        x: 0,
+                        y: 0,
+                        angle: 0
                     })
                 });
             })

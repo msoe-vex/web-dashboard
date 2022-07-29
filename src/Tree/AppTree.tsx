@@ -22,7 +22,7 @@ import {
     treeItemCollapsed,
     treeItemExpanded,
     treeItemSelected,
-    TreeItemType,
+    ItemType,
     treeItemVisibilityToggled,
 } from './uiSlice';
 import { selectRoutineById } from '../Navbar/routinesSlice';
@@ -78,8 +78,8 @@ export function AppTree(props: AppTreeProps): JSX.Element {
 
     const handleNodeClick = React.useCallback(
         // _ marks arg as unused
-        (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
-            // === undefined doesn't catch TreeItemType.PATH, unlike ! operator
+        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
+            // === undefined doesn't catch ItemType.PATH, unlike ! operator
             if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
             else if (renamingId !== DUMMY_ID) { return; }
             dispatch(treeItemSelected(node.id, node.nodeData, e.shiftKey, e.ctrlKey));
@@ -96,18 +96,18 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
 
     const handleNodeContextMenu = React.useCallback(
-        (node: TreeNodeInfo<TreeItemType>, nodePath: number[], e: React.MouseEvent) => {
+        (node: TreeNodeInfo<ItemType>, nodePath: number[], e: React.MouseEvent) => {
             let contextMenu;
             const contextMenuProps = { id: node.id, handleRenameClick: () => setRenamingId(node.id) };
-            if (node.nodeData === TreeItemType.PATH) {
+            if (node.nodeData === ItemType.PATH) {
                 contextMenu = (<PathContextMenu
                     {...contextMenuProps}
                 />);
-            } else if (node.nodeData === TreeItemType.FOLDER) {
+            } else if (node.nodeData === ItemType.FOLDER) {
                 contextMenu = (<FolderContextMenu
                     {...contextMenuProps}
                 />);
-            } else if (node.nodeData === TreeItemType.WAYPOINT) {
+            } else if (node.nodeData === ItemType.WAYPOINT) {
                 contextMenu = (<WaypointContextMenu
                     {...contextMenuProps}
                 />);
@@ -158,26 +158,24 @@ function getPathNode(
     setRenamingId: (newId: EntityId) => void,
     highlightedWaypointIds: EntityId[],
     collapsedIds: EntityId[],
-): TreeNodeInfo<TreeItemType> {
+): TreeNodeInfo<ItemType> {
     // Waypoint nodes
-    const waypointNodes: TreeNodeInfo<TreeItemType>[] = orderedWaypoints.map(waypoint => {
+    const waypointNodes: TreeNodeInfo<ItemType>[] = orderedWaypoints.map(waypoint => {
         const waypointEyeButton = (<TreeEyeButton
             treeItem={waypoint}
-            treeItemType={TreeItemType.WAYPOINT}
+            itemType={ItemType.WAYPOINT}
             renamingId={renamingId}
         />);
 
-        const waypointLabel = getTreeLabel(waypoint, TreeItemType.WAYPOINT, renamingId, setRenamingId);
+        const waypointLabel = getTreeLabel(waypoint, ItemType.WAYPOINT, renamingId, setRenamingId);
 
         return {
             id: waypoint.id,
             icon: "flow-linear" as IconName,
-            // label can be an element for renaming
-            // triggering rename behavior is a bit weird, might have renamingId | undefined
             label: waypointLabel,
             secondaryLabel: waypointEyeButton,
             isSelected: highlightedWaypointIds.includes(waypoint.id),
-            nodeData: TreeItemType.WAYPOINT
+            nodeData: ItemType.WAYPOINT
         };
     });
 
@@ -185,11 +183,11 @@ function getPathNode(
     folders.forEach(folder => {
         const folderEyeButton = (<TreeEyeButton
             treeItem={folder}
-            treeItemType={TreeItemType.FOLDER}
+            itemType={ItemType.FOLDER}
             renamingId={renamingId}
         />);
 
-        const folderLabel = getTreeLabel(folder, TreeItemType.FOLDER, renamingId, setRenamingId);
+        const folderLabel = getTreeLabel(folder, ItemType.FOLDER, renamingId, setRenamingId);
 
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
         if (startIndex === -1) { throw Error("Expected folder contents in path."); }
@@ -202,7 +200,7 @@ function getPathNode(
             isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => highlightedWaypointIds.includes(waypointId)),
             label: folderLabel,
             secondaryLabel: folderEyeButton,
-            nodeData: TreeItemType.FOLDER
+            nodeData: ItemType.FOLDER
         }
         const childNodes = waypointNodes.splice(startIndex, folder.waypointIds.length, folderNode);
         waypointNodes[startIndex].childNodes = childNodes;
@@ -210,7 +208,7 @@ function getPathNode(
 
     const pathEyeButton = (<TreeEyeButton
         treeItem={path}
-        treeItemType={TreeItemType.PATH}
+        itemType={ItemType.PATH}
         renamingId={renamingId}
     />);
 
@@ -221,7 +219,7 @@ function getPathNode(
         icon: "layout-linear" as IconName,
         label: "Path - Robot 1", // todo: change to robot name
         isSelected: path.waypointIds.length > 0 && path.waypointIds.every(waypointId => highlightedWaypointIds.includes(waypointId)),
-        nodeData: TreeItemType.PATH,
+        nodeData: ItemType.PATH,
         secondaryLabel: pathEyeButton,
         childNodes: waypointNodes
     };
@@ -229,7 +227,7 @@ function getPathNode(
 
 interface TreeEyeButtonProps {
     treeItem: { id: EntityId, waypointIds?: EntityId[] };
-    treeItemType: TreeItemType;
+    itemType: ItemType;
     renamingId: EntityId;
 }
 
@@ -238,8 +236,8 @@ function TreeEyeButton(props: TreeEyeButtonProps): JSX.Element | null {
 
     const handleEyeButtonClick = React.useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        dispatch(treeItemVisibilityToggled(props.treeItem.id, props.treeItemType));
-    }, [props.treeItem.id, props.treeItemType, dispatch]);
+        dispatch(treeItemVisibilityToggled(props.treeItem.id, props.itemType));
+    }, [props.treeItem.id, props.itemType, dispatch]);
 
     const waypointIds = (!props.treeItem.waypointIds) ? [props.treeItem.id] : props.treeItem.waypointIds;
     const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
@@ -256,11 +254,11 @@ function eyeIcon(waypointIds: EntityId[], hiddenWaypointIds: EntityId[]): IconNa
     return (allHidden) ? "eye-off" : "eye-open";
 }
 
-function getTreeLabel(treeItem: Waypoint | Folder, treeItemType: TreeItemType, renamingId: EntityId, setRenamingId: (newId: EntityId) => void): JSX.Element | string {
+function getTreeLabel(treeItem: Waypoint | Folder, itemType: ItemType, renamingId: EntityId, setRenamingId: (newId: EntityId) => void): JSX.Element | string {
     return (treeItem.id === renamingId) ? (
         < TreeNameInput
             treeItem={treeItem}
-            treeItemType={treeItemType}
+            itemType={itemType}
             setRenamingId={setRenamingId}
         />
     ) : treeItem.name;
@@ -268,7 +266,7 @@ function getTreeLabel(treeItem: Waypoint | Folder, treeItemType: TreeItemType, r
 
 interface TreeNameInputProps {
     treeItem: { id: EntityId, name: string };
-    treeItemType: TreeItemType;
+    itemType: ItemType;
     setRenamingId: (newId: EntityId) => void;
 }
 
@@ -278,7 +276,7 @@ function TreeNameInput(props: TreeNameInputProps): JSX.Element {
         initialName={props.treeItem.name}
         newNameSubmitted={(newName) => {
             if (newName) {
-                dispatch(treeItemRenamed(props.treeItem.id, props.treeItemType, newName));
+                dispatch(treeItemRenamed(props.treeItem.id, props.itemType, newName));
             }
             props.setRenamingId(DUMMY_ID);
         }}
