@@ -1,4 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
+import { Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 
 import { AppThunk, RootState } from "../Store/store";
@@ -13,7 +14,7 @@ export enum WaypointType {
 }
 
 /**
- * @param {number} robotAngle - The angle of the robot at the waypoint.
+ * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
  *      Should be undefined for tank drives, as the angle is computed automatically/the same as the waypoint angle.
  */
 export interface WaypointBase {
@@ -27,14 +28,22 @@ export interface WaypointBase {
  * so the origin is at the left middle of the screen. y varies from 0 to the width of the field. x varies from -height / 2 to
  * height / 2.
  * 
- * @param {number} x - The x position of the waypoint. Units in meters.
- * @param {number} y - The y position of the waypoint. Units in meters.
- * @param {number} angle - The angle of the waypoint. Units in degrees.
+ * @param {number} x - The x position of the waypoint in meters.
+ * @param {number} y - The y position of the waypoint in meters.
+ * @param {number} angle - The angle of the waypoint in radians.
  */
 export interface ControlWaypoint extends WaypointBase {
     x: number;
     y: number;
     angle: number;
+    // type: WaypointType;
+}
+
+export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
+    const controlWaypoint = waypoint as ControlWaypoint;
+    return controlWaypoint.x !== undefined &&
+        controlWaypoint.y !== undefined &&
+        controlWaypoint.angle !== undefined;
 }
 
 /**
@@ -43,6 +52,11 @@ export interface ControlWaypoint extends WaypointBase {
  */
 export interface FollowerWaypoint extends WaypointBase {
     parameter: number;
+}
+
+export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWaypoint {
+    const followerWaypoint = waypoint as FollowerWaypoint;
+    return followerWaypoint.parameter !== undefined;
 }
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
@@ -100,9 +114,9 @@ export const waypointsSlice = createSlice({
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        x: 0,
-                        y: 0,
-                        angle: 0
+                        x: 1 * Units.FEET,
+                        y: 1 * Units.FEET,
+                        angle: 15 * Units.DEGREE
                     })
                 });
             })

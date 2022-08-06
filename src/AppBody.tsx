@@ -5,6 +5,7 @@ import { selectRoutineById } from "./Navbar/routinesSlice";
 import { useAppDispatch, useAppSelector } from "./Store/hooks";
 import { AppTree } from "./Tree/AppTree";
 import { deselectedWaypoints, selectActiveRoutineId } from "./Tree/uiSlice";
+import { Field } from "./Field/Field";
 
 interface AppBodyProps {
     className: string;
@@ -17,25 +18,26 @@ export function AppBody(props: AppBodyProps): JSX.Element {
 
     const body = (!activeRoutine) ?
         (<NonIdealState
-            className="App-non-ideal-state"
+            className="non-ideal-state"
             icon="add"
             title="No routines"
             description="Add a routine or import an existing configuration to get started."
         />) :
         (<div
+            className="App-body"
             onClick={(e: React.MouseEvent) => {
                 if (!e.isPropagationStopped()) {
                     dispatch(deselectedWaypoints());
                 }
             }}
+            onContextMenu={(e: React.MouseEvent) => {
+                e.preventDefault();
+            }}
         >
             <AppTree />
+            <Field />
         </div>
         );
 
-    return (
-        <div {...props}>
-            {body}
-        </div>
-    );
+    return body;
 }
