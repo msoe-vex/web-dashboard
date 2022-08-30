@@ -1,18 +1,15 @@
 import React from "react";
-import { InputGroup } from "@blueprintjs/core";
-import { BlueprintIcons_16Id } from "@blueprintjs/icons/lib/esm/generated/16px/blueprint-icons-16";
-import { EntityId } from "@reduxjs/toolkit";
+import { IconName, InputGroup } from "@blueprintjs/core";
 
 interface NameInputProps {
-    id: EntityId;
     newNameSubmitted: (newName: string | undefined) => void;
-    initialName?: string;
-    placeholder?: string;
-    icon?: BlueprintIcons_16Id;
+    initialName: string;
+    icon?: IconName;
 }
 
 /**
- * Defines an InputGroup component that gains focus when first mounted.
+ * Defines an InputGroup component which can be used with a MenuItem to implement in line renaming.
+ * Automatically gains focus when first mounted and fires a callback when editing is finished.
  * @param props.newNameSubmitted A callback function which is fired when the name is submitted.
  */
 export function NameInput(props: NameInputProps): JSX.Element {
@@ -28,11 +25,11 @@ export function NameInput(props: NameInputProps): JSX.Element {
         }
     }
 
-    const onKeyDown: React.KeyboardEventHandler = (event: React.KeyboardEvent) => {
-        if (event.key === "Enter") {
+    const handleKeyDown: React.KeyboardEventHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
             props.newNameSubmitted(newName);
         }
-        else if (event.key === "Escape") {
+        else if (e.key === "Escape") {
             props.newNameSubmitted(undefined);
         }
     }
@@ -41,11 +38,9 @@ export function NameInput(props: NameInputProps): JSX.Element {
         <InputGroup
             inputRef={inputRef}
             value={newName}
-            key={props.id}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewName(event.target.value)}
-            placeholder={props.placeholder}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
             leftIcon={props.icon}
             onBlur={() => props.newNameSubmitted(newName)}
-            onKeyDown={onKeyDown}
+            onKeyDown={handleKeyDown}
         />);
 }
