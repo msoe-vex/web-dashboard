@@ -93,7 +93,7 @@ export const deletedFolder = (folderId: EntityId): AppThunk => {
     };
 };
 
-// Only difference between unpack and deleted is unpacked leaves waypoints
+// Only difference between unpack and deleted is unpack leaves waypoints
 export const unpackedFolder = (folderId: EntityId): AppThunk => {
     return (dispatch, _getState) => {
         dispatch(deletedFolderInternal({ id: folderId, waypointIds: [] }));

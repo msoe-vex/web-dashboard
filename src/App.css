@@ -22,6 +22,8 @@
 
 .App-tree-card {
   width: 325px;
+  min-width: 325px;
+  max-width: 325px;
 }
 
 .App-eye-button:hover {
@@ -30,9 +32,11 @@
 
 #field {
   flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
-.base-canvas {
+/* .base-canvas {
   width: 100%;
   height: 100%;
 }
@@ -43,7 +47,7 @@
 
 #waypoint-canvas {
   z-index: 2;
-}
+} */
 
 /* .App-tree-context-menu-popover:backdrop {
   background-color: transparent !important;

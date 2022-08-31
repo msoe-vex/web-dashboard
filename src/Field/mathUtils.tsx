@@ -22,53 +22,58 @@ export class Units {
  * Defines information and utility functions for working with canvases that represent the field.
  */
 export class FieldCanvas {
-    private _context: CanvasRenderingContext2D;
     private _fieldHeight: number;
     private _fieldWidth: number;
+    private _canvasHeight: number;
+    private _canvasWidth: number;
     private _PIXEL: number;
 
     private _fieldTransform: DOMMatrix;
 
-    constructor(fieldHeight: number, fieldWidth: number, context: CanvasRenderingContext2D) {
-        this._context = context;
+    constructor(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number) {
         this._fieldHeight = fieldHeight;
         this._fieldWidth = fieldWidth;
+        this._canvasHeight = canvasHeight;
+        this._canvasWidth = canvasWidth;
 
         // maps the height to width. If max height is 3, 3 * heightToWidth is the max width.
         const heightToWidth = fieldWidth / fieldHeight;
         const widthToHeight = fieldHeight / fieldWidth;
 
         const height = Math.min(
-            context.canvas.clientWidth * widthToHeight,
-            context.canvas.clientHeight
+            canvasWidth * widthToHeight,
+            canvasHeight
         );
-        const width = height * heightToWidth;
+        const width = canvasHeight * heightToWidth;
 
         this._PIXEL = height / fieldHeight;
 
-        context.resetTransform();
-        this.clear();
         this._fieldTransform = new DOMMatrix();
         this.updateFieldTransform(height, width);
     }
 
     public get PIXEL(): number { return this._PIXEL; }
 
-    public get context(): CanvasRenderingContext2D { return this._context; }
     public get fieldHeight(): number { return this._fieldHeight; }
     public get fieldWidth(): number { return this._fieldWidth; }
 
-    public get fieldTransform(): DOMMatrix { return this._fieldTransform; }
+    public get canvasHeight(): number { return this._canvasHeight; }
+    public get canvasWidth(): number { return this._canvasWidth; }
+
+    public getX(x: number = 0) {
+        
+    }
+
+    public toField(x: number = 0, y: number = 0, angle: number = 0) {
+
+    }
 
     private updateFieldTransform(height: number, width: number) {
-
-        const xShift = (this.context.canvas.clientWidth - width) / 2;
-        const yShift = (this.context.canvas.clientHeight - height) / 2 + height;
+        const xShift = (this._canvasWidth - width) / 2;
+        const yShift = (this._canvasHeight - height) / 2 + height;
         this._fieldTransform.translateSelf(xShift, yShift);
         // flip y axis
         this._fieldTransform.scaleSelf(this.PIXEL, -this.PIXEL);
-
-        // this.context.setTransform(this._toFieldCanvas);
 
         // current robot coord transforms
         // const xShift = (context.canvas.clientWidth - this.width) / 2;
@@ -81,15 +86,6 @@ export class FieldCanvas {
     }
 
     /**
-     * Clears the canvas.
-     */
-    private clear() {
-        this.context.clearRect(0, 0,
-            this.context.canvas.clientWidth,
-            this.context.canvas.clientHeight);
-    }
-
-    /**
      * Sets the current transform of the field equal to the transform
      * specified by `fieldTransform` plus the specified offsets. 
      * Offsets are relative to the robot coord system.
@@ -97,11 +93,11 @@ export class FieldCanvas {
      * @param y {number} - The y offset.
      * @param angle {number} - The angle in radians to rotate by.
      */
-    public setTransform(x: number = 0, y: number = 0, angle: number = 0) {
-        const transformCopy = new DOMMatrix(this._fieldTransform.toString());
-        transformCopy.translateSelf(x, y);
-        transformCopy.rotateSelf(0, 0, angle / Units.DEGREE);
-        this.context.setTransform(transformCopy);
+    public applyTransform(x: number = 0, y: number = 0, angle: number = 0) {
+        // const transformCopy = new DOMMatrix(this._fieldTransform.toString());
+        // transformCopy.translateSelf(x, y);
+        // transformCopy.rotateSelf(0, 0, angle / Units.DEGREE);
+        // this.context.setTransform(transformCopy);
     }
 }
 
