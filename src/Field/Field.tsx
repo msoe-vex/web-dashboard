@@ -48,21 +48,28 @@ export function Field(): JSX.Element {
 
     const fieldCanvas = new FieldCanvas(height, width, 12 * Units.FEET, 12 * Units.FEET);
 
-    return (<div id="field" >
+    return (<div id="field">
         <Stage width={width} height={height}>
             <Layer>
                 <Rect width={width - 5} height={height - 5} fill="red" />
-                <Rect />
             </Layer>
         </Stage >
     </div >);
 };
 
-function FieldLayer(): JSX.Element {
+interface FieldLayerProps {
+    children: JSX.Element;
+}
+
+function FieldLayer(props: FieldLayerProps): JSX.Element {
     return (<Layer
-        
+
     />);
 };
+
+const computeFieldTransform = () => {
+    
+}
 
 
 // const initializeContext = (canvasRef: React.RefObject<HTMLCanvasElement>, setContext: (value: CanvasRenderingContext2D) => void) => {

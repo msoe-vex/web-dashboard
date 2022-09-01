@@ -124,7 +124,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     );
 
     return (
-        <Card className="App-tree-card" >
+        <Card className="App-tree-card">
             <H5>{routine.name}</H5>
 
             <ContextMenu2
@@ -146,7 +146,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
                     />
                 </div>
             </ContextMenu2>
-        </Card >
+        </Card>
     );
 };
 
