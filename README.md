@@ -1,3 +1,3 @@
-# Web Interface for RoboUtil Library
+# Legacy Path Planning Dashboard
 
-View at [https://msoe-vex.github.io/WebDashboard/www/](https://msoe-vex.github.io/WebDashboard/www/)
+View at [https://dashboard.msoevex.com/](https://dashboard.msoevex.com/)
