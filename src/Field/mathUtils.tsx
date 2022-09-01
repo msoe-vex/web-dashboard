@@ -26,9 +26,11 @@ export class FieldCanvas {
     private _fieldWidth: number;
     private _canvasHeight: number;
     private _canvasWidth: number;
+
     private _PIXEL: number;
 
-    private _fieldTransform: DOMMatrix;
+    private _fieldTransform: object;
+    // private _fieldTransform: DOMMatrix;
 
     constructor(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number) {
         this._fieldHeight = fieldHeight;
@@ -41,15 +43,15 @@ export class FieldCanvas {
         const widthToHeight = fieldHeight / fieldWidth;
 
         const height = Math.min(
-            canvasWidth * widthToHeight,
-            canvasHeight
+            canvasHeight,
+            canvasWidth * widthToHeight
         );
-        const width = canvasHeight * heightToWidth;
-
+        const width = height * heightToWidth;
         this._PIXEL = height / fieldHeight;
 
-        this._fieldTransform = new DOMMatrix();
-        this.updateFieldTransform(height, width);
+        const xShift = (this._canvasWidth - width) / 2;
+        const yShift = (this._canvasHeight - height) / 2 + height;
+        this._fieldTransform = { x: xShift, y: yShift, scaleX: this.PIXEL, scaleY: -this.PIXEL };
     }
 
     public get PIXEL(): number { return this._PIXEL; }
@@ -60,30 +62,7 @@ export class FieldCanvas {
     public get canvasHeight(): number { return this._canvasHeight; }
     public get canvasWidth(): number { return this._canvasWidth; }
 
-    public getX(x: number = 0) {
-        
-    }
-
-    public toField(x: number = 0, y: number = 0, angle: number = 0) {
-
-    }
-
-    private updateFieldTransform(height: number, width: number) {
-        const xShift = (this._canvasWidth - width) / 2;
-        const yShift = (this._canvasHeight - height) / 2 + height;
-        this._fieldTransform.translateSelf(xShift, yShift);
-        // flip y axis
-        this._fieldTransform.scaleSelf(this.PIXEL, -this.PIXEL);
-
-        // current robot coord transforms
-        // const xShift = (context.canvas.clientWidth - this.width) / 2;
-        // const yShift = (context.canvas.clientHeight - this.height) / 2;
-        // this._toFieldCanvas.translateSelf(xShift, yShift);
-        // this._toFieldCanvas.rotateSelf(0, 0, 90);
-        // // flip y axis
-        // this._toFieldCanvas.scaleSelf(this.PIXEL, -this.PIXEL);
-        // this._toFieldCanvas.translateSelf(this._fieldHeight / 2, 0);
-    }
+    public get fieldTransform(): object { return this._fieldTransform; }
 
     /**
      * Sets the current transform of the field equal to the transform
@@ -93,7 +72,8 @@ export class FieldCanvas {
      * @param y {number} - The y offset.
      * @param angle {number} - The angle in radians to rotate by.
      */
-    public applyTransform(x: number = 0, y: number = 0, angle: number = 0) {
+    public applyTransform(x: number = 0, y: number = 0, angle: number = 0): object {
+        return {};
         // const transformCopy = new DOMMatrix(this._fieldTransform.toString());
         // transformCopy.translateSelf(x, y);
         // transformCopy.rotateSelf(0, 0, angle / Units.DEGREE);
