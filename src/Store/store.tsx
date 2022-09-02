@@ -1,5 +1,6 @@
 import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit";
 
+import { fieldSlice } from "../Field/fieldSlice";
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
@@ -32,6 +33,7 @@ const preloadedState = {
 export const store = configureStore({
     // preloadedState: preloadedState,
     reducer: {
+        field: fieldSlice.reducer,
         routines: routinesSlice.reducer,
         // robots: robotsSlice.reducer,
         paths: pathsSlice.reducer,
