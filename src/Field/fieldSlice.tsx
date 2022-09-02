@@ -10,7 +10,7 @@ export interface Field {
 
 export const fieldSlice = createSlice({
     name: "field",
-    initialState: { width: 12 * Units.FEET, height: 12 * Units.FEET },
+    initialState: { width: 12 * Units.FEET + 2 * Units.INCH, height: 12 * Units.FEET + 2 * Units.INCH },
     reducers: {
         fieldWidthChanged: (fieldState, action: PayloadAction<number>) => {
             fieldState.width = action.payload;

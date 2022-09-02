@@ -1,4 +1,6 @@
 import { Dictionary, EntityId } from "@reduxjs/toolkit";
+import Konva from "konva";
+import { KonvaEventObject } from "konva/lib/Node";
 import { number } from "prop-types";
 import React from "react";
 
@@ -70,7 +72,7 @@ export function Field(): JSX.Element {
     });
     const waypointDict = useAppSelector(selectWaypointDictionary);
 
-    const robotElements = getRobotElements(paths, waypointDict);
+    const robotElements = getRobotRectangles(paths, waypointDict);
 
     return (<div id="field" >
         <Stage width={width} height={height}>
@@ -93,7 +95,7 @@ export function Field(): JSX.Element {
     </div >);
 };
 
-const getRobotElements = (paths: Path[], waypointDict: Dictionary<Waypoint>): JSX.Element[] => {
+const getRobotRectangles = (paths: Path[], waypointDict: Dictionary<Waypoint>): JSX.Element[] => {
     return paths.flatMap(path => {
         return path.waypointIds.map(waypointId => {
             const waypoint = waypointDict[waypointId];
@@ -103,10 +105,16 @@ const getRobotElements = (paths: Path[], waypointDict: Dictionary<Waypoint>): JS
                 return (<Rect
                     x={waypoint.x}
                     y={waypoint.y}
-                    rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.RADIAN : 0}
-                    strokeWidth={0.25 * Units.INCH}
+                    width={18 * Units.INCH}
+                    height={18 * Units.INCH}
+                    rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
+                    strokeWidth={0.5 * Units.INCH}
                     stroke="black"
                     draggable={true}
+                    onDragEnd={(e: KonvaEventObject<DragEvent>) => {
+                        console.log(e.target.x);
+                        console.log(e.target.y);
+                    }}
                 />);
             }
             else {
