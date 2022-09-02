@@ -32,7 +32,7 @@ export enum ItemType {
  * Stores UI state and related actions.
  * Notably is responsible for handling UI options like selecting waypoints (which highlights them in the window)
  * and showing/hiding waypoints. 
- * Although some of these behaviors could be feasibly captured direclty in waypoints, it breaks "UI logic" away
+ * Although some of these behaviors could be feasibly captured directly in waypoints, it breaks "UI logic" away
  * from information which has no effect on the generated path.
  */
 export const uiSlice = createSlice({
@@ -60,7 +60,7 @@ export const uiSlice = createSlice({
             // cases:
             // if tree is empty, do nothing
             // if no waypoints are currently highlighted, select the entire tree
-            // If all waypoitns are currently highlighted, deselect the entire tree
+            // If all waypoints are currently highlighted, deselect the entire tree
             // if the last highlighted waypoint isn't in the tree (should be impossible), do nothing
             // If shift selected waypoint does not exist, do nothing (should be impossible)
             const { treeWaypointIds, containedWaypointIds } = action.payload;
