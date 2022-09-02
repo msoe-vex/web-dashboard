@@ -1,6 +1,6 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
-import { selectActiveRoutineId, selectHighlightedWaypointIds, ItemType } from "./uiSlice";
+import { selectActiveRoutineId, selectSelectedWaypointIds, ItemType } from "./uiSlice";
 import { Path, selectPathById, selectPathOwnerOfWaypointId } from "./pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
@@ -125,7 +125,7 @@ export const checkIfAllTreeItemsAreShown = (state: RootState): boolean => {
 //  * @returns true if a selection currently exists, and false otherwise.
 //  */
 // export const checkIfSelectionExists = (state: RootState): boolean => {
-//     return selectHighlightedWaypointIds(state).length > 0;
+//     return selectSelectedWaypointIds(state).length > 0;
 // };
 
 /**
@@ -158,7 +158,7 @@ export const checkIfSelectionCanBePutInFolder = (state: RootState): boolean => {
  */
 export const makeSelectionContiguous = (state: RootState): EntityId[] => {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    const currentSelection = selectHighlightedWaypointIds(state);
+    const currentSelection = selectSelectedWaypointIds(state);
     const indicies = currentSelection.map(waypointId => treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);
     if (indicies.length === 0) { return []; }
     const min = Math.min(...indicies);

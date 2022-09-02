@@ -8,7 +8,7 @@ import { TypeOfExpression } from "typescript";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { Path, selectPathById } from "../Tree/pathsSlice";
-import { selectActiveRoutine, selectHiddenWaypointIds, selectHighlightedWaypointIds, selectHoveredWaypointIds } from "../Tree/uiSlice";
+import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
@@ -116,7 +116,7 @@ export function RobotElements(props: RobotElementsProps): JSX.Element {
     const waypointDict = useAppSelector(selectWaypointDictionary);
 
     const hiddenIds = useAppSelector(selectHiddenWaypointIds);
-    const selectedIds = useAppSelector(selectHighlightedWaypointIds);
+    const selectedIds = useAppSelector(selectSelectedWaypointIds);
     const hoveredIds = useAppSelector(selectHoveredWaypointIds);
 
     const elements = getRobotElements(

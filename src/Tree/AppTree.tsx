@@ -18,7 +18,7 @@ import {
     selectActiveRoutineId,
     selectCollapsedIds,
     selectHiddenWaypointIds,
-    selectHighlightedWaypointIds,
+    selectSelectedWaypointIds,
     treeItemCollapsed,
     treeItemExpanded,
     treeItemSelected,
@@ -56,7 +56,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
 
     const [renamingId, setRenamingId] = React.useState<EntityId>(DUMMY_ID);
 
-    const highlightedWaypointIds = useAppSelector(selectHighlightedWaypointIds);
+    const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
     const collapsedIds = useAppSelector(selectCollapsedIds);
     const folderDictionary = useAppSelector(selectFolderDictionary);
     const waypointDictionary = useAppSelector(selectWaypointDictionary);
@@ -73,7 +73,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
             if (!folder) { throw Error("Expected valid folder in path."); }
             return folder;
         });
-        return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, highlightedWaypointIds, collapsedIds);
+        return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedIds);
     });
 
     const handleNodeClick = React.useCallback(
@@ -156,7 +156,7 @@ function getPathNode(
     folders: Folder[],
     renamingId: EntityId,
     setRenamingId: (newId: EntityId) => void,
-    highlightedWaypointIds: EntityId[],
+    selectedWaypointIds: EntityId[],
     collapsedIds: EntityId[],
 ): TreeNodeInfo<ItemType> {
     // Waypoint nodes
@@ -174,7 +174,7 @@ function getPathNode(
             icon: "flow-linear" as IconName,
             label: waypointLabel,
             secondaryLabel: waypointEyeButton,
-            isSelected: highlightedWaypointIds.includes(waypoint.id),
+            isSelected: selectedWaypointIds.includes(waypoint.id),
             nodeData: ItemType.WAYPOINT
         };
     });
@@ -197,7 +197,7 @@ function getPathNode(
             id: folder.id,
             hasCaret: true,
             isExpanded: !collapsedIds.includes(folder.id),
-            isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => highlightedWaypointIds.includes(waypointId)),
+            isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
             label: folderLabel,
             secondaryLabel: folderEyeButton,
             nodeData: ItemType.FOLDER
@@ -218,7 +218,7 @@ function getPathNode(
         isExpanded: !collapsedIds.includes(path.id),
         icon: "layout-linear" as IconName,
         label: "Path - Robot 1", // todo: change to robot name
-        isSelected: path.waypointIds.length > 0 && path.waypointIds.every(waypointId => highlightedWaypointIds.includes(waypointId)),
+        isSelected: path.waypointIds.length > 0 && path.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
         nodeData: ItemType.PATH,
         secondaryLabel: pathEyeButton,
         childNodes: waypointNodes

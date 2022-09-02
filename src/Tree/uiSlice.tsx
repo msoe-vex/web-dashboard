@@ -10,7 +10,7 @@ import { selectWaypointById } from "./waypointsSlice";
 /**
  * @typedef {Object} UI
  * @property {EntityId} activeRoutine - The currently active routine.
- * @property {EntityId[]} highlightedWaypointIds - A list of waypoints which should be highlighted.
+ * @property {EntityId[]} selectedWaypointIds - A list of waypoints which should be selected.
  *      Takes precedence over activeWaypoints.
  * @property {EntityId[]} hiddenWaypointIds - A list of waypoints which are currently hidden.
  * @property {boolean} editMenuActive - A boolean describing whether an editMenu is currently active.
@@ -18,7 +18,7 @@ import { selectWaypointById } from "./waypointsSlice";
 export interface UI {
     activeRoutineId: EntityId,
     hoveredWaypointIds: EntityId[],
-    highlightedWaypointIds: EntityId[],
+    selectedWaypointIds: EntityId[],
     hiddenWaypointIds: EntityId[],
     collapsedIds: EntityId[],
     editMenuActive: boolean,
@@ -40,7 +40,7 @@ export const uiSlice = createSlice({
     initialState: {
         activeRoutineId: DUMMY_ID,
         hoveredWaypointIds: [],
-        highlightedWaypointIds: [],
+        selectedWaypointIds: [],
         hiddenWaypointIds: [],
         collapsedIds: [],
         folders: [],
@@ -50,7 +50,7 @@ export const uiSlice = createSlice({
         selectedActiveRoutine(uiState, action: PayloadAction<EntityId>) {
             uiState.activeRoutineId = action.payload;
             uiState.hoveredWaypointIds = [];
-            uiState.highlightedWaypointIds = [];
+            uiState.selectedWaypointIds = [];
             uiState.hiddenWaypointIds = [];
         },
         treeItemBatchSelectedInternal(uiState, action: PayloadAction<{
@@ -59,23 +59,23 @@ export const uiSlice = createSlice({
         }>) {
             // cases:
             // if tree is empty, do nothing
-            // if no waypoints are currently highlighted, select the entire tree
-            // If all waypoints are currently highlighted, deselect the entire tree
-            // if the last highlighted waypoint isn't in the tree (should be impossible), do nothing
+            // if no waypoints are currently selected, select the entire tree
+            // If all waypoints are currently selected, deselect the entire tree
+            // if the last selected waypoint isn't in the tree (should be impossible), do nothing
             // If shift selected waypoint does not exist, do nothing (should be impossible)
             const { treeWaypointIds, containedWaypointIds } = action.payload;
             if (treeWaypointIds.length === 0) { return; }
             // If nothing is selected, select all
-            else if (uiState.highlightedWaypointIds.length === 0) {
-                uiState.highlightedWaypointIds = treeWaypointIds;
+            else if (uiState.selectedWaypointIds.length === 0) {
+                uiState.selectedWaypointIds = treeWaypointIds;
                 return;
                 // If everything is already selected, deselect all
-            } else if (treeWaypointIds.every(treeWaypointId => uiState.highlightedWaypointIds.includes(treeWaypointId))) {
-                uiState.highlightedWaypointIds = [];
+            } else if (treeWaypointIds.every(treeWaypointId => uiState.selectedWaypointIds.includes(treeWaypointId))) {
+                uiState.selectedWaypointIds = [];
                 return;
             }
 
-            const lastSelectedId = uiState.highlightedWaypointIds[uiState.highlightedWaypointIds.length - 1];
+            const lastSelectedId = uiState.selectedWaypointIds[uiState.selectedWaypointIds.length - 1];
 
             // If single shift clicked waypoint is already selected, do nothing
             if (containedWaypointIds.length === 1 && containedWaypointIds.includes(lastSelectedId)) { return; }
@@ -92,7 +92,7 @@ export const uiSlice = createSlice({
                 // container = 5, 6 (index = 6), lastSelected = 2, we want 3, 4, 5, 6 (in that order)
                 // min handles special case of container = 4, 5, 6, lastSelected = 5
                 const slice = treeWaypointIds.slice(Math.min(index + 1 - containedWaypointIds.length, lastSelectedIndex + 1), index + 1);
-                uiState.highlightedWaypointIds.push(...slice);
+                uiState.selectedWaypointIds.push(...slice);
             } else {
                 // container = 1, 2, 3, lastSelected = 5, we want 4, 3, 2, 1
                 // slice is 4
@@ -100,8 +100,8 @@ export const uiSlice = createSlice({
                 // copy is 1, 2, 3
                 const copy: EntityId[] = [];
                 containedWaypointIds.forEach(containedId => copy.unshift(containedId));
-                uiState.highlightedWaypointIds.push(...slice);
-                uiState.highlightedWaypointIds.push(...copy);
+                uiState.selectedWaypointIds.push(...slice);
+                uiState.selectedWaypointIds.push(...copy);
             }
         },
         treeItemSelectedInternal(uiState, action: PayloadAction<{
@@ -110,23 +110,23 @@ export const uiSlice = createSlice({
         }>) {
             const { controlKeyHeld, containedWaypointIds } = action.payload;
             // If every containedWaypointId is already selected
-            if (containedWaypointIds.every(containedId => uiState.highlightedWaypointIds.includes(containedId))) {
-                uiState.highlightedWaypointIds = controlKeyHeld ?
-                    uiState.highlightedWaypointIds.filter(highlightedId => !containedWaypointIds.includes(highlightedId)) : [];
+            if (containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
+                uiState.selectedWaypointIds = controlKeyHeld ?
+                    uiState.selectedWaypointIds.filter(selectedId => !containedWaypointIds.includes(selectedId)) : [];
             } else {
                 if (controlKeyHeld) {
                     // reverse so shift click is based on first element
                     const reversed: EntityId[] = [];
                     containedWaypointIds.forEach(containedId => reversed.unshift(containedId));
-                    uiState.highlightedWaypointIds.push(...reversed);
+                    uiState.selectedWaypointIds.push(...reversed);
                 }
                 else {
-                    uiState.highlightedWaypointIds = containedWaypointIds;
+                    uiState.selectedWaypointIds = containedWaypointIds;
                 }
             }
         },
         deselectedWaypoints(uiState, _action: PayloadAction) {
-            uiState.highlightedWaypointIds = [];
+            uiState.selectedWaypointIds = [];
         },
         treeItemVisibilityToggledInternal(uiState, action: PayloadAction<{
             containedWaypointIds: EntityId[]
@@ -136,14 +136,14 @@ export const uiSlice = createSlice({
             const nowHidden = !containedWaypointIds.every(containedId => uiState.hiddenWaypointIds.includes(containedId));
 
             // If the clicked eye icon is currently part of a selection:
-            if (containedWaypointIds.every(containedId => uiState.highlightedWaypointIds.includes(containedId))) {
+            if (containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
                 if (nowHidden) {
                     // hide selection (which is guaranteed to contain container children)
-                    uiState.hiddenWaypointIds.push(...uiState.highlightedWaypointIds);
+                    uiState.hiddenWaypointIds.push(...uiState.selectedWaypointIds);
                 } else {
                     uiState.hiddenWaypointIds =
                         // hide selection (which is guaranteed to contain container children)
-                        uiState.hiddenWaypointIds.filter(hiddenId => !uiState.highlightedWaypointIds.includes(hiddenId));
+                        uiState.hiddenWaypointIds.filter(hiddenId => !uiState.selectedWaypointIds.includes(hiddenId));
                 }
             } else {
                 if (nowHidden) {
@@ -161,10 +161,10 @@ export const uiSlice = createSlice({
         },
         treeItemSelectionShown(uiState, _action: PayloadAction) {
             uiState.hiddenWaypointIds =
-                uiState.hiddenWaypointIds.filter(hiddenId => !uiState.highlightedWaypointIds.includes(hiddenId));
+                uiState.hiddenWaypointIds.filter(hiddenId => !uiState.selectedWaypointIds.includes(hiddenId));
         },
         treeItemSelectionHidden(uiState, _action: PayloadAction) {
-            uiState.hiddenWaypointIds.push(...uiState.highlightedWaypointIds);
+            uiState.hiddenWaypointIds.push(...uiState.selectedWaypointIds);
         },
         treeItemExpanded(uiState, action: PayloadAction<EntityId>) {
             uiState.collapsedIds = uiState.collapsedIds.filter(collapsedId => collapsedId !== action.payload);
@@ -273,7 +273,7 @@ export const selectActiveRoutine = (state: RootState) => selectRoutineById(state
 
 export const selectHoveredWaypointIds = (state: RootState) => state.ui.hoveredWaypointIds;
 
-export const selectHighlightedWaypointIds = (state: RootState) => state.ui.highlightedWaypointIds;
+export const selectSelectedWaypointIds = (state: RootState) => state.ui.selectedWaypointIds;
 
 export const selectHiddenWaypointIds = (state: RootState) => state.ui.hiddenWaypointIds;
 
