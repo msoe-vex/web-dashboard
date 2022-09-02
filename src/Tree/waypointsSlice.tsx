@@ -70,7 +70,7 @@ export const waypointsSlice = createSlice({
     reducers: {
         /**
          * @param {number} index @optional
-         *      The index to insert at. The exisiting waypoint at the index is shifted back to make room.
+         *      The index to insert at. The existing waypoint at the index is shifted back to make room.
          */
         addedWaypoint: {
             reducer: (waypointState, action: PayloadAction<{
@@ -91,6 +91,19 @@ export const waypointsSlice = createSlice({
         },
         deletedWaypoint: waypointsAdapter.removeOne,
         changedWaypoint: waypointsAdapter.updateOne,
+        waypointMoved: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            x: number,
+            y: number
+        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        waypointXChanged: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            x: number
+        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        waypointYChanged: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            y: number
+        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             if (waypoint) {
@@ -148,7 +161,10 @@ export const {
     addedWaypoint,
     deletedWaypoint,
     changedWaypoint,
-    renamedWaypoint
+    renamedWaypoint,
+    waypointMoved,
+    waypointXChanged,
+    waypointYChanged
 } = waypointsSlice.actions;
 
 // Runtime selectors

@@ -23,7 +23,6 @@ export const routinesAdapter = createEntityAdapter<Routine>({
 // Selectors which take routineState as an argument
 const simpleSelectors = routinesAdapter.getSelectors();
 
-
 export const routinesSlice = createSlice({
     name: "routines",
     initialState: routinesAdapter.getInitialState(),
@@ -122,7 +121,7 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
         // create copies of each path's waypoints and folders
         // assign the new waypoint ids and folder ids to copies of each path
         // create a copied routine with updated name and new paths
-        // each other handler will add the new objects to their state
+        // Each slice will then add the new objects to their state
         const state = getState();
         const routine = selectRoutineById(state, id);
         const paths = routine?.pathIds.map(pathId => selectPathById(state, pathId));
@@ -132,9 +131,7 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
 
         let waypointDictionary: Dictionary<EntityId> = {};
         waypointIds?.forEach(waypointId => {
-            if (waypointId) {
-                waypointDictionary[waypointId] = nanoid();
-            }
+            if (waypointId) { waypointDictionary[waypointId] = nanoid(); }
         });
 
         const routineCopy = Object.assign({}, routine);

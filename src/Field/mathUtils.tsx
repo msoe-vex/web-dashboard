@@ -18,6 +18,18 @@ export class Units {
     static DEGREE = Math.PI / 180;
 }
 
+export interface Transform {
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+}
+
+export interface Point {
+    x: number;
+    y: number;
+}
+
 /**
  * Defines information and utility functions for working with canvases that represent the field.
  */
@@ -29,7 +41,7 @@ export class FieldCanvas {
 
     private _PIXEL: number;
 
-    private _fieldTransform: object;
+    private _fieldTransform: Transform;
     // private _fieldTransform: DOMMatrix;
 
     constructor(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number) {
@@ -62,22 +74,12 @@ export class FieldCanvas {
     public get canvasHeight(): number { return this._canvasHeight; }
     public get canvasWidth(): number { return this._canvasWidth; }
 
-    public get fieldTransform(): object { return this._fieldTransform; }
+    public get fieldTransform(): Transform { return this._fieldTransform; }
 
-    /**
-     * Sets the current transform of the field equal to the transform
-     * specified by `fieldTransform` plus the specified offsets. 
-     * Offsets are relative to the robot coord system.
-     * @param x {number} - The x offset.
-     * @param y {number} - The y offset.
-     * @param angle {number} - The angle in radians to rotate by.
-     */
-    public applyTransform(x: number = 0, y: number = 0, angle: number = 0): object {
-        return {};
-        // const transformCopy = new DOMMatrix(this._fieldTransform.toString());
-        // transformCopy.translateSelf(x, y);
-        // transformCopy.rotateSelf(0, 0, angle / Units.DEGREE);
-        // this.context.setTransform(transformCopy);
+    public fromWorld(point: Point): Point {
+        point.x = (point.x - this.fieldTransform.x) / this.fieldTransform.scaleX;
+        point.y = (point.y - this.fieldTransform.y) / this.fieldTransform.scaleY;
+        return point;
     }
 }
 
