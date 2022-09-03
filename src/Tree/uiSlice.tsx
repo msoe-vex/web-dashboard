@@ -9,10 +9,12 @@ import { selectWaypointById } from "./waypointsSlice";
 
 /**
  * @typedef {Object} UI
- * @property {EntityId} activeRoutine - The currently active routine.
- * @property {EntityId[]} selectedWaypointIds - A list of waypoints which should be selected.
+ * @property {EntityId} activeRoutineId - The id of the currently active routine.
+ * @property {EntityId[]} hoveredWaypointIds - A list of waypoints which are hovered. Triggered by the MouseEnter and MouseLeave events.
+ * @property {EntityId[]} selectedWaypointIds - A list of waypoints which are selected.
  *      Takes precedence over activeWaypoints.
  * @property {EntityId[]} hiddenWaypointIds - A list of waypoints which are currently hidden.
+ * @property {EntityId[]} collapsedIds - A list of folderIds representing collapsed folders.
  * @property {boolean} editMenuActive - A boolean describing whether an editMenu is currently active.
  */
 export interface UI {
@@ -25,7 +27,7 @@ export interface UI {
 }
 
 export enum ItemType {
-    PATH, FOLDER, WAYPOINT // CONTROL_WAYPOINT, FOLLOWER_WAYPOINT
+    PATH, FOLDER, WAYPOINT
 }
 
 /**
@@ -125,13 +127,11 @@ export const uiSlice = createSlice({
                 }
             }
         },
-        deselectedWaypoints(uiState, _action: PayloadAction) {
+        allWaypointsDeselected(uiState, _action: PayloadAction) {
             uiState.selectedWaypointIds = [];
         },
-        treeItemVisibilityToggledInternal(uiState, action: PayloadAction<{
-            containedWaypointIds: EntityId[]
-        }>) {
-            const { containedWaypointIds } = action.payload;
+        treeItemVisibilityToggledInternal(uiState, action: PayloadAction<EntityId[]>) {
+            const containedWaypointIds = action.payload;
             // if every contained waypoint is already hidden, nowHidden is false
             const nowHidden = !containedWaypointIds.every(containedId => uiState.hiddenWaypointIds.includes(containedId));
 
@@ -177,7 +177,19 @@ export const uiSlice = createSlice({
         },
         treeItemsCollapsed(uiState, action: PayloadAction<EntityId[]>) {
             uiState.collapsedIds.push(...action.payload);
-        }
+        },
+        treeItemMouseEnterInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hoveredWaypointIds.push(...action.payload);
+        },
+        treeItemMouseLeaveInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
+        },
+        // waypointHovered(uiState, action: PayloadAction<EntityId>) {
+        //     uiState.hoveredWaypointIds.push(action.payload);
+        // },
+        // waypointMouseLeave(uiState, action: PayloadAction<EntityId>) {
+        //     uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredId => hoveredId != action.payload);
+        // }
     },
     extraReducers: (builder) => {
         builder
@@ -224,9 +236,17 @@ export const treeItemSelected = (
 
 export const treeItemVisibilityToggled = (itemId: EntityId, itemType: ItemType): AppThunk => {
     return (dispatch, getState) =>
-        dispatch(uiSlice.actions.treeItemVisibilityToggledInternal({
-            containedWaypointIds: selectContainedWaypointIds(getState(), itemId, itemType)
-        }));
+        dispatch(uiSlice.actions.treeItemVisibilityToggledInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
+};
+
+export const treeItemMouseEnter = (itemId: EntityId, itemType: ItemType): AppThunk => {
+    return (dispatch, getState) =>
+        dispatch(uiSlice.actions.treeItemMouseEnterInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
+};
+
+export const treeItemMouseLeave = (itemId: EntityId, itemType: ItemType): AppThunk => {
+    return (dispatch, getState) =>
+        dispatch(uiSlice.actions.treeItemMouseLeaveInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
 };
 
 // export const allTreeItemsCollapsed = (): AppThunk => {
@@ -241,14 +261,14 @@ export const treeItemVisibilityToggled = (itemId: EntityId, itemType: ItemType):
 
 export const {
     selectedActiveRoutine,
-    deselectedWaypoints,
+    allWaypointsDeselected,
     allTreeItemsShown,
     treeItemSelectionHidden,
     treeItemSelectionShown,
     treeItemCollapsed,
     treeItemExpanded,
     treeItemsCollapsed,
-    treeItemsExpanded
+    treeItemsExpanded,
 } = uiSlice.actions;
 
 /**
@@ -263,9 +283,7 @@ export const selectContainedWaypointIds = (state: RootState, id: EntityId, itemT
         case ItemType.WAYPOINT:
             const waypointId = selectWaypointById(state, id)?.id;
             return waypointId ? [waypointId] : [];
-        // case ItemType.FOLLOWER_WAYPOINT:
     };
-    return [];
 };
 
 export const selectActiveRoutineId = (state: RootState) => state.ui.activeRoutineId;

@@ -1,13 +1,14 @@
+import { Colors } from "@blueprintjs/core/lib/esm/common";
 import { Dictionary, EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
 
-import { Group, Layer, Line, Rect, Stage } from "react-konva";
+import { Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { Path, selectPathById } from "../Tree/pathsSlice";
-import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds, treeItemSelected, ItemType } from "../Tree/uiSlice";
+import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds, treeItemSelected, ItemType, treeItemMouseEnter, treeItemMouseLeave, allWaypointsDeselected } from "../Tree/uiSlice";
 import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
@@ -49,25 +50,39 @@ export function Field(): JSX.Element {
         <ReactReduxContext.Consumer>
             {({ store }) => {
                 // Avoid using useAppSelector to prevent issues with react hooks
+                const dispatch = store.dispatch;
                 const fieldHeight = selectFieldHeight(store.getState());
                 const fieldWidth = selectFieldWidth(store.getState());
                 const fieldTransform = computeFieldTransform(height, width, fieldHeight, fieldWidth);
 
-                return (<Stage width={width} height={height}>
+                return (<Stage
+                    width={width}
+                    height={height}
+                    onClick={(e: KonvaEventObject<MouseEvent>) => {
+                        if (!e.cancelBubble) {
+                            dispatch(allWaypointsDeselected());
+                        }
+                    }}
+                >
                     {/* Make store available again inside stage */}
                     <Provider store={store}>
-                        <Layer {...fieldTransform}>
+                        <Layer {...fieldTransform}
+                        >
                             <Rect
                                 x={0.5 * Units.INCH}
                                 y={0.5 * Units.INCH}
                                 width={fieldWidth - 1 * Units.INCH}
                                 height={fieldHeight - 1 * Units.INCH}
                                 strokeWidth={1 * Units.INCH}
-                                stroke="black"
-                                fill="grey"
+                                stroke={Colors.BLACK}
+                                fill={Colors.GRAY1}
                             />
                         </Layer>
-                        <Layer {...fieldTransform}>
+                        <Layer {...fieldTransform}
+                            onClick={(e: KonvaEventObject<MouseEvent>) => {
+                                e.cancelBubble = true;
+                            }}
+                        >
                             <RobotElements />
                         </Layer>
                     </Provider>
@@ -98,7 +113,7 @@ interface RobotElementsProps {
 
 }
 
-export function RobotElements(props: RobotElementsProps): JSX.Element {
+export function RobotElements(_props: RobotElementsProps): JSX.Element {
     const dispatch = useAppDispatch();
 
     const paths = useAppSelector((state: RootState) => {
@@ -126,13 +141,9 @@ export function RobotElements(props: RobotElementsProps): JSX.Element {
         hoveredIds
     );
 
-    return (<Group
-        onClick={(e: KonvaEventObject<MouseEvent>) => {
-            e.evt.stopPropagation();
-        }}
-    >
+    return (<>
         {elements}
-    </Group>);
+    </>);
 }
 
 const getRobotElements = (
@@ -150,7 +161,9 @@ const getRobotElements = (
             const waypoint = waypointDict[path.waypointIds[i]];
             if (!waypoint) { throw Error("Path spline expected valid waypoint."); }
 
-            if (isControlWaypoint(waypoint) && !hiddenIds.includes(waypoint.id)) {
+            if (isControlWaypoint(waypoint)) {
+                const isHidden = hiddenIds.includes(waypoint.id);
+                const isSelected = selectedIds.includes(waypoint.id);
 
                 const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
                     dispatch(waypointMoved({
@@ -160,6 +173,17 @@ const getRobotElements = (
                     }));
                 };
 
+                // Several different behaviors depending on state
+                // Not hidden:
+                // Yellow shadow on hover and highlight on click (with robot)
+
+                // Hidden:
+                // Still yellow shadow on hover and highlight on click (but no robot)
+
+                let fill;
+                if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
+                else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
+
                 elements.push(<Rect
                     key={"Robot" + waypoint.id}
                     x={waypoint.x - 9 * Units.INCH}
@@ -168,18 +192,21 @@ const getRobotElements = (
                     height={18 * Units.INCH}
                     rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
                     strokeWidth={0.5 * Units.INCH}
-                    stroke="black"
-                    fill="brown"
-                    shadowEnabled={selectedIds.includes(waypoint.id)}
-                    shadowColor="rgba(255, 255, 0, 1)"
-                    shadowBlur={4 * Units.INCH}
-                    shadowOpacity={0.8}
+                    stroke={isHidden ? undefined : Colors.BLACK}
+                    fill={fill}
+                    lineJoin={"bevel"}
+                    shadowEnabled={hoveredIds.includes(waypoint.id)}
+                    shadowColor={Colors.ORANGE3}
+                    shadowBlur={3 * Units.INCH}
+                    shadowOpacity={1}
                     onClick={(e: KonvaEventObject<MouseEvent>) => {
                         dispatch(treeItemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey, e.evt.ctrlKey));
                     }}
-                    draggable={selectedIds.includes(waypoint.id)}
+                    draggable={!isHidden && isSelected}
                     onDragMove={onWaypointDrag}
                     onDragEnd={onWaypointDrag}
+                    onMouseEnter={() => dispatch(treeItemMouseEnter(waypoint.id, ItemType.WAYPOINT))}
+                    onMouseLeave={() => dispatch(treeItemMouseLeave(waypoint.id, ItemType.WAYPOINT))}
                 />);
             }
 

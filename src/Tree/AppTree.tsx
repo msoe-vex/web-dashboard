@@ -24,6 +24,9 @@ import {
     treeItemSelected,
     ItemType,
     treeItemVisibilityToggled,
+    treeItemMouseEnter,
+    treeItemMouseLeave,
+    allWaypointsDeselected,
 } from './uiSlice';
 import { selectRoutineById } from '../Navbar/routinesSlice';
 import { Folder, selectFolderDictionary } from './foldersSlice';
@@ -94,6 +97,16 @@ export function AppTree(props: AppTreeProps): JSX.Element {
         dispatch(treeItemExpanded(node.id));
     }, [dispatch]);
 
+    const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
+        if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
+        dispatch(treeItemMouseEnter(node.id, node.nodeData));
+    }, [dispatch]);
+
+    const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
+        if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
+        dispatch(treeItemMouseLeave(node.id, node.nodeData));
+    }, [dispatch]);
+
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
 
     const handleNodeContextMenu = React.useCallback(
@@ -125,7 +138,11 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     );
 
     return (
-        <Card className="App-tree-card">
+        <Card className="App-tree-card"
+            onClick={(e: React.MouseEvent) => {
+                if (!e.isPropagationStopped()) { dispatch(allWaypointsDeselected()); }
+            }}
+        >
             <H5>{routine.name}</H5>
 
             <ContextMenu2
@@ -141,6 +158,8 @@ export function AppTree(props: AppTreeProps): JSX.Element {
                         onNodeCollapse={handleNodeCollapse}
                         onNodeExpand={handleNodeExpand}
                         onNodeContextMenu={handleNodeContextMenu}
+                        onNodeMouseEnter={handleNodeMouseEnter}
+                        onNodeMouseLeave={handleNodeMouseLeave}
                         className="App-tree"
                     />
                 </div>

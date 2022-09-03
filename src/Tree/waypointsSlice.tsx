@@ -96,14 +96,10 @@ export const waypointsSlice = createSlice({
             x: number,
             y: number
         }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        waypointXChanged: (waypointState, action: PayloadAction<{
-            id: EntityId,
-            x: number
-        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        waypointYChanged: (waypointState, action: PayloadAction<{
-            id: EntityId,
-            y: number
-        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        waypointXChanged: (waypointState, action: PayloadAction<{ id: EntityId, x: number }>) =>
+            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        waypointYChanged: (waypointState, action: PayloadAction<{ id: EntityId, y: number }>) =>
+            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             if (waypoint) {
