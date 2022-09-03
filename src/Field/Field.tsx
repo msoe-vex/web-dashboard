@@ -8,7 +8,17 @@ import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { Path, selectPathById } from "../Tree/pathsSlice";
-import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds, treeItemSelected, ItemType, treeItemMouseEnter, treeItemMouseLeave, allWaypointsDeselected } from "../Tree/uiSlice";
+import {
+    selectActiveRoutine,
+     selectHiddenWaypointIds,
+      selectSelectedWaypointIds,
+       selectHoveredWaypointIds,
+        itemSelected,
+         ItemType,
+    itemMouseEnter,
+    itemMouseLeave,
+     allWaypointsDeselected
+} from "../Tree/uiSlice";
 import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
@@ -200,13 +210,13 @@ const getRobotElements = (
                     shadowBlur={3 * Units.INCH}
                     shadowOpacity={1}
                     onClick={(e: KonvaEventObject<MouseEvent>) => {
-                        dispatch(treeItemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey, e.evt.ctrlKey));
+                        dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey));
                     }}
                     draggable={!isHidden && isSelected}
                     onDragMove={onWaypointDrag}
                     onDragEnd={onWaypointDrag}
-                    onMouseEnter={() => dispatch(treeItemMouseEnter(waypoint.id, ItemType.WAYPOINT))}
-                    onMouseLeave={() => dispatch(treeItemMouseLeave(waypoint.id, ItemType.WAYPOINT))}
+                    onMouseEnter={() => dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT))}
+                    onMouseLeave={() => dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT))}
                 />);
             }
 
@@ -219,11 +229,21 @@ const getRobotElements = (
 
                 if (hiddenIds.includes(prev.id) && hiddenIds.includes(waypoint.id)) { continue; }
 
+                const prevControlX = prev.x + Math.cos(prev.angle * prev.endMagnitude);
+                const prevControlY = prev.y + Math.sin(prev.angle * prev.endMagnitude);
+
+                const currControlX = waypoint.x - Math.cos(waypoint.angle * waypoint.startMagnitude);
+                const currControlY = waypoint.y - Math.sin(waypoint.angle * waypoint.startMagnitude);
+
                 elements.push(<Line
                     key={"spline" + waypoint.id}
-                    points={[prev.x, prev.y, waypoint.x, waypoint.y]}
+                    points={[prev.x, prev.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
                     strokeWidth={0.5 * Units.INCH}
                     stroke="black"
+                    bezier={true}
+                    onClick={() => {
+
+                    }}
                 />);
             }
         }

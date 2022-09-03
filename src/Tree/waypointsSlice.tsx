@@ -6,13 +6,6 @@ import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
 import { getNextName } from "./Utils";
 
-// We need to add some special types to Waypoint
-// Could we create a special configurator class or something?
-
-export enum WaypointType {
-    CONTROL, FOLLOWER
-}
-
 /**
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
  *      Should be undefined for tank drives, as the angle is computed automatically/the same as the waypoint angle.
@@ -24,26 +17,29 @@ export interface WaypointBase {
 }
 
 /**
- * The reference for x and y is as follows. The position is assumed to be relative to the starting position of the robot,
- * so the origin is at the left middle of the screen. y varies from 0 to the width of the field. x varies from -height / 2 to
- * height / 2.
+ * A waypoint which defines a point the path passes through.
  * 
  * @param {number} x - The x position of the waypoint in meters.
  * @param {number} y - The y position of the waypoint in meters.
- * @param {number} angle - The angle of the waypoint in radians.
+ * @param {number} angle - The angle of the path through the waypoint. Always relative to the world, not the robot.
+ * @param {number} startMagnitude - The start magnitude of the path (may not be used).
+ * @param {number} endMagnitude - The end magnitude of the path (may not be used).
  */
 export interface ControlWaypoint extends WaypointBase {
     x: number;
     y: number;
     angle: number;
-    // type: WaypointType;
+    startMagnitude: number;
+    endMagnitude: number;
 }
 
 export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
     const controlWaypoint = waypoint as ControlWaypoint;
     return controlWaypoint.x !== undefined &&
         controlWaypoint.y !== undefined &&
-        controlWaypoint.angle !== undefined;
+        controlWaypoint.angle !== undefined &&
+        controlWaypoint.startMagnitude !== undefined &&
+        controlWaypoint.endMagnitude !== undefined;
 }
 
 /**
@@ -80,9 +76,11 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    x: 0,
-                    y: 0,
-                    angle: 0
+                    x: 0 * Units.INCH,
+                    y: 0 * Units.INCH,
+                    angle: 0 * Units.DEGREE,
+                    startMagnitude: 1 * Units.FEET,
+                    endMagnitude: 1 * Units.FEET
                 });
             },
             prepare: (index?: number) => {
@@ -96,16 +94,22 @@ export const waypointsSlice = createSlice({
             x: number,
             y: number
         }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        waypointXChanged: (waypointState, action: PayloadAction<{ id: EntityId, x: number }>) =>
-            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        waypointYChanged: (waypointState, action: PayloadAction<{ id: EntityId, y: number }>) =>
-            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        // waypointXChanged: (waypointState, action: PayloadAction<{ id: EntityId, x: number }>) =>
+        //     waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        // waypointYChanged: (waypointState, action: PayloadAction<{ id: EntityId, y: number }>) =>
+        //     waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             if (waypoint) {
                 let copy = Object.assign({}, waypoint);
                 copy.id = action.payload.newWaypointId;
                 copy.name = "Copy of " + copy.name;
+                if (isControlWaypoint(copy)) {
+                    copy.x += 1 * Units.FEET;
+                    copy.y += 1 * Units.FEET;
+                } else {
+                    copy.parameter += 0.1;
+                }
                 waypointsAdapter.addOne(waypointState, copy);
             }
         },
@@ -119,14 +123,18 @@ export const waypointsSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(addedRoutineInternal, (waypointState, action) => {
+                let index = 0;
                 action.payload.waypointIds.forEach(waypointId => {
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        x: 1 * Units.FEET,
-                        y: 1 * Units.FEET,
-                        angle: 15 * Units.DEGREE
-                    })
+                        x: (index ? 5 : 1) * Units.FEET,
+                        y: (index ? 3 : 1) * Units.FEET,
+                        angle: 0 * Units.DEGREE,
+                        startMagnitude: 1 * Units.FEET,
+                        endMagnitude: 1 * Units.FEET
+                    });
+                    index++;
                 });
             })
             .addCase(duplicatedRoutineInternal, (waypointState, action) => {
@@ -159,8 +167,8 @@ export const {
     changedWaypoint,
     renamedWaypoint,
     waypointMoved,
-    waypointXChanged,
-    waypointYChanged
+    // waypointXChanged,
+    // waypointYChanged
 } = waypointsSlice.actions;
 
 // Runtime selectors
