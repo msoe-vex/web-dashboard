@@ -27,7 +27,7 @@ export function AppBody(props: AppBodyProps): JSX.Element {
             className="App-body"
             onClick={(e: React.MouseEvent) => {
                 if (!e.isPropagationStopped()) {
-                    dispatch(deselectedWaypoints());
+                    // dispatch(deselectedWaypoints());
                 }
             }}
             onContextMenu={(e: React.MouseEvent) => {

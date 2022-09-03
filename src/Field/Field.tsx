@@ -2,13 +2,12 @@ import { Dictionary, EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
 
-import { Layer, Line, Rect, Stage } from "react-konva";
+import { Group, Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
-import { TypeOfExpression } from "typescript";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { Path, selectPathById } from "../Tree/pathsSlice";
-import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds } from "../Tree/uiSlice";
+import { selectActiveRoutine, selectHiddenWaypointIds, selectSelectedWaypointIds, selectHoveredWaypointIds, treeItemSelected, ItemType } from "../Tree/uiSlice";
 import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
@@ -43,39 +42,37 @@ export function Field(): JSX.Element {
         return () => window.removeEventListener("resize", resizeCanvas);
     }, [resizeCanvas]);
 
+    // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
+    // https://github.com/konvajs/react-konva/issues/311#issuecomment-536634446
     return (<div id="field">
         {/* Consumer is a component which takes a function as a child */}
         <ReactReduxContext.Consumer>
-            {
-                ({ store }) => {
-                    // Avoid using useAppSelector to prevent issues with react hooks
-                    const fieldHeight = selectFieldHeight(store.getState());
-                    const fieldWidth = selectFieldWidth(store.getState());
-                    const fieldTransform = computeFieldTransform(height, width, fieldHeight, fieldWidth);
+            {({ store }) => {
+                // Avoid using useAppSelector to prevent issues with react hooks
+                const fieldHeight = selectFieldHeight(store.getState());
+                const fieldWidth = selectFieldWidth(store.getState());
+                const fieldTransform = computeFieldTransform(height, width, fieldHeight, fieldWidth);
 
-                    return (
-                        <Stage width={width} height={height}>
-                            {/* Make store available again inside stage */}
-                            <Provider store={store}>
-                                <Layer {...fieldTransform}>
-                                    <Rect
-                                        x={0.5 * Units.INCH}
-                                        y={0.5 * Units.INCH}
-                                        width={fieldWidth - 1 * Units.INCH}
-                                        height={fieldHeight - 1 * Units.INCH}
-                                        strokeWidth={1 * Units.INCH}
-                                        stroke="black"
-                                        fill="grey"
-                                    />
-                                </Layer>
-                                <Layer {...fieldTransform}>
-                                    <RobotElements />
-                                </Layer>
-                            </Provider>
-                        </Stage>
-                    );
-                }
-            }
+                return (<Stage width={width} height={height}>
+                    {/* Make store available again inside stage */}
+                    <Provider store={store}>
+                        <Layer {...fieldTransform}>
+                            <Rect
+                                x={0.5 * Units.INCH}
+                                y={0.5 * Units.INCH}
+                                width={fieldWidth - 1 * Units.INCH}
+                                height={fieldHeight - 1 * Units.INCH}
+                                strokeWidth={1 * Units.INCH}
+                                stroke="black"
+                                fill="grey"
+                            />
+                        </Layer>
+                        <Layer {...fieldTransform}>
+                            <RobotElements />
+                        </Layer>
+                    </Provider>
+                </Stage>);
+            }}
         </ReactReduxContext.Consumer>
     </div >);
 };
@@ -98,6 +95,7 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldH
 }
 
 interface RobotElementsProps {
+
 }
 
 export function RobotElements(props: RobotElementsProps): JSX.Element {
@@ -128,9 +126,13 @@ export function RobotElements(props: RobotElementsProps): JSX.Element {
         hoveredIds
     );
 
-    return (<>
+    return (<Group
+        onClick={(e: KonvaEventObject<MouseEvent>) => {
+            e.evt.stopPropagation();
+        }}
+    >
         {elements}
-    </>);
+    </Group>);
 }
 
 const getRobotElements = (
@@ -148,17 +150,16 @@ const getRobotElements = (
             const waypoint = waypointDict[path.waypointIds[i]];
             if (!waypoint) { throw Error("Path spline expected valid waypoint."); }
 
-            if (hiddenIds.includes(waypoint.id)) { continue; }
+            if (isControlWaypoint(waypoint) && !hiddenIds.includes(waypoint.id)) {
 
-            const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
-                dispatch(waypointMoved({
-                    id: waypoint.id,
-                    x: e.target.x() + 9 * Units.INCH,
-                    y: e.target.y() + 9 * Units.INCH
-                }));
-            };
+                const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
+                    dispatch(waypointMoved({
+                        id: waypoint.id,
+                        x: e.target.x() + 9 * Units.INCH,
+                        y: e.target.y() + 9 * Units.INCH
+                    }));
+                };
 
-            if (isControlWaypoint(waypoint)) {
                 elements.push(<Rect
                     key={"Robot" + waypoint.id}
                     x={waypoint.x - 9 * Units.INCH}
@@ -168,7 +169,14 @@ const getRobotElements = (
                     rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
                     strokeWidth={0.5 * Units.INCH}
                     stroke="black"
-                    // shadowEnabled={selectedIds.includes(waypoint.id)}
+                    fill="brown"
+                    shadowEnabled={selectedIds.includes(waypoint.id)}
+                    shadowColor="rgba(255, 255, 0, 1)"
+                    shadowBlur={4 * Units.INCH}
+                    shadowOpacity={0.8}
+                    onClick={(e: KonvaEventObject<MouseEvent>) => {
+                        dispatch(treeItemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey, e.evt.ctrlKey));
+                    }}
                     draggable={selectedIds.includes(waypoint.id)}
                     onDragMove={onWaypointDrag}
                     onDragEnd={onWaypointDrag}
@@ -181,6 +189,8 @@ const getRobotElements = (
                 if (!isControlWaypoint(prev) || !isControlWaypoint(waypoint)) {
                     throw Error("Follower waypoints are not supported by getPathSplines.");
                 }
+
+                if (hiddenIds.includes(prev.id) && hiddenIds.includes(waypoint.id)) { continue; }
 
                 elements.push(<Line
                     key={"spline" + waypoint.id}
