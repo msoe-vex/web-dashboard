@@ -19,13 +19,13 @@ import {
     selectCollapsedIds,
     selectHiddenWaypointIds,
     selectSelectedWaypointIds,
-    treeItemCollapsed,
-    treeItemExpanded,
-    treeItemSelected,
+    itemSelected,
     ItemType,
-    treeItemVisibilityToggled,
-    treeItemMouseEnter,
-    treeItemMouseLeave,
+    itemVisibilityToggled,
+    itemMouseEnter,
+    itemMouseLeave,
+    treeItemsCollapsed,
+    treeItemsExpanded,
     allWaypointsDeselected,
 } from './uiSlice';
 import { selectRoutineById } from '../Navbar/routinesSlice';
@@ -86,25 +86,25 @@ export function AppTree(props: AppTreeProps): JSX.Element {
             // === undefined doesn't catch ItemType.PATH, unlike ! operator
             if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
             else if (renamingId !== DUMMY_ID) { return; }
-            dispatch(treeItemSelected(node.id, node.nodeData, e.shiftKey, e.ctrlKey));
+            dispatch(itemSelected(node.id, node.nodeData, e.shiftKey));
         }, [renamingId, dispatch]);
 
     const handleNodeCollapse = React.useCallback((node: TreeNodeInfo, _nodePath: number[]) => {
-        dispatch(treeItemCollapsed(node.id));
+        dispatch(treeItemsCollapsed([node.id]));
     }, [dispatch]);
 
     const handleNodeExpand = React.useCallback((node: TreeNodeInfo, _nodePath: number[]) => {
-        dispatch(treeItemExpanded(node.id));
+        dispatch(treeItemsExpanded([node.id]));
     }, [dispatch]);
 
     const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
         if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
-        dispatch(treeItemMouseEnter(node.id, node.nodeData));
+        dispatch(itemMouseEnter(node.id, node.nodeData));
     }, [dispatch]);
 
     const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
         if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
-        dispatch(treeItemMouseLeave(node.id, node.nodeData));
+        dispatch(itemMouseLeave(node.id, node.nodeData));
     }, [dispatch]);
 
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
@@ -254,7 +254,7 @@ function TreeEyeButton(props: TreeEyeButtonProps): JSX.Element | null {
 
     const handleEyeButtonClick = React.useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        dispatch(treeItemVisibilityToggled(props.treeItem.id, props.itemType));
+        dispatch(itemVisibilityToggled(props.treeItem.id, props.itemType));
     }, [props.treeItem.id, props.itemType, dispatch]);
 
     const waypointIds = (!props.treeItem.waypointIds) ? [props.treeItem.id] : props.treeItem.waypointIds;
