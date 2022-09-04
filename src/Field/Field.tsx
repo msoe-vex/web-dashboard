@@ -10,14 +10,19 @@ import { AppDispatch, RootState } from "../Store/store";
 import { Path, selectPathById } from "../Tree/pathsSlice";
 import {
     selectActiveRoutine,
-     selectHiddenWaypointIds,
-      selectSelectedWaypointIds,
-       selectHoveredWaypointIds,
-        itemSelected,
-         ItemType,
+    selectHiddenWaypointIds,
+    selectSelectedWaypointIds,
+    selectHoveredWaypointIds,
+    itemSelected,
+    ItemType,
     itemMouseEnter,
     itemMouseLeave,
-     allWaypointsDeselected
+    allItemsDeselected,
+    splineMouseEnter,
+    splineMouseLeave,
+    splineSelected,
+    selectSelectedSplineIds,
+    selectHoveredSplineIds
 } from "../Tree/uiSlice";
 import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
@@ -70,7 +75,7 @@ export function Field(): JSX.Element {
                     height={height}
                     onClick={(e: KonvaEventObject<MouseEvent>) => {
                         if (!e.cancelBubble) {
-                            dispatch(allWaypointsDeselected());
+                            dispatch(allItemsDeselected());
                         }
                     }}
                 >
@@ -141,6 +146,8 @@ export function RobotElements(_props: RobotElementsProps): JSX.Element {
     const hiddenIds = useAppSelector(selectHiddenWaypointIds);
     const selectedIds = useAppSelector(selectSelectedWaypointIds);
     const hoveredIds = useAppSelector(selectHoveredWaypointIds);
+    const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
+    const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
 
     const elements = getRobotElements(
         dispatch,
@@ -148,7 +155,9 @@ export function RobotElements(_props: RobotElementsProps): JSX.Element {
         waypointDict,
         hiddenIds,
         selectedIds,
-        hoveredIds
+        hoveredIds,
+        selectedSplineIds,
+        hoveredSplineIds
     );
 
     return (<>
@@ -162,7 +171,9 @@ const getRobotElements = (
     waypointDict: Dictionary<Waypoint>,
     hiddenIds: EntityId[],
     selectedIds: EntityId[],
-    hoveredIds: EntityId[]
+    hoveredIds: EntityId[],
+    selectedSplineIds: EntityId[][],
+    hoveredSplineIds: EntityId[][]
 ): JSX.Element[] => {
     return paths.flatMap(path => {
         let elements: JSX.Element[] = [];
@@ -238,12 +249,18 @@ const getRobotElements = (
                 elements.push(<Line
                     key={"spline" + waypoint.id}
                     points={[prev.x, prev.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
-                    strokeWidth={0.5 * Units.INCH}
-                    stroke="black"
                     bezier={true}
-                    onClick={() => {
-
-                    }}
+                    strokeWidth={0.5 * Units.INCH}
+                    stroke={selectedSplineIds.some(splineIds => splineIds.every(splineId => [prev.id, waypoint.id].includes(splineId))) ? Colors.ORANGE1 : Colors.BLACK}
+                    strokeHitEnabled={true}
+                    hitStrokeWidth={3 * Units.INCH}
+                    shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [prev.id, waypoint.id].includes(splineId)))}
+                    shadowColor={Colors.ORANGE3}
+                    shadowBlur={3 * Units.INCH}
+                    shadowOpacity={1}
+                    onClick={() => dispatch(splineSelected([prev.id, waypoint.id]))}
+                    onMouseEnter={() => dispatch(splineMouseEnter([prev.id, waypoint.id]))}
+                    onMouseLeave={() => dispatch(splineMouseLeave([prev.id, waypoint.id]))}
                 />);
             }
         }

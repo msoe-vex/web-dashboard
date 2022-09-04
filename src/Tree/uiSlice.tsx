@@ -5,7 +5,6 @@ import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
 import { selectPathById } from "./pathsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
-import { selectWaypointById } from "./waypointsSlice";
 
 /**
  * @typedef {Object} UI
@@ -37,6 +36,16 @@ export enum ItemType {
     PATH, FOLDER, WAYPOINT
 }
 
+const defaultUIState: UI = {
+    activeRoutineId: DUMMY_ID,
+    hoveredWaypointIds: [],
+    selectedWaypointIds: [],
+    hiddenWaypointIds: [],
+    collapsedIds: [],
+    hoveredSplineIds: [],
+    selectedSplineIds: []
+};
+
 /**
  * Stores UI state and related actions.
  * Notably is responsible for handling UI options like selecting waypoints (which highlights them in the window)
@@ -46,26 +55,21 @@ export enum ItemType {
  */
 export const uiSlice = createSlice({
     name: "ui",
-    initialState: {
-        activeRoutineId: DUMMY_ID,
-        hoveredWaypointIds: [],
-        selectedWaypointIds: [],
-        hiddenWaypointIds: [],
-        collapsedIds: [],
-        hoveredSplineIds: [],
-        selectedSplineIds: []
-    } as UI,
+    initialState: defaultUIState,
     reducers: {
         selectedActiveRoutine(uiState, action: PayloadAction<EntityId>) {
-            uiState.activeRoutineId = action.payload;
-            uiState.hoveredWaypointIds = [];
-            uiState.selectedWaypointIds = [];
-            uiState.hiddenWaypointIds = [];
+            // Completely reset UI state to avoid editing hidden routine
+            const newUIState = defaultUIState;
+            // preserve hiddenWaypointIds
+            newUIState.hiddenWaypointIds = uiState.hiddenWaypointIds;
+            newUIState.activeRoutineId = action.payload;
+            return newUIState; // return new state when completely replacing uiState
         },
         itemBatchSelectedInternal(uiState, action: PayloadAction<{
             treeWaypointIds: EntityId[],
             containedWaypointIds: EntityId[],
         }>) {
+            uiState.selectedSplineIds = []; // deselect splines
             // cases:
             // if tree is empty, do nothing
             // if no waypoints are currently selected, select the entire tree
@@ -85,12 +89,11 @@ export const uiSlice = createSlice({
             }
 
             const lastSelectedId = uiState.selectedWaypointIds[uiState.selectedWaypointIds.length - 1];
-
             // If single shift clicked waypoint is already selected, do nothing
             if (containedWaypointIds.length === 1 && containedWaypointIds.includes(lastSelectedId)) { return; }
 
             let lastSelectedIndex = treeWaypointIds.findIndex(treeId => treeId === lastSelectedId);
-            // should be impossible - need to sanitise UI when switching routines though
+            // should be impossible - need to sanitize UI when switching routines though
             if (lastSelectedIndex === -1) { throw Error("Expected last selected index to exist in tree."); }
 
             const index = treeWaypointIds.findIndex(treeId => treeId === containedWaypointIds[containedWaypointIds.length - 1]);
@@ -109,23 +112,27 @@ export const uiSlice = createSlice({
                 // copy is 1, 2, 3
                 const copy: EntityId[] = [];
                 containedWaypointIds.forEach(containedId => copy.unshift(containedId));
-                uiState.selectedWaypointIds.push(...slice);
-                uiState.selectedWaypointIds.push(...copy);
+                uiState.selectedWaypointIds.push(...slice, ...copy);
             }
         },
         itemSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
             const containedWaypointIds = action.payload;
-            // If every containedWaypointId is already selected
+            // If every containedWaypointId is already selected, remove them
             if (containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
                 uiState.selectedWaypointIds = uiState.selectedWaypointIds.filter(selectedId => !containedWaypointIds.includes(selectedId));
             } else {
+                uiState.selectedSplineIds = []; // remove spline id selection
+
                 // reverse so shift click is based on first element
                 const reversed: EntityId[] = [];
                 containedWaypointIds.forEach(containedId => reversed.unshift(containedId));
                 uiState.selectedWaypointIds.push(...reversed);
             }
         },
-        allWaypointsDeselected(uiState, _action: PayloadAction) { uiState.selectedWaypointIds = []; },
+        allItemsDeselected(uiState) {
+            uiState.selectedWaypointIds = [];
+            uiState.selectedSplineIds = [];
+        },
         itemVisibilityToggledInternal(uiState, action: PayloadAction<EntityId[]>) {
             const containedWaypointIds = action.payload;
             // if every contained waypoint is already hidden, nowHidden is false
@@ -149,13 +156,12 @@ export const uiSlice = createSlice({
                 }
             }
         },
-        allItemsShown(uiState, _action: PayloadAction) { uiState.hiddenWaypointIds = []; },
+        allItemsShown(uiState) { uiState.hiddenWaypointIds = []; },
         allItemsHiddenInternal(uiState, action: PayloadAction<EntityId[]>) { uiState.hiddenWaypointIds = action.payload; },
-        itemSelectionShown(uiState, _action: PayloadAction) {
-            uiState.hiddenWaypointIds =
-                uiState.hiddenWaypointIds.filter(hiddenId => !uiState.selectedWaypointIds.includes(hiddenId));
+        itemSelectionShown(uiState) {
+            uiState.hiddenWaypointIds = uiState.hiddenWaypointIds.filter(hiddenId => !uiState.selectedWaypointIds.includes(hiddenId));
         },
-        itemSelectionHidden(uiState, _action: PayloadAction) { uiState.hiddenWaypointIds.push(...uiState.selectedWaypointIds); },
+        itemSelectionHidden(uiState) { uiState.hiddenWaypointIds.push(...uiState.selectedWaypointIds); },
         treeItemsExpanded(uiState, action: PayloadAction<EntityId[]>) {
             uiState.collapsedIds = uiState.collapsedIds.filter(collapsedId => !action.payload.includes(collapsedId));
         },
@@ -164,24 +170,31 @@ export const uiSlice = createSlice({
         itemMouseLeaveInternal(uiState, action: PayloadAction<EntityId[]>) {
             uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
         },
-
-        // waypointHovered(uiState, action: PayloadAction<EntityId>) {
-        //     uiState.hoveredWaypointIds.push(action.payload);
-        // },
-        // waypointMouseLeave(uiState, action: PayloadAction<EntityId>) {
-        //     uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredId => hoveredId != action.payload);
-        // }
+        splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
+            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            uiState.hoveredSplineIds.push(action.payload);
+        },
+        splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
+            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            // removes array sets that share every id with an id in action.payload
+            uiState.hoveredSplineIds = uiState.hoveredSplineIds.filter(splineIds => !splineIds.every(splineId => action.payload.includes(splineId)));
+        },
+        splineSelected(uiState, action: PayloadAction<EntityId[]>) {
+            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            if (uiState.selectedSplineIds.some(splineId => splineId.every(splineId => action.payload.includes(splineId)))) {
+                uiState.selectedSplineIds = [];
+            } else {
+                uiState.selectedWaypointIds = []; // Remove waypoint selection
+                uiState.selectedSplineIds = [action.payload]; // Only one at a time (for now?)
+            }
+        }
     },
     extraReducers: (builder) => {
         builder
             .addCase(deletedRoutineInternal, (uiState, action) => {
-                if (action.payload.newActiveRoutineId) {
-                    uiState.activeRoutineId = action.payload.newActiveRoutineId;
-                }
+                if (action.payload.newActiveRoutineId) { uiState.activeRoutineId = action.payload.newActiveRoutineId; }
             })
-            .addCase(addedRoutineInternal, (uiState, action) => {
-                uiState.activeRoutineId = action.payload.routineId;
-            })
+            .addCase(addedRoutineInternal, (uiState, action) => { uiState.activeRoutineId = action.payload.routineId; })
     }
 });
 
@@ -226,24 +239,17 @@ export const itemMouseLeave = (itemId: EntityId, itemType: ItemType): AppThunk =
         dispatch(uiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
 };
 
-// export const allTreeItemsCollapsed = (): AppThunk => {
-//     return (dispatch, getState) =>
-//         dispatch(uiSlice.actions.allTreeItemsCollapsedInternal(selectAllTreeContainerIds(getState())));
-// };
-
-// export const allTreeItemsExpanded = (): AppThunk => {
-//     return (dispatch, getState) =>
-//         dispatch(uiSlice.actions.allTreeItemsExpandedInternal(selectAllTreeContainerIds(getState())));
-// };
-
 export const {
     selectedActiveRoutine,
-    allWaypointsDeselected,
+    allItemsDeselected,
     allItemsShown,
     itemSelectionHidden,
     itemSelectionShown,
     treeItemsCollapsed,
     treeItemsExpanded,
+    splineMouseEnter,
+    splineMouseLeave,
+    splineSelected
 } = uiSlice.actions;
 
 /**
@@ -256,18 +262,20 @@ export const selectContainedWaypointIds = (state: RootState, id: EntityId, itemT
         case ItemType.PATH:
             return selectPathById(state, id)?.waypointIds ?? [];
         case ItemType.WAYPOINT:
-            const waypointId = selectWaypointById(state, id)?.id;
-            return waypointId ? [waypointId] : [];
+            return [id];
     };
 };
+
+// export const selectUIState = (state: RootState) => state.ui;
 
 export const selectActiveRoutineId = (state: RootState) => state.ui.activeRoutineId;
 export const selectActiveRoutine = (state: RootState) => selectRoutineById(state, selectActiveRoutineId(state));
 
 export const selectHoveredWaypointIds = (state: RootState) => state.ui.hoveredWaypointIds;
-
 export const selectSelectedWaypointIds = (state: RootState) => state.ui.selectedWaypointIds;
-
 export const selectHiddenWaypointIds = (state: RootState) => state.ui.hiddenWaypointIds;
 
 export const selectCollapsedIds = (state: RootState) => state.ui.collapsedIds;
+
+export const selectHoveredSplineIds = (state: RootState) => state.ui.hoveredSplineIds;
+export const selectSelectedSplineIds = (state: RootState) => state.ui.selectedSplineIds;

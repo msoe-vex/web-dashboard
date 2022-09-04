@@ -2,7 +2,8 @@ import React from "react";
 
 import { useAppSelector } from "../Store/hooks";
 import { AppDispatch } from "../Store/store";
-import { MenuDivider, MenuItem } from "@blueprintjs/core";
+import { MenuDivider } from "@blueprintjs/core";
+import { MenuItem2 } from "@blueprintjs/popover2";
 
 import {
     checkIfAllTreeItemsAreHidden,
@@ -12,7 +13,7 @@ import {
     selectAllTreeFolderIds,
     selectAllTreeContainerIds
 } from "./treeActions";
-import { allTreeItemsShown, allTreeItemsHidden, selectCollapsedIds, treeItemsCollapsed, treeItemsExpanded } from "./uiSlice";
+import { allItemsShown, allItemsHidden, selectCollapsedIds, treeItemsCollapsed, treeItemsExpanded } from "./uiSlice";
 
 interface DispatchProps {
     dispatch: AppDispatch;
@@ -27,7 +28,7 @@ interface ShouldDismissPopoverProps {
 }
 
 export function EditMenuItem(props: OnClickProps): JSX.Element {
-    return (<MenuItem
+    return (<MenuItem2
         {...props}
         text="Edit"
         icon="edit" // "form"
@@ -35,7 +36,7 @@ export function EditMenuItem(props: OnClickProps): JSX.Element {
 }
 
 export function RenameMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
-    return (<MenuItem
+    return (<MenuItem2
         {...props}
         text="Rename"
         icon="text-highlight"
@@ -43,7 +44,7 @@ export function RenameMenuItem(props: OnClickProps & ShouldDismissPopoverProps):
 }
 
 export function DuplicateMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
-    return (<MenuItem
+    return (<MenuItem2
         {...props}
         text="Duplicate"
         icon="duplicate"
@@ -51,7 +52,7 @@ export function DuplicateMenuItem(props: OnClickProps & ShouldDismissPopoverProp
 }
 
 export function DeleteMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
-    return (<MenuItem
+    return (<MenuItem2
         {...props}
         text="Delete"
         icon="trash"
@@ -62,7 +63,7 @@ export function DeleteMenuItem(props: OnClickProps & ShouldDismissPopoverProps):
 
 export function AddSelectionToNewFolderMenuItem(props: DispatchProps): JSX.Element | null {
     const canBeFolder = useAppSelector(checkIfSelectionCanBePutInFolder);
-    return canBeFolder ? (<MenuItem
+    return canBeFolder ? (<MenuItem2
         text="Add selection to folder"
         icon="folder-new"
         onClick={() => props.dispatch(selectionAddedToNewFolder())}
@@ -71,19 +72,19 @@ export function AddSelectionToNewFolderMenuItem(props: DispatchProps): JSX.Eleme
 
 export function HideAllMenuItem(props: DispatchProps): JSX.Element | null {
     const someShown = !useAppSelector(checkIfAllTreeItemsAreHidden);
-    return (someShown ? <MenuItem
+    return (someShown ? <MenuItem2
         text="Hide all"
         icon="eye-off"
-        onClick={() => props.dispatch(allTreeItemsHidden())}
+        onClick={() => props.dispatch(allItemsHidden())}
     /> : null);
 }
 
 export function ShowAllMenuItem(props: DispatchProps): JSX.Element | null {
     const someHidden = !useAppSelector(checkIfAllTreeItemsAreShown);
-    return (someHidden ? <MenuItem
+    return (someHidden ? <MenuItem2
         text="Show all"
         icon="eye-open"
-        onClick={() => props.dispatch(allTreeItemsShown())}
+        onClick={() => props.dispatch(allItemsShown())}
     /> : null);
 }
 
@@ -107,7 +108,7 @@ function CollapseAllMenuItem(props: DispatchProps): JSX.Element | null {
     const collapsedIds = useAppSelector(selectCollapsedIds);
     // some container is expanded
     return (containerIds.some(containerId => !collapsedIds.includes(containerId)) ?
-        <MenuItem
+        <MenuItem2
             text="Collapse all"
             icon="collapse-all"
             onClick={() => props.dispatch(treeItemsCollapsed(containerIds))}
@@ -119,7 +120,7 @@ function ExpandAllMenuItem(props: DispatchProps): JSX.Element | null {
     const collapsedIds = useAppSelector(selectCollapsedIds);
     // some container is collapsed
     return (containerIds.some(containerId => collapsedIds.includes(containerId)) ?
-        <MenuItem
+        <MenuItem2
             text="Expand all"
             icon="expand-all"
             onClick={() => props.dispatch(treeItemsExpanded(containerIds))}
@@ -146,7 +147,7 @@ function CollapseFoldersMenuItem(props: DispatchProps): JSX.Element | null {
     const collapsedIds = useAppSelector(selectCollapsedIds);
     // some folder is expanded
     return (folderIds.some(folderId => !collapsedIds.includes(folderId)) ?
-        <MenuItem
+        <MenuItem2
             text="Collapse folders"
             icon="collapse-all"
             onClick={() => props.dispatch(treeItemsCollapsed(folderIds))}
@@ -158,7 +159,7 @@ function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
     const collapsedIds = useAppSelector(selectCollapsedIds);
     // some folder is collapsed
     return (folderIds.some(folderId => collapsedIds.includes(folderId)) ?
-        <MenuItem
+        <MenuItem2
             text="Expand folders"
             icon="expand-all"
             onClick={() => props.dispatch(treeItemsExpanded(folderIds))}
@@ -166,7 +167,7 @@ function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
 }
 
 // function AddWaypointBeforeMenuItem(props: DispatchProps & IdProps): JSX.Element {
-//     return (<MenuItem
+//     return (<MenuItem2
 //         text="Add waypoint before"
 //         icon="add"
 //         onClick={() => props.dispatch(waypointAddedBefore(props.id))}
@@ -174,7 +175,7 @@ function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
 // }
 
 // function AddWaypointAfterMenuItem(props: DispatchProps & IdProps): JSX.Element {
-//     return (< MenuItem
+//     return (< MenuItem2
 //         text="Add waypoint after"
 //         icon="add"
 //         onClick={() => props.dispatch(waypointAddedAfter(props.id))}

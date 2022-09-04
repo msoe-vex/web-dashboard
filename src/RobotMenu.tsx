@@ -1,5 +1,6 @@
 import React from 'react';
-import { InputGroup, Menu, MenuItem } from '@blueprintjs/core';
+import { InputGroup, Menu } from '@blueprintjs/core';
+import { MenuItem2 } from '@blueprintjs/popover2';
 
 interface RobotMenuProps {
     names: string[];
@@ -10,7 +11,7 @@ export function RobotMenu(props: RobotMenuProps): JSX.Element {
     return (
         <Menu>
             {props.names.map((name: String): JSX.Element => (
-                <MenuItem
+                <MenuItem2
                     icon="plus"
                     text={name}
                 />
@@ -20,7 +21,7 @@ export function RobotMenu(props: RobotMenuProps): JSX.Element {
 
             {/* <MenuDivider /> */}
 
-            <MenuItem
+            <MenuItem2
                 icon="add"
                 text="New robot"
             />

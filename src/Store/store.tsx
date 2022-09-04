@@ -1,6 +1,7 @@
 import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit";
 
 import { fieldSlice } from "../Field/fieldSlice";
+// import { splinesSlice } from "../Field/splinesSlice";
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
@@ -16,18 +17,6 @@ const preloadedState = {
         },
         activeRoutineId: preloadedId
     },
-    // paths: {
-    //     ids: [],
-    //     entities: {}
-    // },
-    // waypoints: {
-    //     ids: [],
-    //     entities: {}
-    // },
-    // endWaypoints: {
-    //     ids: [],
-    //     entities: {}
-    // }
 }
 
 export const store = configureStore({
@@ -39,6 +28,7 @@ export const store = configureStore({
         paths: pathsSlice.reducer,
         waypoints: waypointsSlice.reducer,
         folders: foldersSlice.reducer,
+        // splines: splinesSlice.reducer,
         ui: uiSlice.reducer
     }
 });

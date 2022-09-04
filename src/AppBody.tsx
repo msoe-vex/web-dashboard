@@ -5,8 +5,7 @@ import { AppTree } from "./Tree/AppTree";
 import { Field } from "./Field/Field";
 
 import { useAppSelector } from "./Store/hooks";
-import { selectRoutineById } from "./Navbar/routinesSlice";
-import { selectActiveRoutineId } from "./Tree/uiSlice";
+import { selectActiveRoutine} from "./Tree/uiSlice";
 
 interface AppBodyProps {
     className: string;
@@ -14,9 +13,7 @@ interface AppBodyProps {
 
 export function AppBody(_props: AppBodyProps): JSX.Element {
     // const dispatch = useAppDispatch();
-    const activeRoutine = useAppSelector(state => selectRoutineById(state, selectActiveRoutineId(state)));
-
-    return (!activeRoutine) ?
+    return (!useAppSelector(selectActiveRoutine)) ?
         (<NonIdealState
             className="non-ideal-state"
             icon="add"

@@ -73,38 +73,6 @@ export const selectAllTreeFolderIds = (state: RootState): EntityId[] => {
     return selectAllTreePaths(state).flatMap(path => path.folderIds);
 };
 
-// /**
-//  * @returns true if all container items in the tree are collapsed.
-//  */
-// export const checkIfAllTreeContainersAreCollapsed = (state: RootState): boolean => {
-//     const containerIds = selectAllTreeContainerIds(state);
-//     return containerIds.every(containerId => state.ui.collapsedIds.includes(containerId));
-// };
-
-// /**
-//  * @returns true if all container items in the tree are expanded.
-//  */
-// export const checkIfAllTreeContainersAreExpanded = (state: RootState): boolean => {
-//     const containerIds = selectAllTreeContainerIds(state);
-//     return containerIds.every(containerId => !state.ui.collapsedIds.includes(containerId));
-// };
-
-// /**
-//  * @returns true if all container items in the tree are collapsed.
-//  */
-// export const checkIfAllTreeFoldersAreCollapsed = (state: RootState): boolean => {
-//     const folderIds = selectAllTreeFolderIds(state);
-//     return folderIds.every(folderId => state.ui.collapsedIds.includes(folderId));
-// };
-
-// /**
-//  * @returns true if all folder items in the tree are expanded.
-//  */
-// export const checkIfAllTreeFoldersAreExpanded = (state: RootState): boolean => {
-//     const folderIds = selectAllTreeFolderIds(state);
-//     return folderIds.every(folderId => !state.ui.collapsedIds.includes(folderId));
-// };
-
 /**
  * @returns true if all menu items are hidden, and false otherwise.
  */

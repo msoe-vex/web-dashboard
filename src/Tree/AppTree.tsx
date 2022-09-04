@@ -26,7 +26,7 @@ import {
     itemMouseLeave,
     treeItemsCollapsed,
     treeItemsExpanded,
-    allWaypointsDeselected,
+    allItemsDeselected,
 } from './uiSlice';
 import { selectRoutineById } from '../Navbar/routinesSlice';
 import { Folder, selectFolderDictionary } from './foldersSlice';
@@ -110,7 +110,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
 
     const handleNodeContextMenu = React.useCallback(
-        (node: TreeNodeInfo<ItemType>, nodePath: number[], e: React.MouseEvent) => {
+        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
             let contextMenu;
             const contextMenuProps = { id: node.id, handleRenameClick: () => setRenamingId(node.id) };
             if (node.nodeData === ItemType.PATH) {
@@ -140,7 +140,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     return (
         <Card className="App-tree-card"
             onClick={(e: React.MouseEvent) => {
-                if (!e.isPropagationStopped()) { dispatch(allWaypointsDeselected()); }
+                if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
             }}
         >
             <H5>{routine.name}</H5>
