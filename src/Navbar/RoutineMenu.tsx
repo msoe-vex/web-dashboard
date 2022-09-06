@@ -1,9 +1,9 @@
-import React from 'react';
-import { Button, Classes, Menu, MenuDivider, MenuItem, Position } from '@blueprintjs/core';
-import { Popover2 } from '@blueprintjs/popover2';
-import { EntityId } from '@reduxjs/toolkit';
+import React from "react";
+import { Button, Classes, Menu, MenuDivider, Position } from "@blueprintjs/core";
+import { MenuItem2, Popover2 } from "@blueprintjs/popover2";
+import { EntityId } from "@reduxjs/toolkit";
 
-import { useAppDispatch, useAppSelector } from '../Store/hooks';
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import {
     selectRoutineIds,
     selectRoutineById,
@@ -11,11 +11,11 @@ import {
     deletedRoutine,
     renamedRoutine,
     duplicatedRoutine
-} from './routinesSlice';
-import { selectActiveRoutineId, selectedActiveRoutine } from '../Tree/uiSlice';
+} from "./routinesSlice";
+import { selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
 
-import { NameInput } from './NameInput';
-import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from '../Tree/MenuItems';
+import { NameInput } from "./NameInput";
+import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
 
 export function RoutineMenu(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -45,7 +45,7 @@ export function RoutineMenu(): JSX.Element {
         />);
 
     const addRoutineItem = (
-        <MenuItem
+        <MenuItem2
             icon="add"
             text="Add routine"
             onClick={() => dispatch(addedRoutine())}
@@ -104,7 +104,7 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
             props.setGlobalIsRenaming(false);
         }}
     />) :
-        (<MenuItem
+        (<MenuItem2
             icon="playbook"
             text={name}
             selected={props.selected}
