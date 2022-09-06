@@ -171,16 +171,16 @@ export const uiSlice = createSlice({
             uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
         },
         splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            if (action.payload.length !== 2) { throw Error("Expected spline to have two waypoints."); }
             uiState.hoveredSplineIds.push(action.payload);
         },
         splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            if (action.payload.length !== 2) { throw Error("Expected spline to have two waypoints."); }
             // removes array sets that share every id with an id in action.payload
             uiState.hoveredSplineIds = uiState.hoveredSplineIds.filter(splineIds => !splineIds.every(splineId => action.payload.includes(splineId)));
         },
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length != 2) { throw Error("Expected spline to have two waypoints."); }
+            if (action.payload.length !== 2) { throw Error("Expected spline to have two waypoints."); }
             if (uiState.selectedSplineIds.some(splineId => splineId.every(splineId => action.payload.includes(splineId)))) {
                 uiState.selectedSplineIds = [];
             } else {

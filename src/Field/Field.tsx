@@ -94,9 +94,7 @@ export function Field(): JSX.Element {
                             />
                         </Layer>
                         <Layer {...fieldTransform}
-                            onClick={(e: KonvaEventObject<MouseEvent>) => {
-                                e.cancelBubble = true;
-                            }}
+                            onClick={(e: KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; }}
                         >
                             <RobotElements />
                         </Layer>
@@ -121,7 +119,6 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldH
     const xShift = (canvasWidth - width) / 2;
     const yShift = (canvasHeight - height) / 2 + height;
     return { x: xShift, y: yShift, scaleX: PIXEL, scaleY: -PIXEL };
-
 }
 
 interface RobotElementsProps {
