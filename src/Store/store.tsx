@@ -1,4 +1,4 @@
-import { configureStore, nanoid, ThunkAction, AnyAction } from "@reduxjs/toolkit";
+import { configureStore, ThunkAction, AnyAction } from "@reduxjs/toolkit";
 
 import { fieldSlice } from "../Field/fieldSlice";
 // import { splinesSlice } from "../Field/splinesSlice";
@@ -8,16 +8,16 @@ import { pathsSlice } from "../Tree/pathsSlice";
 import { uiSlice } from "../Tree/uiSlice";
 import { waypointsSlice } from "../Tree/waypointsSlice"
 
-const preloadedId = nanoid();
-const preloadedState = {
-    routines: {
-        ids: [preloadedId],
-        entities: {
-            [preloadedId]: { id: preloadedId, name: "Routine 1", pathIds: [] },
-        },
-        activeRoutineId: preloadedId
-    },
-}
+// const preloadedId = nanoid();
+// const preloadedState = {
+//     routines: {
+//         ids: [preloadedId],
+//         entities: {
+//             [preloadedId]: { id: preloadedId, name: "Routine 1", pathIds: [] },
+//         },
+//         activeRoutineId: preloadedId
+//     },
+// }
 
 export const store = configureStore({
     // preloadedState: preloadedState,
