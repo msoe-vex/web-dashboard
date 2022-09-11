@@ -71,7 +71,7 @@ export const foldersSlice = createSlice({
 export const addedFolder = (waypointIds: EntityId[]): AppThunk => {
     return (dispatch, getState) => {
         const path = selectPathOwnerOfWaypointId(getState(), waypointIds[0]);
-        if (!path) { throw Error("Expected valid path in addedFolder."); }
+        if (!path) { throw new Error("Expected valid path in addedFolder."); }
 
         var orderedIds: EntityId[] = [];
         path.waypointIds.forEach(waypointId => {

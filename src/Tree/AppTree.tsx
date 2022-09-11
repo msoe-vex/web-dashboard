@@ -46,15 +46,15 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
     const routine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
     if (!routine) {
-        throw Error("Expected valid active routine in tree.");
+        throw new Error("Expected valid active routine in tree.");
     }
 
     const pathIds = routine.pathIds;
     const allPaths = useAppSelector(selectAllPaths);
     let paths = pathIds.map(pathId => {
         // can't use selectors within callback function, so get allPaths and find instead
-        const result = allPaths.find(allPath => allPath.id === pathId)
-        if (!result) { throw Error("Expected valid paths in tree."); }
+        const result = allPaths.find(allPath => allPath.id === pathId);
+        if (!result) { throw new Error("Expected valid paths in tree."); }
         return result;
     });
 
@@ -68,13 +68,13 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     const treeNodeInfo = paths.map(path => {
         const orderedWaypoints = path.waypointIds.map(waypointId => {
             const waypoint = waypointDictionary[waypointId];
-            if (!waypoint) { throw Error("Expected valid waypoint in path."); }
+            if (!waypoint) { throw new Error("Expected valid waypoint in path."); }
             return waypoint;
         });
 
         const folders = path.folderIds.map(folderId => {
             const folder = folderDictionary[folderId];
-            if (!folder) { throw Error("Expected valid folder in path."); }
+            if (!folder) { throw new Error("Expected valid folder in path."); }
             return folder;
         });
         return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedIds);
@@ -84,7 +84,7 @@ export function AppTree(props: AppTreeProps): JSX.Element {
         // _ marks arg as unused
         (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
             // === undefined doesn't catch ItemType.PATH, unlike ! operator
-            if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
+            if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
             else if (renamingId !== DUMMY_ID) { return; }
             dispatch(itemSelected(node.id, node.nodeData, e.shiftKey));
         }, [renamingId, dispatch]);
@@ -98,12 +98,12 @@ export function AppTree(props: AppTreeProps): JSX.Element {
     }, [dispatch]);
 
     const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
-        if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
+        if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
         dispatch(itemMouseEnter(node.id, node.nodeData));
     }, [dispatch]);
 
     const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<ItemType>, _nodePath: number[]) => {
-        if (node.nodeData === undefined) { throw Error("Expected valid nodeData."); }
+        if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
         dispatch(itemMouseLeave(node.id, node.nodeData));
     }, [dispatch]);
 
@@ -208,7 +208,7 @@ function getPathNode(
         const folderLabel = getTreeLabel(folder, ItemType.FOLDER, renamingId, setRenamingId);
 
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
-        if (startIndex === -1) { throw Error("Expected folder contents in path."); }
+        if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
 
         // slice contents from waypointNodes and shift into new folder node
         const folderNode = {
@@ -293,9 +293,7 @@ function TreeNameInput(props: TreeNameInputProps): JSX.Element {
     return (<NameInput
         initialName={props.treeItem.name}
         newNameSubmitted={(newName) => {
-            if (newName) {
-                dispatch(treeItemRenamed(props.treeItem.id, props.itemType, newName));
-            }
+            if (newName) { dispatch(treeItemRenamed(props.treeItem.id, props.itemType, newName)); }
             props.setRenamingId(DUMMY_ID);
         }}
     />);

@@ -144,14 +144,14 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
         };
 
         waypoints?.forEach(waypoint => {
-            if (!waypoint) { throw Error("Expected valid waypoint."); }
+            if (!waypoint) { throw new Error("Expected valid waypoint."); }
             const waypointCopy = Object.assign({}, waypoint);
             waypointCopy.id = waypointDictionary[waypoint.id] as EntityId;
             arg.waypoints.push(waypointCopy);
         });
 
         paths?.forEach(path => {
-            if (!path) { throw Error("Expected valid path."); }
+            if (!path) { throw new Error("Expected valid path."); }
             const pathCopy = Object.assign({}, path);
             pathCopy.id = nanoid();
 

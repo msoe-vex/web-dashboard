@@ -91,7 +91,7 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
     const dispatch = useAppDispatch();
 
     const name = useAppSelector((state) => selectRoutineById(state, props.id)?.name);
-    if (!name) { throw Error("Expected valid routine name."); }
+    if (!name) { throw new Error("Expected valid routine name."); }
 
     const [isRenaming, setIsRenaming] = React.useState(false);
 

@@ -1,13 +1,13 @@
 import { Colors } from "@blueprintjs/core/lib/esm/common";
-import { Dictionary, EntityId } from "@reduxjs/toolkit";
+import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
 
-import { Layer, Line, Rect, Stage } from "react-konva";
+import { Arrow, Circle, Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { AppDispatch, RootState } from "../Store/store";
-import { Path, selectPathById } from "../Tree/pathsSlice";
+import { RootState } from "../Store/store";
+import { selectPathById } from "../Tree/pathsSlice";
 import {
     selectActiveRoutine,
     selectHiddenWaypointIds,
@@ -24,7 +24,7 @@ import {
     selectSelectedSplineIds,
     selectHoveredSplineIds
 } from "../Tree/uiSlice";
-import { isControlWaypoint, selectWaypointDictionary, Waypoint, waypointMoved } from "../Tree/waypointsSlice";
+import { isControlWaypoint, selectWaypointById, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 
@@ -74,9 +74,7 @@ export function Field(): JSX.Element {
                     width={width}
                     height={height}
                     onClick={(e: KonvaEventObject<MouseEvent>) => {
-                        if (!e.cancelBubble) {
-                            dispatch(allItemsDeselected());
-                        }
+                        if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
                     }}
                 >
                     {/* Make store available again inside stage */}
@@ -103,7 +101,7 @@ export function Field(): JSX.Element {
             }}
         </ReactReduxContext.Consumer>
     </div >);
-};
+}
 
 function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number): Transform {
     const heightToWidth = fieldWidth / fieldHeight;
@@ -121,147 +119,168 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldH
     return { x: xShift, y: yShift, scaleX: PIXEL, scaleY: -PIXEL };
 }
 
-interface RobotElementsProps {
+// interface RobotElementsProps {
+// }
 
-}
-
-export function RobotElements(_props: RobotElementsProps): JSX.Element {
+export function RobotElements(): JSX.Element {
     const dispatch = useAppDispatch();
 
     const paths = useAppSelector((state: RootState) => {
         const activeRoutine = selectActiveRoutine(state);
-        if (!activeRoutine) { throw Error("Field expected valid active routine."); }
+        if (!activeRoutine) { throw new Error("Field expected valid active routine."); }
 
         return activeRoutine.pathIds.map(pathId => {
             const path = selectPathById(state, pathId);
-            if (!path) { throw Error("Field expected valid paths."); }
+            if (!path) { throw new Error("Field expected valid paths."); }
             return path;
         });
     });
-    const waypointDict = useAppSelector(selectWaypointDictionary);
-
-    const hiddenIds = useAppSelector(selectHiddenWaypointIds);
-    const selectedIds = useAppSelector(selectSelectedWaypointIds);
-    const hoveredIds = useAppSelector(selectHoveredWaypointIds);
-    const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
-    const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
-
-    const elements = getRobotElements(
-        dispatch,
-        paths,
-        waypointDict,
-        hiddenIds,
-        selectedIds,
-        hoveredIds,
-        selectedSplineIds,
-        hoveredSplineIds
-    );
 
     return (<>
-        {elements}
+        {paths.flatMap(path => path.waypointIds.map(waypointId => <RobotElement
+            key={waypointId}
+            waypointId={waypointId}
+        />))}
+        {paths.flatMap(path => {
+            var elements = [];
+            for (let i = 1; i < path.waypointIds.length; ++i) {
+                elements.push(<SplineElement
+                    previousWaypointId={path.waypointIds[i - 1]}
+                    waypointId={path.waypointIds[i]}
+                />);
+            }
+            return elements;
+        })}
     </>);
 }
 
-const getRobotElements = (
-    dispatch: AppDispatch,
-    paths: Path[],
-    waypointDict: Dictionary<Waypoint>,
-    hiddenIds: EntityId[],
-    selectedIds: EntityId[],
-    hoveredIds: EntityId[],
-    selectedSplineIds: EntityId[][],
-    hoveredSplineIds: EntityId[][]
-): JSX.Element[] => {
-    return paths.flatMap(path => {
-        let elements: JSX.Element[] = [];
+interface RobotElementProps { waypointId: EntityId; }
 
-        for (let i = 0; i < path.waypointIds.length; i++) {
-            const waypoint = waypointDict[path.waypointIds[i]];
-            if (!waypoint) { throw Error("Path spline expected valid waypoint."); }
+export function RobotElement(props: RobotElementProps): JSX.Element | null {
+    const dispatch = useAppDispatch();
 
-            if (isControlWaypoint(waypoint)) {
-                const isHidden = hiddenIds.includes(waypoint.id);
-                const isSelected = selectedIds.includes(waypoint.id);
+    const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
+    if (!waypoint) { throw new Error("Path spline expected valid waypoint."); }
 
-                const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
-                    dispatch(waypointMoved({
-                        id: waypoint.id,
-                        x: e.target.x() + 9 * Units.INCH,
-                        y: e.target.y() + 9 * Units.INCH
-                    }));
-                };
+    const hoveredWaypointIds = useAppSelector(selectHoveredWaypointIds);
+    const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
+    const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
 
-                // Several different behaviors depending on state
-                // Not hidden:
-                // Yellow shadow on hover and highlight on click (with robot)
+    const isHidden = hiddenWaypointIds.includes(waypoint.id);
+    const isSelected = selectedWaypointIds.includes(waypoint.id);
 
-                // Hidden:
-                // Still yellow shadow on hover and highlight on click (but no robot)
+    if (isControlWaypoint(waypoint)) {
+        const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
+            dispatch(waypointMoved({
+                id: waypoint.id,
+                x: e.target.x() + 9 * Units.INCH,
+                y: e.target.y() + 9 * Units.INCH
+            }));
+        };
 
-                let fill;
-                if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
-                else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
+        // Several different behaviors depending on state
+        // Not hidden:
+        // Yellow shadow on hover and highlight on click (with robot)
 
-                elements.push(<Rect
-                    key={"Robot" + waypoint.id}
-                    x={waypoint.x - 9 * Units.INCH}
-                    y={waypoint.y - 9 * Units.INCH}
-                    width={18 * Units.INCH}
-                    height={18 * Units.INCH}
-                    rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
-                    strokeWidth={0.5 * Units.INCH}
-                    stroke={isHidden ? undefined : Colors.BLACK}
-                    fill={fill}
-                    lineJoin={"bevel"}
-                    shadowEnabled={hoveredIds.includes(waypoint.id)}
-                    shadowColor={Colors.ORANGE3}
-                    shadowBlur={3 * Units.INCH}
-                    shadowOpacity={1}
-                    onClick={(e: KonvaEventObject<MouseEvent>) => {
-                        dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey));
-                    }}
-                    draggable={!isHidden && isSelected}
-                    onDragMove={onWaypointDrag}
-                    onDragEnd={onWaypointDrag}
-                    onMouseEnter={() => dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT))}
-                    onMouseLeave={() => dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT))}
-                />);
-            }
+        // Hidden:
+        // Still yellow shadow on hover and highlight on click (but no robot)
 
-            if (i !== 0) {
-                const prev = waypointDict[path.waypointIds[i - 1]];
-                if (!prev) { throw Error("Path spline expected valid waypoint."); }
-                if (!isControlWaypoint(prev) || !isControlWaypoint(waypoint)) {
-                    throw Error("Follower waypoints are not supported by getPathSplines.");
-                }
+        let fill;
+        if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
+        else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
-                if (hiddenIds.includes(prev.id) && hiddenIds.includes(waypoint.id)) { continue; }
+        return (<Rect
+            x={waypoint.x - 9 * Units.INCH}
+            y={waypoint.y - 9 * Units.INCH}
+            width={18 * Units.INCH}
+            height={18 * Units.INCH}
+            rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
+            strokeWidth={0.5 * Units.INCH}
+            stroke={isHidden ? undefined : Colors.BLACK}
+            fill={fill}
+            // lineJoin={"bevel"}
+            shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
+            shadowColor={Colors.ORANGE3}
+            shadowBlur={3 * Units.INCH}
+            shadowOpacity={1}
+            onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey)); }}
+            draggable={!isHidden && isSelected}
+            onDragMove={onWaypointDrag}
+            onDragEnd={onWaypointDrag}
+            onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
+            onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
+        />);
+    }
+    else {
+        return null;
+    }
+}
 
-                const prevControlX = prev.x + Math.cos(prev.angle * prev.endMagnitude);
-                const prevControlY = prev.y + Math.sin(prev.angle * prev.endMagnitude);
+interface SplineElementProps {
+    previousWaypointId: EntityId;
+    waypointId: EntityId;
+}
 
-                const currControlX = waypoint.x - Math.cos(waypoint.angle * waypoint.startMagnitude);
-                const currControlY = waypoint.y - Math.sin(waypoint.angle * waypoint.startMagnitude);
+export function SplineElement(props: SplineElementProps): JSX.Element | null {
+    const dispatch = useAppDispatch();
 
-                elements.push(<Line
-                    key={"spline" + waypoint.id}
-                    points={[prev.x, prev.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
-                    bezier={true}
-                    strokeWidth={0.5 * Units.INCH}
-                    stroke={selectedSplineIds.some(splineIds => splineIds.every(splineId => [prev.id, waypoint.id].includes(splineId))) ? Colors.ORANGE1 : Colors.BLACK}
-                    strokeHitEnabled={true}
-                    hitStrokeWidth={3 * Units.INCH}
-                    shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [prev.id, waypoint.id].includes(splineId)))}
-                    shadowColor={Colors.ORANGE3}
-                    shadowBlur={3 * Units.INCH}
-                    shadowOpacity={1}
-                    onClick={() => dispatch(splineSelected([prev.id, waypoint.id]))}
-                    onMouseEnter={() => dispatch(splineMouseEnter([prev.id, waypoint.id]))}
-                    onMouseLeave={() => dispatch(splineMouseLeave([prev.id, waypoint.id]))}
-                />);
-            }
-        }
+    const previousWaypoint = useAppSelector(state => selectWaypointById(state, props.previousWaypointId));
+    const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
 
-        return elements;
-    });
-};
+    if (!previousWaypoint || !waypoint) { throw new Error("Path spline expected valid waypoint."); }
+    if (!isControlWaypoint(previousWaypoint) || !isControlWaypoint(waypoint)) {
+        throw new Error("Follower waypoints are not supported by SplineElement.");
+    }
+
+    const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
+    const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
+    const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
+
+    if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
+
+    const prevControlX = previousWaypoint.x + Math.cos(previousWaypoint.angle * previousWaypoint.endMagnitude);
+    const prevControlY = previousWaypoint.y + Math.sin(previousWaypoint.angle * previousWaypoint.endMagnitude);
+
+    const currControlX = waypoint.x - Math.cos(waypoint.angle * waypoint.startMagnitude);
+    const currControlY = waypoint.y - Math.sin(waypoint.angle * waypoint.startMagnitude);
+
+    const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
+
+    const line = (<Line
+        key={"spline" + waypoint.id}
+        points={[previousWaypoint.x, previousWaypoint.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
+        bezier={true}
+        strokeWidth={0.5 * Units.INCH}
+        stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
+        strokeHitEnabled={true}
+        hitStrokeWidth={3 * Units.INCH}
+        shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)))}
+        shadowColor={Colors.ORANGE3}
+        shadowBlur={3 * Units.INCH}
+        shadowOpacity={1}
+        onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
+        onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
+        onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
+    />);
+
+    // if (isSelected && selectedSplineIds.length === 1) {
+    //     const handleManipDrag = (e: KonvaEventObject<MouseEvent>) => {
+    //         // dispatch(waypointMagnitudeMoved({
+    //         //     id: prev.id,
+    //         //     x: e.target.x(),
+    //         //     y: e.target.y()
+    //         // }));
+    //     };
+
+    //     (<Circle
+    //         key={"pointManip" + waypoint.id}
+    //         radius={2 * Units.INCH}
+    //         x={prevControlX}
+    //         y={prevControlY}
+    //         draggable={true}
+    //         onDragMove={handleManipDrag}
+    //         onDragEnd={handleManipDrag}
+    //     />);
+    // }
+    return (line);
+}
