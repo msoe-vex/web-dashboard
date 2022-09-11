@@ -105,7 +105,7 @@ export const deletedRoutine = (routineId: EntityId): AppThunk => {
 }
 
 export const addedRoutine = (): AppThunk => {
-    return (dispatch, _getState) => {
+    return (dispatch) => {
         dispatch(addedRoutineInternal({
             routineId: nanoid(),
             robotId: DUMMY_ID, // selectFirstRobotId(getState())

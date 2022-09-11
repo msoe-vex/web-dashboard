@@ -153,7 +153,7 @@ export const waypointsSlice = createSlice({
  * In the future, could simply dispatch addedWaypointAfter.
  */
 export const duplicatedWaypoint = (id: EntityId): AppThunk => {
-    return (dispatch, _getState) =>
+    return (dispatch) =>
         dispatch(waypointsSlice.actions.duplicatedWaypointInternal({
             waypointId: id,
             newWaypointId: nanoid()

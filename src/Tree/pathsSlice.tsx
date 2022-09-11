@@ -4,17 +4,17 @@ import { DUMMY_ID } from "../Store/dummyId";
 
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "./foldersSlice";
+import { ItemType } from "./uiSlice";
 import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "./waypointsSlice";
 
 export interface Path {
     id: EntityId;
-
-    robotId: EntityId | undefined;
+    robotId: EntityId;
     folderIds: EntityId[];
     waypointIds: EntityId[];
 }
 
-export const pathsAdapter = createEntityAdapter<Path>();
+const pathsAdapter = createEntityAdapter<Path>();
 const simpleSelectors = pathsAdapter.getSelectors();
 
 export const pathsSlice = createSlice({
@@ -118,7 +118,7 @@ export const deletedPath = (pathId: EntityId): AppThunk => {
 };
 
 export const addedPath = (routineId: EntityId): AppThunk => {
-    return (dispatch, _getState) => {
+    return (dispatch) => {
         dispatch(pathsSlice.actions.addedPathInternal({
             id: nanoid(),
             routineId,
@@ -142,19 +142,26 @@ export const {
 } = pathsAdapter.getSelectors<RootState>((state) => state.paths);
 
 /**
- * Selects the path which owns a given waypoint id.
- * @param {EntityId} waypointId - The waypoint id to use.
- * @returns {Path | undefined}
- */
-export const selectPathOwnerOfWaypointId = (state: RootState, waypointId: EntityId): Path | undefined => {
-    return selectAllPaths(state).find(path => path.waypointIds.includes(waypointId));
-};
-
-/**
- * Selects the path which owns a given folder id. 
+ * Selects the path which owns a given waypoint or folder specified by id. 
  * @param {EntityId} folderId - The folder id to use.
- * @returns {Path | undefined}
+ * @param {ItemType} itemType - The ItemType to use.
+ * @returns {Path}
  */
-export const selectPathOwnerOfFolderId = (state: RootState, folderId: EntityId): Path | undefined => {
-    return selectAllPaths(state).find(path => path.folderIds.includes(folderId));
+export function selectOwnerPath(state: RootState, itemId: EntityId, itemType: ItemType): Path {
+    let path;
+    switch (itemType) {
+        case ItemType.FOLDER:
+            path = selectAllPaths(state).find(path => path.folderIds.includes(itemId));
+            break;
+        case ItemType.WAYPOINT:
+            path = selectAllPaths(state).find(path => path.waypointIds.includes(itemId));
+            break;
+        case ItemType.ROBOT:
+            path = selectAllPaths(state).find(path => path.robotId === itemId);
+            break;
+        default:
+            throw new Error("selectOwningPath only supports folders and waypoints.");
+    }
+    if (!path) { throw new Error("Found orphaned path."); }
+    return path;
 };

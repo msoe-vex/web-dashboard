@@ -1,13 +1,13 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
 import { selectActiveRoutineId, selectSelectedWaypointIds, ItemType } from "./uiSlice";
-import { Path, selectPathById, selectPathOwnerOfWaypointId } from "./pathsSlice";
+import { Path, selectOwnerPath, selectPathById } from "./pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { renamedWaypoint } from "./waypointsSlice";
 
-export const treeItemRenamed = (id: EntityId, treeItemType: ItemType, newName: string): AppThunk => {
-    return (dispatch, _getState) => {
+export function treeItemRenamed(id: EntityId, treeItemType: ItemType, newName: string): AppThunk {
+    return (dispatch) => {
         if (treeItemType === ItemType.WAYPOINT) {
             dispatch(renamedWaypoint({ newName, id }));
         } else if (treeItemType === ItemType.FOLDER) {
@@ -16,7 +16,7 @@ export const treeItemRenamed = (id: EntityId, treeItemType: ItemType, newName: s
     };
 };
 
-export const selectionAddedToNewFolder = (): AppThunk => {
+export function selectionAddedToNewFolder(): AppThunk {
     return (dispatch, getState) => {
         const selection = makeSelectionContiguous(getState());
         dispatch(addedFolder(selection));
@@ -49,7 +49,7 @@ export const selectionAddedToNewFolder = (): AppThunk => {
 //     };
 // };
 
-export const selectAllTreePaths = (state: RootState): Path[] => {
+export function selectAllTreePaths(state: RootState): Path[] {
     const activeRoutine = selectRoutineById(state, selectActiveRoutineId(state));
     let result: Path[] = [];
     if (!activeRoutine) { return result; }
@@ -60,23 +60,23 @@ export const selectAllTreePaths = (state: RootState): Path[] => {
     return result;
 };
 
-export const selectAllTreeWaypointIds = (state: RootState): EntityId[] => {
+export function selectAllTreeWaypointIds(state: RootState): EntityId[] {
     const paths = selectAllTreePaths(state);
     return paths?.flatMap(path => path ? path.waypointIds : []) ?? [];
 };
 
-export const selectAllTreeContainerIds = (state: RootState): EntityId[] => {
+export function selectAllTreeContainerIds(state: RootState): EntityId[] {
     return selectAllTreePaths(state).flatMap(path => [path.id].concat(path.folderIds));
 };
 
-export const selectAllTreeFolderIds = (state: RootState): EntityId[] => {
+export function selectAllTreeFolderIds(state: RootState): EntityId[] {
     return selectAllTreePaths(state).flatMap(path => path.folderIds);
 };
 
 /**
  * @returns true if all menu items are hidden, and false otherwise.
  */
-export const checkIfAllTreeItemsAreHidden = (state: RootState): boolean => {
+export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
     return treeWaypointIds.every(waypointId => state.ui.hiddenWaypointIds.includes(waypointId));
 }
@@ -84,17 +84,10 @@ export const checkIfAllTreeItemsAreHidden = (state: RootState): boolean => {
 /**
  * @returns true if all menu items are shown, and false otherwise.
  */
-export const checkIfAllTreeItemsAreShown = (state: RootState): boolean => {
+export function checkIfAllTreeItemsAreShown(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
     return treeWaypointIds.every(waypointId => !state.ui.hiddenWaypointIds.includes(waypointId));
 }
-
-// /**
-//  * @returns true if a selection currently exists, and false otherwise.
-//  */
-// export const checkIfSelectionExists = (state: RootState): boolean => {
-//     return selectSelectedWaypointIds(state).length > 0;
-// };
 
 /**
  * @returns true if the current selection can be inserted into a folder.
@@ -106,14 +99,13 @@ export const checkIfAllTreeItemsAreShown = (state: RootState): boolean => {
  * All of the current selection belongs to the same path
  * The current selection is contiguous (after grabbing all )
  */
-export const checkIfSelectionCanBePutInFolder = (state: RootState): boolean => {
+export function checkIfSelectionCanBePutInFolder(state: RootState): boolean {
     const selection = makeSelectionContiguous(state);
     if (selection.length === 0) { return false; }
 
-    const ownerPath = selectPathOwnerOfWaypointId(state, selection[0]);
-    if (!ownerPath) { return false; }
+    const ownerPath = selectOwnerPath(state, selection[0], ItemType.WAYPOINT);
     // If some selection is not in ownerPath, return false
-    else if (selection.some(waypointId => !ownerPath.waypointIds.includes(waypointId))) { return false; }
+    if (selection.some(waypointId => !ownerPath.waypointIds.includes(waypointId))) { return false; }
     // If some waypoint in selection is owned by a folder in owner path, return false
     else if (selection.some(waypointId =>
         ownerPath.folderIds.some(folderId => selectFolderById(state, folderId)?.waypointIds.includes(waypointId))
@@ -124,7 +116,7 @@ export const checkIfSelectionCanBePutInFolder = (state: RootState): boolean => {
 /**
  * Captures additional waypoint ids such that the current selection becomes contiguous.
  */
-export const makeSelectionContiguous = (state: RootState): EntityId[] => {
+export function makeSelectionContiguous(state: RootState): EntityId[] {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
     const currentSelection = selectSelectedWaypointIds(state);
     const indicies = currentSelection.map(waypointId => treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);

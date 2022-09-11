@@ -33,7 +33,11 @@ export interface UI {
 // Field zoom/position
 
 export enum ItemType {
-    PATH, FOLDER, WAYPOINT
+    PATH = 0,
+    ROBOT = 1,
+    WAYPOINT = 2,
+    SPLINE = 3,
+    FOLDER = 4
 }
 
 const defaultUIState: UI = {
@@ -263,6 +267,8 @@ export const selectContainedWaypointIds = (state: RootState, id: EntityId, itemT
             return selectPathById(state, id)?.waypointIds ?? [];
         case ItemType.WAYPOINT:
             return [id];
+        default:
+            throw new Error("Cannot select from specified item type.");
     };
 };
 

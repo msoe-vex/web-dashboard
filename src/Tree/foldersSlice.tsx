@@ -2,9 +2,10 @@ import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAn
 
 import { AppThunk, RootState } from "../Store/store";
 import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
-import { deletedPathInternal, selectPathOwnerOfWaypointId } from "./pathsSlice";
+import { deletedPathInternal, selectOwnerPath } from "./pathsSlice";
 import { getNextName } from "./Utils";
 import { duplicatedWaypointInternal } from "./waypointsSlice";
+import { ItemType } from "./uiSlice";
 
 export interface Folder {
     id: EntityId;
@@ -70,7 +71,7 @@ export const foldersSlice = createSlice({
 
 export const addedFolder = (waypointIds: EntityId[]): AppThunk => {
     return (dispatch, getState) => {
-        const path = selectPathOwnerOfWaypointId(getState(), waypointIds[0]);
+        const path = selectOwnerPath(getState(), waypointIds[0], ItemType.WAYPOINT);
         if (!path) { throw new Error("Expected valid path in addedFolder."); }
 
         var orderedIds: EntityId[] = [];
@@ -95,7 +96,7 @@ export const deletedFolder = (folderId: EntityId): AppThunk => {
 
 // Only difference between unpack and deleted is unpack leaves waypoints
 export const unpackedFolder = (folderId: EntityId): AppThunk => {
-    return (dispatch, _getState) => {
+    return (dispatch) => {
         dispatch(deletedFolderInternal({ id: folderId, waypointIds: [] }));
     }
 };

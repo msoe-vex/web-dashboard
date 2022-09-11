@@ -5,7 +5,7 @@ import { AppTree } from "./Tree/AppTree";
 import { Field } from "./Field/Field";
 
 import { useAppSelector } from "./Store/hooks";
-import { selectActiveRoutine} from "./Tree/uiSlice";
+import { selectActiveRoutine } from "./Tree/uiSlice";
 
 interface AppBodyProps {
     className: string;
@@ -22,7 +22,7 @@ export function AppBody(_props: AppBodyProps): JSX.Element {
         />) :
         (<div
             className="App-body"
-            onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
+            onContextMenu={(e: React.MouseEvent) => { e.preventDefault(); }}
         >
             <AppTree />
             <Field />
