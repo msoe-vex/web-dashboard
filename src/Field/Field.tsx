@@ -79,8 +79,7 @@ export function Field(): JSX.Element {
                 >
                     {/* Make store available again inside stage */}
                     <Provider store={store}>
-                        <Layer {...fieldTransform}
-                        >
+                        <Layer {...fieldTransform} >
                             <Rect
                                 x={0.5 * Units.INCH}
                                 y={0.5 * Units.INCH}
@@ -144,6 +143,7 @@ export function RobotElements(): JSX.Element {
             var elements = [];
             for (let i = 1; i < path.waypointIds.length; ++i) {
                 elements.push(<SplineElement
+                    key={path.waypointIds[i]}
                     previousWaypointId={path.waypointIds[i - 1]}
                     waypointId={path.waypointIds[i]}
                 />);
@@ -197,7 +197,6 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             strokeWidth={0.5 * Units.INCH}
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
-            // lineJoin={"bevel"}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
             shadowColor={Colors.ORANGE3}
             shadowBlur={3 * Units.INCH}
@@ -251,7 +250,6 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
-        strokeHitEnabled={true}
         hitStrokeWidth={3 * Units.INCH}
         shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)))}
         shadowColor={Colors.ORANGE3}
@@ -282,4 +280,11 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     //     />);
     // }
     return (line);
+}
+
+interface MagnitudeManipulatorProps {
+}
+
+function magnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
+    return (<></>);
 }

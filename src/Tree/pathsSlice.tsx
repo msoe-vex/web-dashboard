@@ -145,7 +145,7 @@ function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId,
             path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(itemId));
             break;
         case ItemType.WAYPOINT:
-            path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(itemId));
+            path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(itemId));
             break;
         case ItemType.ROBOT:
             path = simpleSelectors.selectAll(pathState).find(path => path.robotId === itemId);

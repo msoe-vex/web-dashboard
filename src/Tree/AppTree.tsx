@@ -35,7 +35,6 @@ import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from './TreeC
 import { DUMMY_ID } from '../Store/dummyId';
 import { NameInput } from '../Navbar/NameInput';
 import { treeItemRenamed } from './treeActions';
-import { stopMousePropagation } from './stopMousePropagation';
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -155,7 +154,7 @@ export function AppTree(): JSX.Element {
                 popoverProps={{ popoverClassName: "App-tree-context-menu-popover" }}
             >
                 {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
-                < div onClick={stopMousePropagation()} >
+                < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }} >
                     <Tree
                         className="App-tree"
                         contents={treeNodeInfo}

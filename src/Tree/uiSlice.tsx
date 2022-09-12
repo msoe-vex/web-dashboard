@@ -68,12 +68,14 @@ export const uiSlice = createSlice({
     initialState: defaultUIState,
     reducers: {
         selectedActiveRoutine(uiState, action: PayloadAction<EntityId>) {
-            // Completely reset UI state to avoid editing hidden routine
-            const newUIState = defaultUIState;
-            // preserve hiddenWaypointIds
-            newUIState.hiddenWaypointIds = uiState.hiddenWaypointIds;
-            newUIState.activeRoutineId = action.payload;
-            return newUIState; // return new state when completely replacing uiState
+            // Reset UI state to avoid editing hidden routine
+            uiState.hoveredWaypointIds = [];
+            uiState.selectedWaypointIds = [];
+            uiState.hiddenWaypointIds = [];
+            uiState.hoveredSplineIds = [];
+            uiState.selectedSplineIds = [];
+
+            uiState.activeRoutineId = action.payload;
         },
         itemBatchSelectedInternal(uiState, action: PayloadAction<{
             treeWaypointIds: EntityId[],

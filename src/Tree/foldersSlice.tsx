@@ -45,7 +45,7 @@ export const foldersSlice = createSlice({
         changedFolder: foldersAdapter.updateOne,
         renamedFolder(folderState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             let folder = simpleSelectors.selectById(folderState, action.payload.id);
-            if (folder !== undefined) {
+            if (folder) {
                 foldersAdapter.updateOne(folderState, { id: action.payload.id, changes: { name: action.payload.newName } });
             }
         }
