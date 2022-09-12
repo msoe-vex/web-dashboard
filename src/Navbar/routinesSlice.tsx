@@ -16,7 +16,7 @@ export interface Routine {
     pathIds: EntityId[];
 }
 
-export const routinesAdapter = createEntityAdapter<Routine>({
+const routinesAdapter = createEntityAdapter<Routine>({
     sortComparer: (a, b) => (a.name.localeCompare(b.name))
 });
 
@@ -72,7 +72,7 @@ export const routinesSlice = createSlice({
  * This is a redux thunk which wraps deletedRoutineInternal.
  * It also adds additional logic to delete paths as well.
  */
-export const deletedRoutine = (routineId: EntityId): AppThunk => {
+export function deletedRoutine(routineId: EntityId): AppThunk {
     return (dispatch, getState) => {
         let arg = {
             routineId,
@@ -104,7 +104,7 @@ export const deletedRoutine = (routineId: EntityId): AppThunk => {
     };
 }
 
-export const addedRoutine = (): AppThunk => {
+export function addedRoutine(): AppThunk {
     return (dispatch) => {
         dispatch(addedRoutineInternal({
             routineId: nanoid(),
@@ -114,9 +114,9 @@ export const addedRoutine = (): AppThunk => {
             waypointIds: [nanoid(), nanoid()]
         }));
     };
-};
+}
 
-export const duplicatedRoutine = (id: EntityId): AppThunk => {
+export function duplicatedRoutine(id: EntityId): AppThunk {
     return (dispatch, getState) => {
         // create copies of each path's waypoints and folders
         // assign the new waypoint ids and folder ids to copies of each path
@@ -172,7 +172,7 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
 
         dispatch(duplicatedRoutineInternal(arg));
     };
-};
+}
 
 export const {
     addedRoutineInternal,
@@ -188,4 +188,4 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = routinesAdapter.getSelectors<RootState>((state) => state.routines);
+} = routinesAdapter.getSelectors<RootState>(state => state.routines);

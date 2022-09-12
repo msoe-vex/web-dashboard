@@ -123,8 +123,6 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldH
 // }
 
 export function RobotElements(): JSX.Element {
-    const dispatch = useAppDispatch();
-
     const paths = useAppSelector((state: RootState) => {
         const activeRoutine = selectActiveRoutine(state);
         if (!activeRoutine) { throw new Error("Field expected valid active routine."); }
@@ -137,10 +135,11 @@ export function RobotElements(): JSX.Element {
     });
 
     return (<>
-        {paths.flatMap(path => path.waypointIds.map(waypointId => <RobotElement
-            key={waypointId}
-            waypointId={waypointId}
-        />))}
+        {paths.flatMap(path => path.waypointIds.map(waypointId =>
+            <RobotElement
+                key={waypointId}
+                waypointId={waypointId}
+            />))}
         {paths.flatMap(path => {
             var elements = [];
             for (let i = 1; i < path.waypointIds.length; ++i) {
