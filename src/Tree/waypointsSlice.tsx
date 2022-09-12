@@ -10,7 +10,7 @@ import { getNextName } from "./Utils";
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
  *      Should be undefined for tank drives, as the angle is computed automatically/the same as the waypoint angle.
  */
-export interface WaypointBase {
+interface WaypointBase {
     id: EntityId;
     name: string;
     robotAngle?: number;
@@ -57,7 +57,7 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
-export const waypointsAdapter = createEntityAdapter<Waypoint>();
+const waypointsAdapter = createEntityAdapter<Waypoint>();
 const simpleSelectors = waypointsAdapter.getSelectors();
 
 export const waypointsSlice = createSlice({
@@ -152,13 +152,13 @@ export const waypointsSlice = createSlice({
  * Could currently be a prepare function.
  * In the future, could simply dispatch addedWaypointAfter.
  */
-export const duplicatedWaypoint = (id: EntityId): AppThunk => {
+export function duplicatedWaypoint(id: EntityId): AppThunk {
     return (dispatch) =>
         dispatch(waypointsSlice.actions.duplicatedWaypointInternal({
             waypointId: id,
             newWaypointId: nanoid()
         }));
-};
+}
 
 export const {
     duplicatedWaypointInternal,

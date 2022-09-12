@@ -85,21 +85,21 @@ export function addedFolder(waypointIds: EntityId[]): AppThunk {
             waypointIds: orderedIds
         }));
     };
-};
+}
 
 export function deletedFolder(folderId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const folder = selectFolderById(getState(), folderId);
         dispatch(deletedFolderInternal({ id: folderId, waypointIds: folder?.waypointIds ?? [] }))
     };
-};
+}
 
 // Only difference between unpack and deleted is unpack leaves waypoints
 export function unpackedFolder(folderId: EntityId): AppThunk {
     return (dispatch) => {
         dispatch(deletedFolderInternal({ id: folderId, waypointIds: [] }));
     }
-};
+}
 
 export const {
     addedFolderInternal,
