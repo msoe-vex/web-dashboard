@@ -40,6 +40,12 @@ export enum ItemType {
     FOLDER = 4
 }
 
+/**
+ * Any ItemType which has an explicit entry in the tree.
+ */
+export type TreeItemType = ItemType.PATH | ItemType.FOLDER | ItemType.WAYPOINT;
+export type SelectableItemType = TreeItemType | ItemType.SPLINE;
+
 const defaultUIState: UI = {
     activeRoutineId: DUMMY_ID,
     hoveredWaypointIds: [],
@@ -126,7 +132,6 @@ export const uiSlice = createSlice({
                 uiState.selectedWaypointIds = uiState.selectedWaypointIds.filter(selectedId => !containedWaypointIds.includes(selectedId));
             } else {
                 uiState.selectedSplineIds = []; // remove spline id selection
-
                 // reverse so shift click is based on first element
                 const reversed: EntityId[] = [];
                 containedWaypointIds.forEach(containedId => reversed.unshift(containedId));
@@ -202,46 +207,49 @@ export const uiSlice = createSlice({
     }
 });
 
-export const allItemsHidden = (): AppThunk => {
+export function allItemsHidden(): AppThunk {
     return (dispatch, getState) =>
         dispatch(uiSlice.actions.allItemsHiddenInternal(
             selectAllTreeWaypointIds(getState())
         ));
-};
+}
 
-export const itemSelected = (
+export function itemSelected(
     selectedItemId: EntityId,
-    itemType: ItemType,
+    itemType: SelectableItemType,
     shiftKeyHeld: boolean
-): AppThunk => {
+): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
         const containedWaypointIds = selectContainedWaypointIds(state, selectedItemId, itemType);
         if (shiftKeyHeld) {
             dispatch(uiSlice.actions.itemBatchSelectedInternal({
-                treeWaypointIds: selectAllTreeWaypointIds(state),
-                containedWaypointIds
+                containedWaypointIds,
+                treeWaypointIds: selectAllTreeWaypointIds(state)
             }));
         } else {
             dispatch(uiSlice.actions.itemSelectedInternal(containedWaypointIds));
         }
     };
-};
+}
 
-export const itemVisibilityToggled = (itemId: EntityId, itemType: ItemType): AppThunk => {
-    return (dispatch, getState) =>
+export function itemVisibilityToggled(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemVisibilityToggledInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
-};
+    };
+}
 
-export const itemMouseEnter = (itemId: EntityId, itemType: ItemType): AppThunk => {
-    return (dispatch, getState) =>
+export function itemMouseEnter(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemMouseEnterInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
-};
+    };
+}
 
-export const itemMouseLeave = (itemId: EntityId, itemType: ItemType): AppThunk => {
-    return (dispatch, getState) =>
+export function itemMouseLeave(itemId: EntityId, itemType: SelectableItemType): AppThunk {
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
-};
+    };
+}
 
 export const {
     selectedActiveRoutine,
@@ -257,31 +265,36 @@ export const {
 } = uiSlice.actions;
 
 /**
- * Returns an array containing the waypointIds contained by a treeItem.
+ * Returns an array containing the waypointIds contained by an item specified by id.
  */
-export const selectContainedWaypointIds = (state: RootState, id: EntityId, itemType: ItemType): EntityId[] => {
-    switch (itemType) {
-        case ItemType.FOLDER:
-            return selectFolderWaypointIds(state, id) ?? [];
-        case ItemType.PATH:
-            return selectPathById(state, id)?.waypointIds ?? [];
-        case ItemType.WAYPOINT:
-            return [id];
-        default:
-            throw new Error("Cannot select from specified item type.");
-    };
-};
+export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: SelectableItemType): EntityId[] {
+    if (itemType === ItemType.SPLINE) {
+        if (!Array.isArray(id)) { throw new Error("Expected splineId to be an array."); }
+        return id;
+    }
+    else {
+        if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
+        switch (itemType) {
+            case ItemType.FOLDER:
+                return selectFolderWaypointIds(state, id) ?? [];
+            case ItemType.PATH:
+                return selectPathById(state, id)?.waypointIds ?? [];
+            case ItemType.WAYPOINT:
+                return [id];
+            default:
+                throw new Error("Cannot select from specified item type.");
+        };
+    }
+}
 
-// export const selectUIState = (state: RootState) => state.ui;
+export function selectActiveRoutineId(state: RootState) { return state.ui.activeRoutineId; }
+export function selectActiveRoutine(state: RootState) { return selectRoutineById(state, selectActiveRoutineId(state)); }
 
-export const selectActiveRoutineId = (state: RootState) => state.ui.activeRoutineId;
-export const selectActiveRoutine = (state: RootState) => selectRoutineById(state, selectActiveRoutineId(state));
+export function selectHoveredWaypointIds(state: RootState) { return state.ui.hoveredWaypointIds; }
+export function selectSelectedWaypointIds(state: RootState) { return state.ui.selectedWaypointIds; }
+export function selectHiddenWaypointIds(state: RootState) { return state.ui.hiddenWaypointIds; }
 
-export const selectHoveredWaypointIds = (state: RootState) => state.ui.hoveredWaypointIds;
-export const selectSelectedWaypointIds = (state: RootState) => state.ui.selectedWaypointIds;
-export const selectHiddenWaypointIds = (state: RootState) => state.ui.hiddenWaypointIds;
+export function selectCollapsedIds(state: RootState) { return state.ui.collapsedIds; }
 
-export const selectCollapsedIds = (state: RootState) => state.ui.collapsedIds;
-
-export const selectHoveredSplineIds = (state: RootState) => state.ui.hoveredSplineIds;
-export const selectSelectedSplineIds = (state: RootState) => state.ui.selectedSplineIds;
+export function selectHoveredSplineIds(state: RootState) { return state.ui.hoveredSplineIds; }
+export function selectSelectedSplineIds(state: RootState) { return state.ui.selectedSplineIds; }
