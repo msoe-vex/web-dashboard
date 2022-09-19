@@ -1,4 +1,4 @@
-import { createSlice, createEntityAdapter, nanoid, EntityId } from "@reduxjs/toolkit";
+import { createSlice, createEntityAdapter, nanoid, EntityId, PayloadAction } from "@reduxjs/toolkit";
 import { Units } from "../Field/mathUtils";
 
 import { RootState } from "../Store/store";
@@ -18,14 +18,17 @@ export const robotsSlice = createSlice({
     name: "robots",
     initialState: robotsAdapter.getInitialState(),
     reducers: {
-        // we can use prepare since nothing else needs to respond to addedRobot
-        addedRobot(robotState) {
-            robotsAdapter.addOne(robotState, {
-                id: nanoid(),
-                name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
-                width: 18 * Units.INCH,
-                length: 18 * Units.INCH
-            });
+        addedRobot: {
+            // we can use prepare since nothing else needs to respond to addedRobot
+            reducer: (robotState, action: PayloadAction<EntityId>) => {
+                robotsAdapter.addOne(robotState, {
+                    id: action.payload,
+                    name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
+                    width: 18 * Units.INCH,
+                    length: 18 * Units.INCH
+                });
+            },
+            prepare: () => { return { payload: nanoid() }; }
         }
     },
     // extraReducers: (builder) => { }
@@ -41,4 +44,4 @@ export const {
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
     selectEntities: selectRobotDictionary,
-} = robotsAdapter.getSelectors<RootState>((state) => state.robots);
+} = robotsAdapter.getSelectors<RootState>((state) => state.present.robots);

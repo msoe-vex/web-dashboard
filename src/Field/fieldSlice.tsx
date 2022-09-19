@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../Store/store";
-
 import { Units } from "./mathUtils";
 
 export interface Field {
@@ -12,12 +11,8 @@ export const fieldSlice = createSlice({
     name: "field",
     initialState: { width: 12 * Units.FEET + 2 * Units.INCH, height: 12 * Units.FEET + 2 * Units.INCH },
     reducers: {
-        fieldWidthChanged: (fieldState, action: PayloadAction<number>) => {
-            fieldState.width = action.payload;
-        },
-        fieldHeightChanged: (fieldState, action: PayloadAction<number>) => {
-            fieldState.height = action.payload;
-        }
+        fieldWidthChanged: (fieldState, action: PayloadAction<number>) => { fieldState.width = action.payload; },
+        fieldHeightChanged: (fieldState, action: PayloadAction<number>) => { fieldState.height = action.payload; }
     }
 });
 
@@ -26,5 +21,5 @@ export const {
     fieldHeightChanged
 } = fieldSlice.actions;
 
-export const selectFieldWidth = (state: RootState) => state.field.width;
-export const selectFieldHeight = (state: RootState) => state.field.height;
+export const selectFieldWidth = (state: RootState) => state.present.field.width;
+export const selectFieldHeight = (state: RootState) => state.present.field.height;

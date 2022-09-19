@@ -78,7 +78,7 @@ export function selectAllTreeFolderIds(state: RootState): EntityId[] {
  */
 export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => state.ui.hiddenWaypointIds.includes(waypointId));
+    return treeWaypointIds.every(waypointId => state.present.ui.hiddenWaypointIds.includes(waypointId));
 }
 
 /**
@@ -86,7 +86,7 @@ export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
  */
 export function checkIfAllTreeItemsAreShown(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => !state.ui.hiddenWaypointIds.includes(waypointId));
+    return treeWaypointIds.every(waypointId => !state.present.ui.hiddenWaypointIds.includes(waypointId));
 }
 
 /**

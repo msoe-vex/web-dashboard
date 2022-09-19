@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import {
     Tree,
@@ -7,13 +7,13 @@ import {
     Button,
     Card,
     H5,
-} from '@blueprintjs/core';
-import { ContextMenu2 } from '@blueprintjs/popover2';
-import { EntityId } from '@reduxjs/toolkit';
+} from "@blueprintjs/core";
+import { ContextMenu2 } from "@blueprintjs/popover2";
+import { EntityId } from "@reduxjs/toolkit";
 
-import { useAppDispatch, useAppSelector } from '../Store/hooks';
-import { Path, selectAllPaths } from './pathsSlice';
-import { selectWaypointDictionary, Waypoint } from './waypointsSlice';
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { Path, selectAllPaths } from "./pathsSlice";
+import { selectWaypointDictionary, Waypoint } from "./waypointsSlice";
 import {
     selectActiveRoutineId,
     selectCollapsedIds,
@@ -28,13 +28,13 @@ import {
     treeItemsExpanded,
     allItemsDeselected,
     TreeItemType,
-} from './uiSlice';
-import { selectRoutineById } from '../Navbar/routinesSlice';
-import { Folder, selectFolderDictionary } from './foldersSlice';
-import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from './TreeContextMenu';
-import { DUMMY_ID } from '../Store/dummyId';
-import { NameInput } from '../Navbar/NameInput';
-import { treeItemRenamed } from './treeActions';
+} from "./uiSlice";
+import { selectRoutineById } from "../Navbar/routinesSlice";
+import { Folder, selectFolderDictionary } from "./foldersSlice";
+import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
+import { DUMMY_ID } from "../Store/dummyId";
+import { NameInput } from "../Navbar/NameInput";
+import { treeItemRenamed } from "./treeActions";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -130,7 +130,7 @@ export function AppTree(): JSX.Element {
                     throw new Error("Specified tree item does not have a tree context menu.");
             }
             setContextMenu(
-                <div style={{ position: 'absolute', left: e.clientX, top: e.clientY }} >
+                <div style={{ position: "absolute", left: e.clientX, top: e.clientY }} >
                     {contextMenu}
                 </div >);
         }, []);

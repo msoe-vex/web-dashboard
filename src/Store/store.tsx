@@ -1,38 +1,42 @@
-import { configureStore, ThunkAction, AnyAction } from "@reduxjs/toolkit";
+import { configureStore, ThunkAction, AnyAction, combineReducers } from "@reduxjs/toolkit";
 
 import { fieldSlice } from "../Field/fieldSlice";
-// import { splinesSlice } from "../Field/splinesSlice";
-import { routinesSlice } from "../Navbar/routinesSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
-import { pathsSlice } from "../Tree/pathsSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
-import { uiSlice } from "../Tree/uiSlice";
-import { waypointsSlice } from "../Tree/waypointsSlice"
+import { allItemsDeselected, splineMouseEnter, splineMouseLeave, uiSlice } from "../Tree/uiSlice";
+import undoable, { excludeAction, groupByActionTypes } from "redux-undo";
+import { routinesSlice } from "../Navbar/routinesSlice";
+import { pathsSlice } from "../Tree/pathsSlice";
+import { waypointMagnitudeMoved, waypointMoved, waypointsSlice } from "../Tree/waypointsSlice";
 
-// const preloadedId = nanoid();
-// const preloadedState = {
-//     routines: {
-//         ids: [preloadedId],
-//         entities: {
-//             [preloadedId]: { id: preloadedId, name: "Routine 1", pathIds: [] },
-//         },
-//         activeRoutineId: preloadedId
-//     },
-// }
-
-export const store = configureStore({
-    // preloadedState: preloadedState,
-    reducer: {
-        field: fieldSlice.reducer,
-        routines: routinesSlice.reducer,
-        robots: robotsSlice.reducer,
-        paths: pathsSlice.reducer,
-        waypoints: waypointsSlice.reducer,
-        folders: foldersSlice.reducer,
-        // splines: splinesSlice.reducer,
-        ui: uiSlice.reducer
-    }
+const rootReducer = combineReducers({
+    field: fieldSlice.reducer,
+    routines: routinesSlice.reducer,
+    robots: robotsSlice.reducer,
+    paths: pathsSlice.reducer,
+    waypoints: waypointsSlice.reducer,
+    folders: foldersSlice.reducer,
+    ui: uiSlice.reducer
 });
+
+const undoableReducer = undoable(rootReducer, {
+    limit: 100,
+    // ignoreInitialState: true
+    filter: excludeAction([
+        uiSlice.actions.itemMouseEnterInternal.type,
+        uiSlice.actions.itemMouseLeaveInternal.type,
+        uiSlice.actions.itemBatchSelectedInternal.type,
+        uiSlice.actions.itemSelectedInternal.type,
+        splineMouseEnter.type,
+        splineMouseLeave.type,
+        allItemsDeselected.type,
+    ]),
+    groupBy: groupByActionTypes([waypointMagnitudeMoved.type, waypointMoved.type]),
+    // neverSkipReducer: true,
+    syncFilter: true
+});
+
+export const store = configureStore({ reducer: undoableReducer });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

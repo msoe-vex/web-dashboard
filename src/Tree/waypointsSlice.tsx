@@ -1,7 +1,8 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
+import undoable from "redux-undo";
+
 import { Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
-
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
 import { getNextName } from "./Utils";
@@ -186,10 +187,12 @@ export const {
     waypointMagnitudeMoved
 } = waypointsSlice.actions;
 
+export const waypointsSliceReducer = undoable(waypointsSlice.reducer);
+
 // Runtime selectors
 export const {
     selectById: selectWaypointById,
     selectIds: selectWaypointIds,
     selectAll: selectAllWaypoints,
     selectEntities: selectWaypointDictionary,
-} = waypointsAdapter.getSelectors<RootState>((state) => state.waypoints);
+} = waypointsAdapter.getSelectors<RootState>((state) => state.present.waypoints);

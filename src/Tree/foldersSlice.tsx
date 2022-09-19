@@ -114,7 +114,7 @@ export const {
     selectIds: selectFolderIds,
     selectAll: selectAllFolders,
     selectEntities: selectFolderDictionary,
-} = foldersAdapter.getSelectors<RootState>((state) => state.folders);
+} = foldersAdapter.getSelectors<RootState>((state) => state.present.folders);
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
     return selectFolderById(state, folderId)?.waypointIds ?? [];

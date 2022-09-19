@@ -1,4 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary } from "@reduxjs/toolkit";
+import undoable from "redux-undo";
 import { DUMMY_ID } from "../Store/dummyId";
 
 // JavaScript handles circular imports like a champ
@@ -12,7 +13,6 @@ import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";
 export interface Routine {
     id: EntityId;
     name: string;
-    // Should be two pathIds only?
     pathIds: EntityId[];
 }
 
@@ -182,10 +182,12 @@ export const {
     renamedRoutine
 } = routinesSlice.actions;
 
+export const routinesSliceReducer = undoable(routinesSlice.reducer);
+
 // Runtime selectors
 export const {
     selectById: selectRoutineById,
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = routinesAdapter.getSelectors<RootState>(state => state.routines);
+} = routinesAdapter.getSelectors<RootState>(state => state.present.routines);

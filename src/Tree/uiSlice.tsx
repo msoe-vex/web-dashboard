@@ -247,7 +247,7 @@ export function itemMouseEnter(itemId: EntityId | EntityId[], itemType: Selectab
     };
 }
 
-export function itemMouseLeave(itemId: EntityId, itemType: SelectableItemType): AppThunk {
+export function itemMouseLeave(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
     return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
     };
@@ -289,14 +289,14 @@ export function selectContainedWaypointIds(state: RootState, id: EntityId | Enti
     }
 }
 
-export function selectActiveRoutineId(state: RootState) { return state.ui.activeRoutineId; }
+export function selectActiveRoutineId(state: RootState) { return state.present.ui.activeRoutineId; }
 export function selectActiveRoutine(state: RootState) { return selectRoutineById(state, selectActiveRoutineId(state)); }
 
-export function selectHoveredWaypointIds(state: RootState) { return state.ui.hoveredWaypointIds; }
-export function selectSelectedWaypointIds(state: RootState) { return state.ui.selectedWaypointIds; }
-export function selectHiddenWaypointIds(state: RootState) { return state.ui.hiddenWaypointIds; }
+export function selectHoveredWaypointIds(state: RootState) { return state.present.ui.hoveredWaypointIds; }
+export function selectSelectedWaypointIds(state: RootState) { return state.present.ui.selectedWaypointIds; }
+export function selectHiddenWaypointIds(state: RootState) { return state.present.ui.hiddenWaypointIds; }
 
-export function selectCollapsedIds(state: RootState) { return state.ui.collapsedIds; }
+export function selectCollapsedIds(state: RootState) { return state.present.ui.collapsedIds; }
 
-export function selectHoveredSplineIds(state: RootState) { return state.ui.hoveredSplineIds; }
-export function selectSelectedSplineIds(state: RootState) { return state.ui.selectedSplineIds; }
+export function selectHoveredSplineIds(state: RootState) { return state.present.ui.hoveredSplineIds; }
+export function selectSelectedSplineIds(state: RootState) { return state.present.ui.selectedSplineIds; }

@@ -1,4 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
+import undoable from "redux-undo";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { DUMMY_ID } from "../Store/dummyId";
 
@@ -16,6 +17,7 @@ export interface Path {
 
 const pathsAdapter = createEntityAdapter<Path>();
 const simpleSelectors = pathsAdapter.getSelectors();
+
 
 export const pathsSlice = createSlice({
     name: "paths",
@@ -120,13 +122,15 @@ export const {
     deletedPathInternal
 } = pathsSlice.actions;
 
+export const pathsSliceReducer = undoable(pathsSlice.reducer);
+
 // Runtime selectors
 export const {
     selectById: selectPathById,
     selectIds: selectPathIds,
     selectAll: selectAllPaths,
     selectEntities: selectPathDictionary,
-} = pathsAdapter.getSelectors<RootState>((state) => state.paths);
+} = pathsAdapter.getSelectors<RootState>((state) => state.present.paths);
 
 /**
  * Selects the path which owns a given waypoint or folder specified by id. 
@@ -135,7 +139,7 @@ export const {
  * @returns {Path}
  */
 export function selectOwnerPath(state: RootState, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT): Path {
-    return selectOwnerPathInternal(state.paths, itemId, itemType);
+    return selectOwnerPathInternal(state.present.paths, itemId, itemType);
 }
 
 function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId, itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.ROBOT) {
