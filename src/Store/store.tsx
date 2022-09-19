@@ -5,6 +5,7 @@ import { fieldSlice } from "../Field/fieldSlice";
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
+import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
 import { waypointsSlice } from "../Tree/waypointsSlice"
 
@@ -24,7 +25,7 @@ export const store = configureStore({
     reducer: {
         field: fieldSlice.reducer,
         routines: routinesSlice.reducer,
-        // robots: robotsSlice.reducer,
+        robots: robotsSlice.reducer,
         paths: pathsSlice.reducer,
         waypoints: waypointsSlice.reducer,
         folders: foldersSlice.reducer,
