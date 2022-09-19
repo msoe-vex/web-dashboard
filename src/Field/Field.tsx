@@ -3,10 +3,10 @@ import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
 import React from "react";
 
-import { Arrow, Circle, Layer, Line, Rect, Stage } from "react-konva";
+import { Circle, Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { RootState } from "../Store/store";
+import { AppDispatch, RootState } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
 import {
     selectActiveRoutine,
@@ -24,7 +24,7 @@ import {
     selectSelectedSplineIds,
     selectHoveredSplineIds
 } from "../Tree/uiSlice";
-import { isControlWaypoint, selectWaypointById, waypointMoved } from "../Tree/waypointsSlice";
+import { isControlWaypoint, MagnitudePostion, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 
@@ -236,16 +236,15 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
     if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
-    const prevControlX = previousWaypoint.x + Math.cos(previousWaypoint.angle * previousWaypoint.endMagnitude);
-    const prevControlY = previousWaypoint.y + Math.sin(previousWaypoint.angle * previousWaypoint.endMagnitude);
+    const prevControlX = previousWaypoint.x + Math.cos(previousWaypoint.angle) * previousWaypoint.startMagnitude;
+    const prevControlY = previousWaypoint.y + Math.sin(previousWaypoint.angle) * previousWaypoint.startMagnitude;
 
-    const currControlX = waypoint.x - Math.cos(waypoint.angle * waypoint.startMagnitude);
-    const currControlY = waypoint.y - Math.sin(waypoint.angle * waypoint.startMagnitude);
+    const currControlX = waypoint.x + Math.cos(waypoint.angle) * -waypoint.endMagnitude;
+    const currControlY = waypoint.y + Math.sin(waypoint.angle) * -waypoint.endMagnitude;
 
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        key={"spline" + waypoint.id}
         points={[previousWaypoint.x, previousWaypoint.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
@@ -260,31 +259,79 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
     />);
 
-    // if (isSelected && selectedSplineIds.length === 1) {
-    //     const handleManipDrag = (e: KonvaEventObject<MouseEvent>) => {
-    //         // dispatch(waypointMagnitudeMoved({
-    //         //     id: prev.id,
-    //         //     x: e.target.x(),
-    //         //     y: e.target.y()
-    //         // }));
-    //     };
+    const manipulators = isSelected ? (<>
+        <MagnitudeManipulator
+            startX={previousWaypoint.x}
+            startY={previousWaypoint.y}
+            x={prevControlX}
+            y={prevControlY}
+            handleManipDrag={getManipDragHandler(dispatch, previousWaypoint.id, MagnitudePostion.START)}
+        />
+        <MagnitudeManipulator
+            startX={waypoint.x}
+            startY={waypoint.y}
+            x={currControlX}
+            y={currControlY}
+            handleManipDrag={getManipDragHandler(dispatch, waypoint.id, MagnitudePostion.END)}
+        />
+    </>) : (null);
 
-    //     (<Circle
-    //         key={"pointManip" + waypoint.id}
-    //         radius={2 * Units.INCH}
-    //         x={prevControlX}
-    //         y={prevControlY}
-    //         draggable={true}
-    //         onDragMove={handleManipDrag}
-    //         onDragEnd={handleManipDrag}
-    //     />);
-    // }
-    return (line);
+    return (<>
+        {line}
+        {manipulators}
+    </>);
+}
+
+function getManipDragHandler(dispatch: AppDispatch, id: EntityId, magnitudePostion: MagnitudePostion) {
+    return (e: KonvaEventObject<MouseEvent>) => {
+        dispatch(waypointMagnitudeMoved({
+            id,
+            magnitudePostion,
+            x: e.target.x(),
+            y: e.target.y(),
+        }));
+    };
 }
 
 interface MagnitudeManipulatorProps {
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    handleManipDrag: (e: KonvaEventObject<MouseEvent>) => void;
 }
 
-function magnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
-    return (<></>);
+function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
+    const [isHovered, setHovered] = React.useState<boolean>(false);
+    const [isSelected, setSelected] = React.useState<boolean>(false);
+
+    const line = (<Line
+        points={[props.startX, props.startY, props.x, props.y]}
+        strokeWidth={0.25 * Units.INCH}
+        stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
+    />);
+
+    return (<>
+        <Circle
+            radius={2 * Units.INCH}
+            x={props.x}
+            y={props.y}
+            hitStrokeWidth={3 * Units.INCH}
+            fill={isSelected ? Colors.ORANGE1 : Colors.BLACK}
+            shadowEnabled={isHovered}
+            shadowColor={Colors.ORANGE3}
+            shadowBlur={3 * Units.INCH}
+            shadowOpacity={1}
+            draggable={true}
+            onDragStart={() => { setSelected(true); }}
+            onDragMove={props.handleManipDrag}
+            onDragEnd={(e: KonvaEventObject<MouseEvent>) => {
+                setSelected(false);
+                props.handleManipDrag(e);
+            }}
+            onMouseEnter={() => { setHovered(true); }}
+            onMouseLeave={() => { setHovered(false); }}
+        />
+        {line}
+    </>);
 }

@@ -22,15 +22,17 @@ interface WaypointBase {
  * @param {number} x - The x position of the waypoint in meters.
  * @param {number} y - The y position of the waypoint in meters.
  * @param {number} angle - The angle of the path through the waypoint. Always relative to the world, not the robot.
- * @param {number} startMagnitude - The start magnitude of the path (may not be used).
- * @param {number} endMagnitude - The end magnitude of the path (may not be used).
+ * @param {number} endMagnitude - The end magnitude of the path, representing the magnitude of the spline coming into the waypoint. 
+ * @param {number} startMagnitude - The start magnitude of the path, representing the magnitude of the spline leaving the waypoint.
  */
 export interface ControlWaypoint extends WaypointBase {
     x: number;
     y: number;
     angle: number;
-    startMagnitude: number;
     endMagnitude: number;
+    // flipEnd: boolean;
+    startMagnitude: number;
+    // flipStart: boolean;
 }
 
 export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
@@ -38,13 +40,20 @@ export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoi
     return controlWaypoint.x !== undefined &&
         controlWaypoint.y !== undefined &&
         controlWaypoint.angle !== undefined &&
-        controlWaypoint.startMagnitude !== undefined &&
-        controlWaypoint.endMagnitude !== undefined;
+        controlWaypoint.endMagnitude !== undefined &&
+        // controlWaypoint.flipEnd !== undefined &&
+        controlWaypoint.startMagnitude !== undefined;
+    // controlWaypoint.flipStart !== undefined;
+}
+
+export enum MagnitudePostion {
+    START,
+    END
 }
 
 /**
  * @param {number} parameter - The position of the waypoint relative to the spline defined
- *      by the previous and next control waypoints in the path. Is in the range [0, 1].
+ *      by the previous and next control waypoints in the path. Is in the range (0, 1).
  */
 export interface FollowerWaypoint extends WaypointBase {
     parameter: number;
@@ -56,6 +65,7 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 }
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
+
 
 const waypointsAdapter = createEntityAdapter<Waypoint>();
 const simpleSelectors = waypointsAdapter.getSelectors();
@@ -89,15 +99,23 @@ export const waypointsSlice = createSlice({
         },
         deletedWaypoint: waypointsAdapter.removeOne,
         changedWaypoint: waypointsAdapter.updateOne,
-        waypointMoved: (waypointState, action: PayloadAction<{
-            id: EntityId,
-            x: number,
-            y: number
-        }>) => waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        // waypointXChanged: (waypointState, action: PayloadAction<{ id: EntityId, x: number }>) =>
-        //     waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
-        // waypointYChanged: (waypointState, action: PayloadAction<{ id: EntityId, y: number }>) =>
-        //     waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload }),
+        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number }>) => {
+            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload });
+        },
+        waypointMagnitudeMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number, magnitudePostion: MagnitudePostion }>) => {
+            const { id, x, y, magnitudePostion } = action.payload;
+            const waypoint = simpleSelectors.selectById(waypointState, id);
+            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+
+            const newAngle = Math.atan2(y - waypoint.y, x - waypoint.x);
+            const newMagnitude = Math.sqrt((x - waypoint.x) * (x - waypoint.x) + (y - waypoint.y) * (y - waypoint.y));
+            const changes = (magnitudePostion === MagnitudePostion.START) ?
+                // magnitude out
+                { angle: newAngle, startMagnitude: newMagnitude } :
+                // magnitude in
+                { angle: newAngle + 180 * Units.DEGREE, endMagnitude: newMagnitude };
+            waypointsAdapter.updateOne(waypointState, { id, changes });
+        },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             if (waypoint) {
@@ -107,9 +125,7 @@ export const waypointsSlice = createSlice({
                 if (isControlWaypoint(copy)) {
                     copy.x += 1 * Units.FEET;
                     copy.y += 1 * Units.FEET;
-                } else {
-                    copy.parameter += 0.1;
-                }
+                } else { copy.parameter += 0.1; }
                 waypointsAdapter.addOne(waypointState, copy);
             }
         },
@@ -167,8 +183,7 @@ export const {
     changedWaypoint,
     renamedWaypoint,
     waypointMoved,
-    // waypointXChanged,
-    // waypointYChanged
+    waypointMagnitudeMoved
 } = waypointsSlice.actions;
 
 // Runtime selectors
