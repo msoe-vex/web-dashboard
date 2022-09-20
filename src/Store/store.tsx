@@ -3,13 +3,22 @@ import { configureStore, ThunkAction, AnyAction, combineReducers } from "@reduxj
 import { fieldSlice } from "../Field/fieldSlice";
 import { foldersSlice, renamedFolder } from "../Tree/foldersSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
-import { allItemsDeselected, splineMouseEnter, splineMouseLeave, splineSelected, treeItemsCollapsed, treeItemsExpanded, uiSlice } from "../Tree/uiSlice";
+import { uiSlice } from "../Tree/uiSlice";
 import undoable, { excludeAction, GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
 import { renamedWaypoint, waypointMagnitudeMoved, waypointMoved, waypointsSlice } from "../Tree/waypointsSlice";
+import {
+    allItemsDeselected,
+    splineMouseEnter,
+    splineMouseLeave,
+    splineSelected,
+    tempUiSlice,
+    treeItemsCollapsed,
+    treeItemsExpanded
+} from "../Tree/tempUiSlice";
 
-const rootReducer = combineReducers({
+const stateReducer = combineReducers({
     field: fieldSlice.reducer,
     routines: routinesSlice.reducer,
     robots: robotsSlice.reducer,
@@ -62,13 +71,13 @@ const groupActions: GroupByFunction = (action) => {
     return true;
 }
 
-const undoableReducer = undoable(rootReducer, {
+const undoableReducer = undoable(stateReducer, {
     limit: 200,
     filter: excludeAction([
-        uiSlice.actions.itemMouseEnterInternal.type,
-        uiSlice.actions.itemMouseLeaveInternal.type,
-        uiSlice.actions.itemBatchSelectedInternal.type,
-        uiSlice.actions.itemSelectedInternal.type,
+        tempUiSlice.actions.itemMouseEnterInternal.type,
+        tempUiSlice.actions.itemMouseLeaveInternal.type,
+        tempUiSlice.actions.itemBatchSelectedInternal.type,
+        tempUiSlice.actions.itemSelectedInternal.type,
         splineMouseEnter.type,
         splineMouseLeave.type,
         splineSelected.type,
@@ -81,7 +90,12 @@ const undoableReducer = undoable(rootReducer, {
     // neverSkipReducer: true
 });
 
-export const store = configureStore({ reducer: undoableReducer });
+export const store = configureStore({
+    reducer: combineReducers({
+        history: undoableReducer,
+        tempUi: tempUiSlice.reducer
+    })
+});
 
 // manual declaration of RootState, to prevent issues with ciruclar references
 // export type RootState = StateWithHistory<CombinedState<{

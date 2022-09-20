@@ -190,4 +190,4 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = routinesAdapter.getSelectors<RootState>(state => state.present.routines);
+} = routinesAdapter.getSelectors<RootState>(state => state.history.present.routines);

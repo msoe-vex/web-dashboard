@@ -16,18 +16,8 @@ import { Path, selectAllPaths } from "./pathsSlice";
 import { selectWaypointDictionary, Waypoint } from "./waypointsSlice";
 import {
     selectActiveRoutineId,
-    selectCollapsedIds,
     selectHiddenWaypointIds,
-    selectSelectedWaypointIds,
-    itemSelected,
-    ItemType,
     itemVisibilityToggled,
-    itemMouseEnter,
-    itemMouseLeave,
-    treeItemsCollapsed,
-    treeItemsExpanded,
-    allItemsDeselected,
-    TreeItemType,
 } from "./uiSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
@@ -35,6 +25,7 @@ import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from "./TreeC
 import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
+import { allItemsDeselected, itemMouseEnter, itemMouseLeave, itemSelected, ItemType, selectCollapsedFolderIds, selectSelectedWaypointIds, treeItemsCollapsed, treeItemsExpanded, TreeItemType } from "./tempUiSlice";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -58,7 +49,7 @@ export function AppTree(): JSX.Element {
     const [renamingId, setRenamingId] = React.useState<EntityId>(DUMMY_ID);
 
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
-    const collapsedIds = useAppSelector(selectCollapsedIds);
+    const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     const folderDictionary = useAppSelector(selectFolderDictionary);
     const waypointDictionary = useAppSelector(selectWaypointDictionary);
 
@@ -74,7 +65,7 @@ export function AppTree(): JSX.Element {
             if (!folder) { throw new Error("Expected valid folder in path."); }
             return folder;
         });
-        return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedIds);
+        return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedFolderIds);
     });
 
     const handleNodeClick = React.useCallback(
@@ -178,7 +169,7 @@ function getPathNode(
     renamingId: EntityId,
     setRenamingId: (newId: EntityId) => void,
     selectedWaypointIds: EntityId[],
-    collapsedIds: EntityId[],
+    collapsedFolderIds: EntityId[],
 ): TreeNodeInfo<TreeItemType> {
     // Waypoint nodes
     const waypointNodes: TreeNodeInfo<TreeItemType>[] = orderedWaypoints.map(waypoint => {
@@ -217,7 +208,7 @@ function getPathNode(
         const folderNode = {
             id: folder.id,
             hasCaret: true,
-            isExpanded: !collapsedIds.includes(folder.id),
+            isExpanded: !collapsedFolderIds.includes(folder.id),
             isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
             label: folderLabel,
             secondaryLabel: folderEyeButton,
@@ -236,7 +227,7 @@ function getPathNode(
     return {
         id: path.id,
         hasCaret: true,
-        isExpanded: !collapsedIds.includes(path.id),
+        isExpanded: !collapsedFolderIds.includes(path.id),
         icon: "layout-linear" as IconName,
         label: "Path - Robot 1", // todo: change to robot name
         isSelected: path.waypointIds.length > 0 && path.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),

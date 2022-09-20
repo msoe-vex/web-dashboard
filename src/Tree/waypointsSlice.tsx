@@ -195,4 +195,4 @@ export const {
     selectIds: selectWaypointIds,
     selectAll: selectAllWaypoints,
     selectEntities: selectWaypointDictionary,
-} = waypointsAdapter.getSelectors<RootState>((state) => state.present.waypoints);
+} = waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints);

@@ -21,5 +21,5 @@ export const {
     fieldHeightChanged
 } = fieldSlice.actions;
 
-export const selectFieldWidth = (state: RootState) => state.present.field.width;
-export const selectFieldHeight = (state: RootState) => state.present.field.height;
+export const selectFieldWidth = (state: RootState) => state.history.present.field.width;
+export const selectFieldHeight = (state: RootState) => state.history.present.field.height;

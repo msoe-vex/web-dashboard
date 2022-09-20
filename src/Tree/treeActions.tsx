@@ -1,10 +1,11 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
-import { selectActiveRoutineId, selectSelectedWaypointIds, ItemType } from "./uiSlice";
+import { selectActiveRoutineId } from "./uiSlice";
 import { Path, selectOwnerPath, selectPathById } from "./pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { renamedWaypoint } from "./waypointsSlice";
+import { ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
 
 export function treeItemRenamed(id: EntityId, treeItemType: ItemType, newName: string): AppThunk {
     return (dispatch) => {
@@ -78,7 +79,7 @@ export function selectAllTreeFolderIds(state: RootState): EntityId[] {
  */
 export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => state.present.ui.hiddenWaypointIds.includes(waypointId));
+    return treeWaypointIds.every(waypointId => state.history.present.ui.hiddenWaypointIds.includes(waypointId));
 }
 
 /**
@@ -86,7 +87,7 @@ export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
  */
 export function checkIfAllTreeItemsAreShown(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => !state.present.ui.hiddenWaypointIds.includes(waypointId));
+    return treeWaypointIds.every(waypointId => !state.history.present.ui.hiddenWaypointIds.includes(waypointId));
 }
 
 /**

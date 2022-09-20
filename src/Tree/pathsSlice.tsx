@@ -5,7 +5,7 @@ import { DUMMY_ID } from "../Store/dummyId";
 
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "./foldersSlice";
-import { ItemType } from "./uiSlice";
+import { ItemType } from "./tempUiSlice";
 import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "./waypointsSlice";
 
 export interface Path {
@@ -130,7 +130,7 @@ export const {
     selectIds: selectPathIds,
     selectAll: selectAllPaths,
     selectEntities: selectPathDictionary,
-} = pathsAdapter.getSelectors<RootState>((state) => state.present.paths);
+} = pathsAdapter.getSelectors<RootState>((state) => state.history.present.paths);
 
 /**
  * Selects the path which owns a given waypoint or folder specified by id. 
@@ -139,10 +139,10 @@ export const {
  * @returns {Path}
  */
 export function selectOwnerPath(state: RootState, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT): Path {
-    return selectOwnerPathInternal(state.present.paths, itemId, itemType);
+    return selectOwnerPathInternal(state.history.present.paths, itemId, itemType);
 }
 
-function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId, itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.ROBOT) {
+function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT) {
     let path;
     switch (itemType) {
         case ItemType.FOLDER:

@@ -5,7 +5,7 @@ import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/rou
 import { deletedPathInternal, selectOwnerPath } from "./pathsSlice";
 import { getNextName } from "./Utils";
 import { duplicatedWaypointInternal } from "./waypointsSlice";
-import { ItemType } from "./uiSlice";
+import { ItemType } from "./tempUiSlice";
 
 export interface Folder {
     id: EntityId;
@@ -114,7 +114,7 @@ export const {
     selectIds: selectFolderIds,
     selectAll: selectAllFolders,
     selectEntities: selectFolderDictionary,
-} = foldersAdapter.getSelectors<RootState>((state) => state.present.folders);
+} = foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders);
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
     return selectFolderById(state, folderId)?.waypointIds ?? [];

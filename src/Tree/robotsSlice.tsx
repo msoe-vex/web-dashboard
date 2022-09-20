@@ -44,4 +44,4 @@ export const {
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
     selectEntities: selectRobotDictionary,
-} = robotsAdapter.getSelectors<RootState>((state) => state.present.robots);
+} = robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots);

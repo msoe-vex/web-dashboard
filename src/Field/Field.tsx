@@ -1,32 +1,19 @@
+import React from "react";
 import { Colors } from "@blueprintjs/core/lib/esm/common";
 import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
-import React from "react";
-
 import { Circle, Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
+
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
-import {
-    selectActiveRoutine,
-    selectHiddenWaypointIds,
-    selectSelectedWaypointIds,
-    selectHoveredWaypointIds,
-    itemSelected,
-    ItemType,
-    itemMouseEnter,
-    itemMouseLeave,
-    allItemsDeselected,
-    splineMouseEnter,
-    splineMouseLeave,
-    splineSelected,
-    selectSelectedSplineIds,
-    selectHoveredSplineIds
-} from "../Tree/uiSlice";
+import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, MagnitudePostion, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
+import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
+
 
 /**
  * We need a couple manipulators

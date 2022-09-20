@@ -13,7 +13,9 @@ import {
     selectAllTreeFolderIds,
     selectAllTreeContainerIds
 } from "./treeActions";
-import { allItemsShown, allItemsHidden, selectCollapsedIds, treeItemsCollapsed, treeItemsExpanded } from "./uiSlice";
+import { allItemsShown, allItemsHidden } from "./uiSlice";
+import { selectCollapsedFolderIds, treeItemsCollapsed, treeItemsExpanded } from "./tempUiSlice";
+
 
 interface DispatchProps {
     dispatch: AppDispatch;
@@ -105,9 +107,9 @@ export function CollapseAndExpandAllMenuItems(props: DispatchProps): JSX.Element
 // Expanding/collapsing paths is usually undesired behavior
 function CollapseAllMenuItem(props: DispatchProps): JSX.Element | null {
     const containerIds = useAppSelector(selectAllTreeContainerIds);
-    const collapsedIds = useAppSelector(selectCollapsedIds);
+    const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     // some container is expanded
-    return (containerIds.some(containerId => !collapsedIds.includes(containerId)) ?
+    return (containerIds.some(containerId => !collapsedFolderIds.includes(containerId)) ?
         <MenuItem2
             text="Collapse all"
             icon="collapse-all"
@@ -117,9 +119,9 @@ function CollapseAllMenuItem(props: DispatchProps): JSX.Element | null {
 
 function ExpandAllMenuItem(props: DispatchProps): JSX.Element | null {
     const containerIds = useAppSelector(selectAllTreeContainerIds);
-    const collapsedIds = useAppSelector(selectCollapsedIds);
+    const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     // some container is collapsed
-    return (containerIds.some(containerId => collapsedIds.includes(containerId)) ?
+    return (containerIds.some(containerId => collapsedFolderIds.includes(containerId)) ?
         <MenuItem2
             text="Expand all"
             icon="expand-all"
@@ -144,9 +146,9 @@ export function CollapseAndExpandFoldersMenuItems(props: DispatchProps): JSX.Ele
 
 function CollapseFoldersMenuItem(props: DispatchProps): JSX.Element | null {
     const folderIds = useAppSelector(selectAllTreeFolderIds);
-    const collapsedIds = useAppSelector(selectCollapsedIds);
+    const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     // some folder is expanded
-    return (folderIds.some(folderId => !collapsedIds.includes(folderId)) ?
+    return (folderIds.some(folderId => !collapsedFolderIds.includes(folderId)) ?
         <MenuItem2
             text="Collapse folders"
             icon="collapse-all"
@@ -156,9 +158,9 @@ function CollapseFoldersMenuItem(props: DispatchProps): JSX.Element | null {
 
 function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
     const folderIds = useAppSelector(selectAllTreeFolderIds);
-    const collapsedIds = useAppSelector(selectCollapsedIds);
+    const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     // some folder is collapsed
-    return (folderIds.some(folderId => collapsedIds.includes(folderId)) ?
+    return (folderIds.some(folderId => collapsedFolderIds.includes(folderId)) ?
         <MenuItem2
             text="Expand folders"
             icon="expand-all"
