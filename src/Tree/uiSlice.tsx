@@ -7,25 +7,25 @@ import { selectPathById } from "./pathsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 
 /**
- * @typedef {Object} UI
- * @property {EntityId} activeRoutineId - The id of the currently active routine.
- * @property {EntityId[]} hoveredWaypointIds - A list of waypoints which are hovered. 
+ * @typedef UI
+ * @property activeRoutineId - The id of the currently active routine.
+ * @property hoveredWaypointIds - A list of waypoints which are hovered. 
  *      Triggered by the MouseEnter and MouseLeave events. Hovering is an array to support highlighting folder and path contents.
- * @property {EntityId[]} selectedWaypointIds - A list of waypoints which are selected.
+ * @property selectedWaypointIds - A list of waypoints which are selected.
  *      Takes precedence over activeWaypoints.
- * @property {EntityId[]} hiddenWaypointIds - A list of waypoints which are currently hidden.
- * @property {EntityId[]} collapsedIds - A list of folderIds representing collapsed folders.
- * @property {EntityId[][]} hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
- * @property {EntityId[][]} selectedSplineIds - A list of waypointId pairs representing splines which are currently selected.
+ * @property hiddenWaypointIds - A list of waypoints which are currently hidden.
+ * @property collapsedIds - A list of folderIds representing collapsed folders.
+ * @property selectedSplineIds - A list of waypointId pairs representing splines which are currently selected.
+ * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
  */
 export interface UI {
     activeRoutineId: EntityId,
-    hoveredWaypointIds: EntityId[],
-    selectedWaypointIds: EntityId[],
     hiddenWaypointIds: EntityId[],
     collapsedIds: EntityId[],
-    hoveredSplineIds: EntityId[][],
-    selectedSplineIds: EntityId[][]
+    selectedWaypointIds: EntityId[],
+    hoveredWaypointIds: EntityId[],
+    selectedSplineIds: EntityId[][],
+    hoveredSplineIds: EntityId[][]
 }
 
 // Eventually, uiSlice will also store:
