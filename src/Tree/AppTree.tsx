@@ -1,13 +1,6 @@
 import React from "react";
 
-import {
-    Tree,
-    TreeNodeInfo,
-    IconName,
-    Button,
-    Card,
-    H5,
-} from "@blueprintjs/core";
+import { Tree, TreeNodeInfo, IconName, Button, Card, H5 } from "@blueprintjs/core";
 import { ContextMenu2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
@@ -25,7 +18,18 @@ import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from "./TreeC
 import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
-import { allItemsDeselected, itemMouseEnter, itemMouseLeave, itemSelected, ItemType, selectCollapsedFolderIds, selectSelectedWaypointIds, treeItemsCollapsed, treeItemsExpanded, TreeItemType } from "./tempUiSlice";
+import {
+    allItemsDeselected,
+    itemMouseEnter,
+    itemMouseLeave,
+    itemSelected,
+    ItemType,
+    selectCollapsedFolderIds,
+    selectSelectedWaypointIds,
+    treeItemsCollapsed,
+    treeItemsExpanded,
+    TreeItemType
+} from "./tempUiSlice";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -33,9 +37,7 @@ export function AppTree(): JSX.Element {
     // Could wrap activeRoutineId logic with card and simply pass pathIds
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
     const routine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
-    if (!routine) {
-        throw new Error("Expected valid active routine in tree.");
-    }
+    if (!routine) { throw new Error("Expected valid active routine in tree."); }
 
     const pathIds = routine.pathIds;
     const allPaths = useAppSelector(selectAllPaths);
