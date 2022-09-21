@@ -74,20 +74,19 @@ const groupActions: GroupByFunction = (action) => {
 const undoableReducer = undoable(stateReducer, {
     limit: 200,
     filter: excludeAction([
-        tempUiSlice.actions.itemMouseEnterInternal.type,
-        tempUiSlice.actions.itemMouseLeaveInternal.type,
-        tempUiSlice.actions.itemBatchSelectedInternal.type,
-        tempUiSlice.actions.itemSelectedInternal.type,
-        splineMouseEnter.type,
-        splineMouseLeave.type,
-        splineSelected.type,
-        allItemsDeselected.type,
-        // tree expand/collapse doesn't go in state
-        treeItemsCollapsed.type,
-        treeItemsExpanded.type
+        // tempUiSlice.actions.itemMouseEnterInternal.type,
+        // tempUiSlice.actions.itemMouseLeaveInternal.type,
+        // tempUiSlice.actions.itemBatchSelectedInternal.type,
+        // tempUiSlice.actions.itemSelectedInternal.type,
+        // splineMouseEnter.type,
+        // splineMouseLeave.type,
+        // splineSelected.type,
+        // allItemsDeselected.type,
+        // // tree expand/collapse doesn't go in state
+        // treeItemsCollapsed.type,
+        // treeItemsExpanded.type
     ]),
     groupBy: groupActions
-    // neverSkipReducer: true
 });
 
 export const store = configureStore({
