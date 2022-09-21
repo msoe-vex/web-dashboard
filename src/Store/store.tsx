@@ -98,15 +98,18 @@ export const store = configureStore({
 });
 
 // manual declaration of RootState, to prevent issues with ciruclar references
-// export type RootState = StateWithHistory<CombinedState<{
-//     field: Field;
-//     routines: EntityState<Routine>;
-//     robots: EntityState<Robot>;
-//     paths: EntityState<Path>;
-//     waypoints: EntityState<Waypoint>;
-//     folders: EntityState<Folder>;
-//     ui: UI;
-// }>>;
+// export type RootState = {
+//     history: StateWithHistory<CombinedState<{
+//         field: Field;
+//         routines: EntityState<Routine>;
+//         robots: EntityState<Robot>;
+//         paths: EntityState<Path>;
+//         waypoints: EntityState<Waypoint>;
+//         folders: EntityState<Folder>;
+//         ui: Ui;
+//     }>>,
+//     tempUi: TempUi
+// };
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, AnyAction>;
