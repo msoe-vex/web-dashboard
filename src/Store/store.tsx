@@ -96,7 +96,7 @@ export const store = configureStore({
     })
 });
 
-// manual declaration of RootState, to prevent issues with ciruclar references
+// manual declaration of RootState, to prevent issues with circular references
 // export type RootState = {
 //     history: StateWithHistory<CombinedState<{
 //         field: Field;

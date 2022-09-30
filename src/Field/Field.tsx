@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { isControlWaypoint, MagnitudePostion, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
+import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
 import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
@@ -252,14 +252,14 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
             startY={previousWaypoint.y}
             x={prevControlX}
             y={prevControlY}
-            handleManipDrag={getManipDragHandler(dispatch, previousWaypoint.id, MagnitudePostion.START)}
+            handleManipulatorDrag={getManipulatorDragHandler(dispatch, previousWaypoint.id, MagnitudePosition.START)}
         />
         <MagnitudeManipulator
             startX={waypoint.x}
             startY={waypoint.y}
             x={currControlX}
             y={currControlY}
-            handleManipDrag={getManipDragHandler(dispatch, waypoint.id, MagnitudePostion.END)}
+            handleManipulatorDrag={getManipulatorDragHandler(dispatch, waypoint.id, MagnitudePosition.END)}
         />
     </>) : (null);
 
@@ -269,11 +269,11 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     </>);
 }
 
-function getManipDragHandler(dispatch: AppDispatch, id: EntityId, magnitudePostion: MagnitudePostion) {
+function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitudePosition: MagnitudePosition) {
     return (e: KonvaEventObject<MouseEvent>) => {
         dispatch(waypointMagnitudeMoved({
             id,
-            magnitudePostion,
+            magnitudePosition,
             x: e.target.x(),
             y: e.target.y(),
         }));
@@ -285,7 +285,7 @@ interface MagnitudeManipulatorProps {
     startY: number;
     x: number;
     y: number;
-    handleManipDrag: (e: KonvaEventObject<MouseEvent>) => void;
+    handleManipulatorDrag: (e: KonvaEventObject<MouseEvent>) => void;
 }
 
 function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
@@ -311,10 +311,10 @@ function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
             shadowOpacity={1}
             draggable={true}
             onDragStart={() => { setSelected(true); }}
-            onDragMove={props.handleManipDrag}
+            onDragMove={props.handleManipulatorDrag}
             onDragEnd={(e: KonvaEventObject<MouseEvent>) => {
                 setSelected(false);
-                props.handleManipDrag(e);
+                props.handleManipulatorDrag(e);
             }}
             onMouseEnter={() => { setHovered(true); }}
             onMouseLeave={() => { setHovered(false); }}

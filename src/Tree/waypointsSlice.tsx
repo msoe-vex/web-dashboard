@@ -47,7 +47,7 @@ export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoi
     // controlWaypoint.flipStart !== undefined;
 }
 
-export enum MagnitudePostion {
+export enum MagnitudePosition {
     START,
     END
 }
@@ -103,14 +103,14 @@ export const waypointsSlice = createSlice({
         waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number }>) => {
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload });
         },
-        waypointMagnitudeMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number, magnitudePostion: MagnitudePostion }>) => {
-            const { id, x, y, magnitudePostion } = action.payload;
+        waypointMagnitudeMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number, magnitudePosition: MagnitudePosition }>) => {
+            const { id, x, y, magnitudePosition } = action.payload;
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
             const newAngle = Math.atan2(y - waypoint.y, x - waypoint.x);
             const newMagnitude = Math.sqrt((x - waypoint.x) * (x - waypoint.x) + (y - waypoint.y) * (y - waypoint.y));
-            const changes = (magnitudePostion === MagnitudePostion.START) ?
+            const changes = (magnitudePosition === MagnitudePosition.START) ?
                 // magnitude out
                 { angle: newAngle, startMagnitude: newMagnitude } :
                 // magnitude in
