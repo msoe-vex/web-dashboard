@@ -182,8 +182,6 @@ export const {
     renamedRoutine
 } = routinesSlice.actions;
 
-export const routinesSliceReducer = undoable(routinesSlice.reducer);
-
 // Runtime selectors
 export const {
     selectById: selectRoutineById,
