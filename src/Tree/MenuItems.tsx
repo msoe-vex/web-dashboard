@@ -68,7 +68,7 @@ export function AddSelectionToNewFolderMenuItem(props: DispatchProps): JSX.Eleme
     return canBeFolder ? (<MenuItem2
         text="Add selection to folder"
         icon="folder-new"
-        onClick={() => props.dispatch(selectionAddedToNewFolder())}
+        onClick={() => { props.dispatch(selectionAddedToNewFolder()); }}
     />) : null;
 }
 
@@ -77,7 +77,7 @@ export function HideAllMenuItem(props: DispatchProps): JSX.Element | null {
     return (someShown ? <MenuItem2
         text="Hide all"
         icon="eye-off"
-        onClick={() => props.dispatch(allItemsHidden())}
+        onClick={() => { props.dispatch(allItemsHidden()); }}
     /> : null);
 }
 
@@ -86,7 +86,7 @@ export function ShowAllMenuItem(props: DispatchProps): JSX.Element | null {
     return (someHidden ? <MenuItem2
         text="Show all"
         icon="eye-open"
-        onClick={() => props.dispatch(allItemsShown())}
+        onClick={() => { props.dispatch(allItemsShown()); }}
     /> : null);
 }
 
@@ -113,7 +113,7 @@ function CollapseAllMenuItem(props: DispatchProps): JSX.Element | null {
         <MenuItem2
             text="Collapse all"
             icon="collapse-all"
-            onClick={() => props.dispatch(treeItemsCollapsed(containerIds))}
+            onClick={() => { props.dispatch(treeItemsCollapsed(containerIds)); }}
         /> : null);
 }
 
@@ -125,7 +125,7 @@ function ExpandAllMenuItem(props: DispatchProps): JSX.Element | null {
         <MenuItem2
             text="Expand all"
             icon="expand-all"
-            onClick={() => props.dispatch(treeItemsExpanded(containerIds))}
+            onClick={() => { props.dispatch(treeItemsExpanded(containerIds)); }}
         /> : null);
 }
 
@@ -152,7 +152,7 @@ function CollapseFoldersMenuItem(props: DispatchProps): JSX.Element | null {
         <MenuItem2
             text="Collapse folders"
             icon="collapse-all"
-            onClick={() => props.dispatch(treeItemsCollapsed(folderIds))}
+            onClick={() => { props.dispatch(treeItemsCollapsed(folderIds)); }}
         /> : null);
 }
 
@@ -164,7 +164,7 @@ function ExpandFoldersMenuItem(props: DispatchProps): JSX.Element | null {
         <MenuItem2
             text="Expand folders"
             icon="expand-all"
-            onClick={() => props.dispatch(treeItemsExpanded(folderIds))}
+            onClick={() => { props.dispatch(treeItemsExpanded(folderIds)); }}
         /> : null);
 }
 

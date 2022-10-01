@@ -12,10 +12,7 @@ import {
 
 import { RoutineMenu } from "./RoutineMenu";
 
-export interface AppNavbarProps {
-}
-
-export function AppNavbar(props: AppNavbarProps): JSX.Element {
+export function AppNavbar(): JSX.Element {
     return (
         <Navbar className="App-navbar">
             <NavbarGroup align={Alignment.LEFT}>
