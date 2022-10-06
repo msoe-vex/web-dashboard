@@ -17,21 +17,13 @@ import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
 import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
 import { DUMMY_ID } from "../Store/dummyId";
-import { NameInput } from "../Navbar/NameInput";
-import { treeItemRenamed } from "./treeActions";
 import {
     allItemsDeselected,
-    itemMouseEnter,
-    itemMouseLeave,
-    itemSelected,
     ItemType,
     selectCollapsedFolderIds,
     selectSelectedWaypointIds,
-    treeItemsCollapsed,
-    treeItemsExpanded,
     TreeItemType
 } from "./tempUiSlice";
-import { RoutineMenu } from "../Navbar/RoutineMenu";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -145,8 +137,8 @@ export function AppTree(): JSX.Element {
             >
                 {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
                 < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }} >
-                    <ControlledTreeEnvironment
-                        items={ }
+                    {/* <ControlledTreeEnvironment
+                        // items={}
                         getItemTitle={(item) => item.data}
                         viewState={{
                             "tree": {
@@ -158,7 +150,7 @@ export function AppTree(): JSX.Element {
                         canSearch={false}
                     >
                         <Tree treeId="tree" rootItem="root" treeLabel={routine.name} />
-                    </ControlledTreeEnvironment>
+                    </ControlledTreeEnvironment> */}
                     {/* <Tree
                         className="App-tree"
                         contents={treeNodeInfo}
