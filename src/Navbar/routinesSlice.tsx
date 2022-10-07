@@ -60,10 +60,7 @@ export const routinesSlice = createSlice({
             routinesAdapter.addOne(routineState, action.payload.routine);
         },
         renamedRoutine(routineState, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            let routine = simpleSelectors.selectById(routineState, action.payload.id);
-            if (routine !== undefined) {
-                routinesAdapter.updateOne(routineState, { id: action.payload.id, changes: { name: action.payload.newName } });
-            }
+            routinesAdapter.updateOne(routineState, { id: action.payload.id, changes: { name: action.payload.newName } });
         }
     },
 });

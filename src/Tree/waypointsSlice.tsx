@@ -131,10 +131,7 @@ export const waypointsSlice = createSlice({
             }
         },
         renamedWaypoint(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            let waypoint = simpleSelectors.selectById(waypointState, action.payload.id);
-            if (waypoint) {
-                waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { name: action.payload.newName } });
-            }
+            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { name: action.payload.newName } });
         }
     },
     extraReducers: (builder) => {
