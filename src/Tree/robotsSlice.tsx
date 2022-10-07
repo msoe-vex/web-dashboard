@@ -38,12 +38,20 @@ export const robotsSlice = createSlice({
                 });
             },
             prepare: () => { return { payload: nanoid() }; }
-        }
+        },
+        renamedRobot(robotState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { name: action.payload.newName } });
+        },
+        deletedRobot: robotsAdapter.removeOne,
     },
     // extraReducers: (builder) => { }
 });
 
-export const { addedRobot } = robotsSlice.actions;
+export const { 
+    addedRobot,
+    renamedRobot,
+    deletedRobot
+} = robotsSlice.actions;
 
 // Runtime selectors
 export const {
