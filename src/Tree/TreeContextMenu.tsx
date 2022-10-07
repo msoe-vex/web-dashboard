@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
+import { Menu, MenuDivider } from "@blueprintjs/core";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch } from "../Store/hooks";
@@ -16,7 +16,7 @@ import {
     RenameMenuItem,
     ShowAllMenuItem
 } from "./MenuItems";
-
+import { MenuItem2 } from "@blueprintjs/popover2";
 
 interface WaypointContextMenuProps {
     id: EntityId;
@@ -32,7 +32,7 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
         <Menu>
             <RenameMenuItem onClick={props.handleRenameClick} />
             {/* <EditMenuItem onClick={dispatch(editedWaypoint(props.id))} /> */}
-            <DuplicateMenuItem onClick={() => dispatch(duplicatedWaypoint(props.id))} />
+            <DuplicateMenuItem onClick={() => { dispatch(duplicatedWaypoint(props.id)); }} />
             <AddSelectionToNewFolderMenuItem dispatch={dispatch} />
 
             <MenuDivider />
@@ -43,7 +43,7 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
             {hideAll}
             <MenuDivider />
 
-            <DeleteMenuItem onClick={() => dispatch(deletedWaypoint(props.id))} />
+            <DeleteMenuItem onClick={() => { dispatch(deletedWaypoint(props.id)); }} />
         </Menu>
     );
 }
@@ -67,7 +67,7 @@ export function PathContextMenu(props: PathContextMenuProps): JSX.Element {
             <HideAllMenuItem dispatch={dispatch} />
             <MenuDivider />
 
-            <DeleteMenuItem onClick={() => dispatch(deletedPath(props.id))} />
+            <DeleteMenuItem onClick={() => { dispatch(deletedPath(props.id)); }} />
         </Menu>
     );
 }
@@ -91,13 +91,13 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
             <HideAllMenuItem dispatch={dispatch} />
             <MenuDivider />
 
-            <MenuItem
+            <MenuItem2
                 text="Unpack folder"
                 icon="folder-shared-open"
                 onClick={() => dispatch(unpackedFolder(props.id))}
             />
 
-            <DeleteMenuItem onClick={() => dispatch(deletedFolder(props.id))} />
+            <DeleteMenuItem onClick={() => { dispatch(deletedFolder(props.id)); }} />
         </Menu>
     );
 }

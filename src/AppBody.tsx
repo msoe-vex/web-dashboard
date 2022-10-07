@@ -1,41 +1,31 @@
 import React from "react";
 import { NonIdealState } from "@blueprintjs/core";
 
-import { selectRoutineById } from "./Navbar/routinesSlice";
-import { useAppDispatch, useAppSelector } from "./Store/hooks";
 import { AppTree } from "./Tree/AppTree";
-import { deselectedWaypoints, selectActiveRoutineId } from "./Tree/uiSlice";
+import { Field } from "./Field/Field";
+
+import { useAppSelector } from "./Store/hooks";
+import { selectActiveRoutine } from "./Tree/uiSlice";
 
 interface AppBodyProps {
     className: string;
 }
 
-export function AppBody(props: AppBodyProps): JSX.Element {
-    const dispatch = useAppDispatch();
-    const activeRoutineId = useAppSelector(selectActiveRoutineId);
-    const activeRoutine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
-
-    const body = (!activeRoutine) ?
+export function AppBody(_props: AppBodyProps): JSX.Element {
+    // const dispatch = useAppDispatch();
+    return (!useAppSelector(selectActiveRoutine)) ?
         (<NonIdealState
-            className="App-non-ideal-state"
+            className="non-ideal-state"
             icon="add"
             title="No routines"
             description="Add a routine or import an existing configuration to get started."
         />) :
         (<div
-            onClick={(e: React.MouseEvent) => {
-                if (!e.isPropagationStopped()) {
-                    dispatch(deselectedWaypoints());
-                }
-            }}
+            className="App-body"
+            onContextMenu={(e: React.MouseEvent) => { e.preventDefault(); }}
         >
             <AppTree />
+            <Field />
         </div>
         );
-
-    return (
-        <div {...props}>
-            {body}
-        </div>
-    );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import {
     Alignment,
@@ -8,14 +8,11 @@ import {
     NavbarDivider,
     NavbarGroup,
     NavbarHeading,
-} from '@blueprintjs/core';
+} from "@blueprintjs/core";
 
-import { RoutineMenu } from './RoutineMenu';
+import { RoutineMenu } from "./RoutineMenu";
 
-export interface AppNavbarProps {
-}
-
-export function AppNavbar(props: AppNavbarProps): JSX.Element {
+export function AppNavbar(): JSX.Element {
     return (
         <Navbar className="App-navbar">
             <NavbarGroup align={Alignment.LEFT}>

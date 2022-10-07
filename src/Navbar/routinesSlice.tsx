@@ -1,4 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary } from "@reduxjs/toolkit";
+import undoable from "redux-undo";
 import { DUMMY_ID } from "../Store/dummyId";
 
 // JavaScript handles circular imports like a champ
@@ -12,17 +13,15 @@ import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";
 export interface Routine {
     id: EntityId;
     name: string;
-    // Should be two pathIds only?
     pathIds: EntityId[];
 }
 
-export const routinesAdapter = createEntityAdapter<Routine>({
+const routinesAdapter = createEntityAdapter<Routine>({
     sortComparer: (a, b) => (a.name.localeCompare(b.name))
 });
 
 // Selectors which take routineState as an argument
 const simpleSelectors = routinesAdapter.getSelectors();
-
 
 export const routinesSlice = createSlice({
     name: "routines",
@@ -73,7 +72,7 @@ export const routinesSlice = createSlice({
  * This is a redux thunk which wraps deletedRoutineInternal.
  * It also adds additional logic to delete paths as well.
  */
-export const deletedRoutine = (routineId: EntityId): AppThunk => {
+export function deletedRoutine(routineId: EntityId): AppThunk {
     return (dispatch, getState) => {
         let arg = {
             routineId,
@@ -105,8 +104,8 @@ export const deletedRoutine = (routineId: EntityId): AppThunk => {
     };
 }
 
-export const addedRoutine = (): AppThunk => {
-    return (dispatch, _getState) => {
+export function addedRoutine(): AppThunk {
+    return (dispatch) => {
         dispatch(addedRoutineInternal({
             routineId: nanoid(),
             robotId: DUMMY_ID, // selectFirstRobotId(getState())
@@ -115,14 +114,14 @@ export const addedRoutine = (): AppThunk => {
             waypointIds: [nanoid(), nanoid()]
         }));
     };
-};
+}
 
-export const duplicatedRoutine = (id: EntityId): AppThunk => {
+export function duplicatedRoutine(id: EntityId): AppThunk {
     return (dispatch, getState) => {
         // create copies of each path's waypoints and folders
         // assign the new waypoint ids and folder ids to copies of each path
         // create a copied routine with updated name and new paths
-        // each other handler will add the new objects to their state
+        // Each slice will then add the new objects to their state
         const state = getState();
         const routine = selectRoutineById(state, id);
         const paths = routine?.pathIds.map(pathId => selectPathById(state, pathId));
@@ -132,9 +131,7 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
 
         let waypointDictionary: Dictionary<EntityId> = {};
         waypointIds?.forEach(waypointId => {
-            if (waypointId) {
-                waypointDictionary[waypointId] = nanoid();
-            }
+            if (waypointId) { waypointDictionary[waypointId] = nanoid(); }
         });
 
         const routineCopy = Object.assign({}, routine);
@@ -147,14 +144,14 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
         };
 
         waypoints?.forEach(waypoint => {
-            if (!waypoint) { throw Error("Expected valid waypoint."); }
+            if (!waypoint) { throw new Error("Expected valid waypoint."); }
             const waypointCopy = Object.assign({}, waypoint);
             waypointCopy.id = waypointDictionary[waypoint.id] as EntityId;
             arg.waypoints.push(waypointCopy);
         });
 
         paths?.forEach(path => {
-            if (!path) { throw Error("Expected valid path."); }
+            if (!path) { throw new Error("Expected valid path."); }
             const pathCopy = Object.assign({}, path);
             pathCopy.id = nanoid();
 
@@ -175,7 +172,7 @@ export const duplicatedRoutine = (id: EntityId): AppThunk => {
 
         dispatch(duplicatedRoutineInternal(arg));
     };
-};
+}
 
 export const {
     addedRoutineInternal,
@@ -191,4 +188,4 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = routinesAdapter.getSelectors<RootState>((state) => state.routines);
+} = routinesAdapter.getSelectors<RootState>(state => state.history.present.routines);
