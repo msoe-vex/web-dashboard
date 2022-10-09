@@ -3,23 +3,34 @@ import { RootState } from "../Store/store";
 import { Units } from "./mathUtils";
 
 export interface Field {
-    width: number;
+    // image: Image;
+    dimensions: FieldDimensions;
+}
+
+interface FieldDimensions {
     height: number;
+    width: number;
 }
 
 export const fieldSlice = createSlice({
     name: "field",
-    initialState: { width: 12 * Units.FEET + 2 * Units.INCH, height: 12 * Units.FEET + 2 * Units.INCH } as Field,
+    initialState: {
+        dimensions: {
+            height: 12 * Units.FEET + 2 * Units.INCH,
+            width: 12 * Units.FEET + 2 * Units.INCH
+        }
+    } as Field,
     reducers: {
-        fieldWidthChanged: (fieldState, action: PayloadAction<number>) => { fieldState.width = action.payload; },
-        fieldHeightChanged: (fieldState, action: PayloadAction<number>) => { fieldState.height = action.payload; }
+        fieldDimensionsChanged(fieldState, action: PayloadAction<FieldDimensions>) {
+            fieldState.dimensions = action.payload;
+        },
     }
 });
 
 export const {
-    fieldWidthChanged,
-    fieldHeightChanged
+    fieldDimensionsChanged
 } = fieldSlice.actions;
 
-export const selectFieldWidth = (state: RootState) => state.history.present.field.width;
-export const selectFieldHeight = (state: RootState) => state.history.present.field.height;
+export function selectFieldDimensions(state: RootState) {
+    return state.history.present.field.dimensions;
+}
