@@ -14,6 +14,7 @@ import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
 
+
 /**
  * We need a couple manipulators
  * Control waypoint:
@@ -65,17 +66,11 @@ export function Field(): JSX.Element {
                 >
                     {/* Make store available again inside stage */}
                     <Provider store={store}>
-                        <Layer {...fieldTransform} >
-                            <Rect
-                                x={0.5 * Units.INCH}
-                                y={0.5 * Units.INCH}
-                                width={fieldWidth - 1 * Units.INCH}
-                                height={fieldHeight - 1 * Units.INCH}
-                                strokeWidth={1 * Units.INCH}
-                                stroke={Colors.BLACK}
-                                fill={Colors.GRAY1}
-                            />
-                        </Layer>
+                        <FieldLayer 
+                            fieldTransform={fieldTransform}                        
+                            fieldWidth={fieldWidth}
+                            fieldHeight={fieldHeight}
+                        />
                         <Layer {...fieldTransform}
                             onClick={(e: KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; }}
                         >
@@ -86,6 +81,26 @@ export function Field(): JSX.Element {
             }}
         </ReactReduxContext.Consumer>
     </div >);
+}
+
+interface FieldLayerProps {
+    fieldTransform: Transform;
+    fieldWidth: number;
+    fieldHeight: number;
+}
+
+export function FieldLayer(props: FieldLayerProps): JSX.Element {
+    return (<Layer {...props.fieldTransform}>
+        <Rect
+            x={0.5 * Units.INCH}
+            y={0.5 * Units.INCH}
+            width={props.fieldWidth - 1 * Units.INCH}
+            height={props.fieldHeight - 1 * Units.INCH}
+            strokeWidth={1 * Units.INCH}
+            stroke={Colors.BLACK}
+            fill={Colors.GRAY1}
+        />
+    </Layer>);
 }
 
 function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number): Transform {
