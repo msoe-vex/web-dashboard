@@ -26,6 +26,5 @@ export function AppBody(_props: AppBodyProps): JSX.Element {
         >
             <AppTree />
             <Field />
-        </div>
-        );
+        </div>);
 }

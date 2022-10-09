@@ -11,6 +11,7 @@ import {
 } from "@blueprintjs/core";
 
 import { RoutineMenu } from "./RoutineMenu";
+import { RobotMenu } from "./RobotMenu";
 
 export function AppNavbar(): JSX.Element {
     return (
@@ -18,14 +19,9 @@ export function AppNavbar(): JSX.Element {
             <NavbarGroup align={Alignment.LEFT}>
                 <NavbarHeading>Raider Robotics Web Dashboard</NavbarHeading>
                 <NavbarDivider />
-
                 <RoutineMenu />
-
-                {/* <RobotMenu names={props.robotNames}/> */}
-
-                {/* <Button className={Classes.MINIMAL} icon="playbook" text="Routine" /> */}
                 <NavbarDivider />
-                <Button className={Classes.MINIMAL} icon="home" text="Home" />
+                <RobotMenu />
             </NavbarGroup>
         </Navbar>
     );

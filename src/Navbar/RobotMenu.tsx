@@ -7,17 +7,18 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
-import { addedRobot, selectRobotIds } from "../Tree/robotsSlice";
+import { addedRobot, deletedRobot, renamedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
 
 export function RobotMenu(): JSX.Element {
     const dispatch = useAppDispatch();
 
+    // isOpen, setIsOpen is a function
     const [isOpen, setIsOpen] = React.useState(false);
     const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
     const robotIds = useAppSelector(selectRobotIds);
 
-    const ownerButton = (robotIds.length == 0 ?
+    const ownerButton = (robotIds.length === 0 ?
         <Button
             icon="add"
             text="Add robot"
@@ -53,10 +54,10 @@ export function RobotMenu(): JSX.Element {
             {addRobotItem}
         </Menu>);
 
-    return (!activeRobotName ? ownerButton :
+    return (robotIds.length === 0 ? ownerButton :
         <Popover2
             children={ownerButton}
-            content={routineMenu}
+            content={robotMenu}
             usePortal={true}
             minimal={true}
             position={Position.BOTTOM_LEFT}
@@ -68,7 +69,6 @@ export function RobotMenu(): JSX.Element {
 
 interface RobotItemProps {
     id: EntityId;
-    selected: boolean;
     setGlobalIsRenaming: (isRenaming: boolean) => void;
     setIsOpen: (state: boolean) => void;
 }
@@ -92,11 +92,11 @@ function RobotItem(props: RobotItemProps): JSX.Element {
         (<MenuItem2
             icon="playbook"
             text={name}
-            selected={props.selected}
-            onClick={() => {
-                props.setIsOpen(false);
-                dispatch(selectedActiveRobot(props.id));
-            }}
+            // selected={props.selected}
+            // onClick={() => {
+            //     props.setIsOpen(false);
+            //     dispatch(selectedActiveRobot(props.id));
+            // }}
             // doesn't work for some reason
             // submenuProps={{ className: Classes.ELEVATION_2 }}
             children={
@@ -119,9 +119,9 @@ function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
     const dispatch = useAppDispatch();
     const dismissProps = { shouldDismissPopover: false };
     return (<>
-        <EditMenuItem onClick={() => dispatch(selectedActiveRobot(props.id))} />
+        {/* <EditMenuItem onClick={() => dispatch(selectedActiveRobot(props.id))} /> */}
         <RenameMenuItem {...dismissProps} onClick={props.handleRenameClick} />
-        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} />
+        {/* <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} /> */}
         <MenuDivider />
         <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRobot(props.id)); }} />
     </>);
