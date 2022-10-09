@@ -4,7 +4,7 @@ import { Units } from "./mathUtils";
 
 export interface Field {
     // image: Image;
-    dimensions: FieldDimensions;
+    fieldDimensions: FieldDimensions;
 }
 
 export interface FieldDimensions {
@@ -15,14 +15,14 @@ export interface FieldDimensions {
 export const fieldSlice = createSlice({
     name: "field",
     initialState: {
-        dimensions: {
+        fieldDimensions: {
             height: 12 * Units.FEET + 2 * Units.INCH,
             width: 12 * Units.FEET + 2 * Units.INCH
         }
     } as Field,
     reducers: {
         fieldDimensionsChanged(fieldState, action: PayloadAction<FieldDimensions>) {
-            fieldState.dimensions = action.payload;
+            fieldState.fieldDimensions = action.payload;
         },
     }
 });
@@ -32,5 +32,5 @@ export const {
 } = fieldSlice.actions;
 
 export function selectFieldDimensions(state: RootState) {
-    return state.history.present.field.dimensions;
+    return state.history.present.field.fieldDimensions;
 }

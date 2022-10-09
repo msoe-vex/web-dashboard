@@ -40,16 +40,16 @@ interface FieldStageProps {
 
 function FieldStage(props: FieldStageProps): JSX.Element {
     const dispatch = useAppDispatch();
-    const [width, setWidth] = React.useState<number>(0);
-    const [height, setHeight] = React.useState<number>(0);
+    const [canvasWidth, setCanvasWidth] = React.useState<number>(0);
+    const [canvasHeight, setCanvasHeight] = React.useState<number>(0);
 
     const resizeCanvas = React.useCallback(() => {
         const div = document.getElementById("field");
         if (div) {
-            if (height !== div.offsetHeight ||
-                width !== div.offsetWidth) {
-                setHeight(div.offsetHeight);
-                setWidth(div.offsetWidth);
+            if (canvasHeight !== div.offsetHeight ||
+                canvasWidth !== div.offsetWidth) {
+                setCanvasHeight(div.offsetHeight);
+                setCanvasWidth(div.offsetWidth);
             }
         }
         // callback doesn't need to be recalculated when height/width change
@@ -63,11 +63,11 @@ function FieldStage(props: FieldStageProps): JSX.Element {
     }, [resizeCanvas]);
 
     const fieldDimensions = selectFieldDimensions(props.store.getState());
-    const fieldTransform = computeFieldTransform(height, width, fieldDimensions);
+    const fieldTransform = computeFieldTransform(canvasHeight, canvasWidth, fieldDimensions);
 
     return (<Stage
-        width={width}
-        height={height}
+        width={canvasWidth}
+        height={canvasHeight}
         onClick={(e: KonvaEventObject<MouseEvent>) => {
             if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
         }}
@@ -76,23 +76,23 @@ function FieldStage(props: FieldStageProps): JSX.Element {
         <Provider store={props.store}>
             <FieldLayer
                 fieldTransform={fieldTransform}
-                dimensions={fieldDimensions}
+                fieldDimensions={fieldDimensions}
             />
             <ElementLayer fieldTransform={fieldTransform} />
         </Provider>
     </Stage>);
 }
 
-function computeFieldTransform(canvasHeight: number, canvasWidth: number, dimensions: FieldDimensions): Transform {
-    const heightToWidth = dimensions.width / dimensions.height;
-    const widthToHeight = dimensions.height / dimensions.width;
+function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldDimensions: FieldDimensions): Transform {
+    const heightToWidth = fieldDimensions.width / fieldDimensions.height;
+    const widthToHeight = fieldDimensions.height / fieldDimensions.width;
 
     const height = Math.min(
         canvasHeight,
         canvasWidth * widthToHeight
     );
     const width = height * heightToWidth;
-    const PIXEL = height / dimensions.height;
+    const PIXEL = height / fieldDimensions.height;
 
     const xShift = (canvasWidth - width) / 2;
     const yShift = (canvasHeight - height) / 2 + height;
@@ -101,7 +101,7 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, dimens
 
 interface FieldLayerProps {
     fieldTransform: Transform;
-    dimensions: FieldDimensions;
+    fieldDimensions: FieldDimensions;
 }
 
 function FieldLayer(props: FieldLayerProps): JSX.Element {
@@ -109,8 +109,8 @@ function FieldLayer(props: FieldLayerProps): JSX.Element {
         <Rect
             x={0.5 * Units.INCH}
             y={0.5 * Units.INCH}
-            width={props.dimensions.width - 1 * Units.INCH}
-            height={props.dimensions.height - 1 * Units.INCH}
+            width={props.fieldDimensions.width - 1 * Units.INCH}
+            height={props.fieldDimensions.height - 1 * Units.INCH}
             strokeWidth={1 * Units.INCH}
             stroke={Colors.BLACK}
             fill={Colors.GRAY1}
