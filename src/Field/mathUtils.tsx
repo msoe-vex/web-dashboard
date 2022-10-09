@@ -31,6 +31,7 @@ export interface Point {
 }
 
 /**
+ * Deprecated
  * Defines information and utility functions for working with canvases that represent the field.
  */
 export class FieldCanvas {
@@ -83,6 +84,9 @@ export class FieldCanvas {
     }
 }
 
+/**
+ * Deprecated
+ */
 export class Manipulator {
     public static add2dMoveManipulator(context: CanvasRenderingContext2D,
         scale: number = 1,
