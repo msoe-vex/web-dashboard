@@ -7,7 +7,7 @@ export interface Field {
     dimensions: FieldDimensions;
 }
 
-interface FieldDimensions {
+export interface FieldDimensions {
     height: number;
     width: number;
 }

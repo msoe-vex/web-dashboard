@@ -10,7 +10,7 @@ import { AppDispatch, RootState } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
-import { selectFieldHeight, selectFieldWidth } from "./fieldSlice";
+import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
 
@@ -53,49 +53,57 @@ export function Field(): JSX.Element {
             {({ store }) => {
                 // Avoid using useAppSelector to prevent issues with react hooks
                 const dispatch = store.dispatch;
-                const fieldHeight = selectFieldHeight(store.getState());
-                const fieldWidth = selectFieldWidth(store.getState());
-                const fieldTransform = computeFieldTransform(height, width, fieldHeight, fieldWidth);
+                const fieldDimensions = selectFieldDimensions(store.getState());
+                const fieldTransform = computeFieldTransform(height, width, fieldDimensions);
 
-                return (<Stage
+                return (<FieldStage
                     width={width}
                     height={height}
-                    onClick={(e: KonvaEventObject<MouseEvent>) => {
-                        if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
-                    }}
                 >
                     {/* Make store available again inside stage */}
                     <Provider store={store}>
                         <FieldLayer 
-                            fieldTransform={fieldTransform}                        
-                            fieldWidth={fieldWidth}
-                            fieldHeight={fieldHeight}
+                            fieldTransform={fieldTransform}
+                            dimensions={fieldDimensions}
                         />
-                        <Layer {...fieldTransform}
-                            onClick={(e: KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; }}
-                        >
-                            <RobotElements />
-                        </Layer>
+                        <ElementLayer 
+                            fieldTransform={fieldTransform}
+                        />
                     </Provider>
-                </Stage>);
+                </FieldStage>);
             }}
         </ReactReduxContext.Consumer>
     </div >);
 }
 
-interface FieldLayerProps {
-    fieldTransform: Transform;
-    fieldWidth: number;
-    fieldHeight: number;
+interface FieldStageProps {
+    children: JSX.Element;
+    width: number;
+    height: number;
 }
 
-export function FieldLayer(props: FieldLayerProps): JSX.Element {
+function FieldStage(props: FieldStageProps): JSX.Element {
+    const dispatch = useAppDispatch();
+
+    return (<Stage{...props}
+        onClick={(e: KonvaEventObject<MouseEvent>) => {
+            if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
+        }}  
+    />);
+}
+
+interface FieldLayerProps {
+    fieldTransform: Transform;
+    dimensions: FieldDimensions;
+}
+
+function FieldLayer(props: FieldLayerProps): JSX.Element {
     return (<Layer {...props.fieldTransform}>
         <Rect
             x={0.5 * Units.INCH}
             y={0.5 * Units.INCH}
-            width={props.fieldWidth - 1 * Units.INCH}
-            height={props.fieldHeight - 1 * Units.INCH}
+            width={props.dimensions.width - 1 * Units.INCH}
+            height={props.dimensions.height - 1 * Units.INCH}
             strokeWidth={1 * Units.INCH}
             stroke={Colors.BLACK}
             fill={Colors.GRAY1}
@@ -103,16 +111,28 @@ export function FieldLayer(props: FieldLayerProps): JSX.Element {
     </Layer>);
 }
 
-function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldHeight: number, fieldWidth: number): Transform {
-    const heightToWidth = fieldWidth / fieldHeight;
-    const widthToHeight = fieldHeight / fieldWidth;
+interface ElementLayerProps {
+    fieldTransform: Transform;
+}
+
+function ElementLayer(props: ElementLayerProps): JSX.Element {
+    return (<Layer {...props.fieldTransform}
+        onClick={(e: KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; }}
+    >
+        <RobotElements />
+    </Layer>)
+}
+
+function computeFieldTransform(canvasHeight: number, canvasWidth: number, dimensions: FieldDimensions): Transform {
+    const heightToWidth = dimensions.width / dimensions.height;
+    const widthToHeight = dimensions.height / dimensions.width;
 
     const height = Math.min(
         canvasHeight,
         canvasWidth * widthToHeight
     );
     const width = height * heightToWidth;
-    const PIXEL = height / fieldHeight;
+    const PIXEL = height / dimensions.height;
 
     const xShift = (canvasWidth - width) / 2;
     const yShift = (canvasHeight - height) / 2 + height;
