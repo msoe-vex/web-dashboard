@@ -130,9 +130,6 @@ function ElementLayer(props: ElementLayerProps): JSX.Element {
     </Layer>)
 }
 
-// interface RobotElementsProps {
-// }
-
 export function RobotElements(): JSX.Element {
     const paths = useAppSelector((state: RootState) => {
         const activeRoutine = selectActiveRoutine(state);
