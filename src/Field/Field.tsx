@@ -4,6 +4,8 @@ import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
 import { Circle, Layer, Line, Rect, Stage } from "react-konva";
 import { Provider, ReactReduxContext } from "react-redux";
+import { ContextMenu2 } from "@blueprintjs/popover2";
+import { Menu, MenuDivider } from "@blueprintjs/core";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState, Store } from "../Store/store";
@@ -11,9 +13,8 @@ import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
-import { Transform, Units } from "./mathUtils";
+import { Point, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
-import { ContextMenu2 } from "@blueprintjs/popover2";
 
 /**
  * We need a couple manipulators
@@ -23,18 +24,9 @@ import { ContextMenu2 } from "@blueprintjs/popover2";
  * Robot angle (custom rotation manipulator, rendered as a dot?)
  */
 export function Field(): JSX.Element {
-    // const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
-
-    // const getContextMenu = React.useCallback(
-    //     (): JSX.Element => (contextMenu), [contextMenu]
-    // );
     // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
     // https://github.com/konvajs/react-konva/issues/311#issuecomment-536634446
     return (
-        // <ContextMenu2
-        //     content={getContextMenu}
-        //     className={"App-context-menu"}
-        // >
         <div id="field">
             {/* Consumer is a component which takes a function as a child */}
             <ReactReduxContext.Consumer>
@@ -44,7 +36,6 @@ export function Field(): JSX.Element {
             </ReactReduxContext.Consumer>
         </div >
     );
-    // </ContextMenu2>);
 }
 
 interface FieldStageProps {
@@ -75,6 +66,18 @@ function FieldStage(props: FieldStageProps): JSX.Element {
         return () => window.removeEventListener("resize", resizeCanvas);
     }, [resizeCanvas]);
 
+    const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
+
+    setContextMenu(
+        <Menu>
+            <MenuDivider />
+        </Menu>
+    );
+
+    const getContextMenu = React.useCallback(
+        (): JSX.Element => (contextMenu), [contextMenu]
+    );
+
     const fieldDimensions = selectFieldDimensions(props.store.getState());
     const fieldTransform = computeFieldTransform(canvasHeight, canvasWidth, fieldDimensions);
 
@@ -87,11 +90,16 @@ function FieldStage(props: FieldStageProps): JSX.Element {
     >
         {/* Make store available again inside stage */}
         <Provider store={props.store}>
-            <FieldLayer
-                fieldTransform={fieldTransform}
-                fieldDimensions={fieldDimensions}
-            />
-            <ElementLayer fieldTransform={fieldTransform} />
+            <ContextMenu2
+                content={getContextMenu}
+                className={"App-context-menu"}
+            >
+                <FieldLayer
+                    fieldTransform={fieldTransform}
+                    fieldDimensions={fieldDimensions}
+                />
+                <ElementLayer fieldTransform={fieldTransform} />
+            </ContextMenu2>
         </Provider>
     </Stage>);
 }
@@ -194,8 +202,10 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
             dispatch(waypointMoved({
                 id: waypoint.id,
-                x: e.target.x() + 9 * Units.INCH,
-                y: e.target.y() + 9 * Units.INCH
+                position: {
+                    x: e.target.x() + 9 * Units.INCH,
+                    y: e.target.y() + 9 * Units.INCH
+                }
             }));
         };
 
@@ -211,8 +221,8 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
         return (<Rect
-            x={waypoint.x - 9 * Units.INCH}
-            y={waypoint.y - 9 * Units.INCH}
+            x={waypoint.point.x - 9 * Units.INCH}
+            y={waypoint.point.y - 9 * Units.INCH}
             width={18 * Units.INCH}
             height={18 * Units.INCH}
             rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
@@ -258,16 +268,24 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
     if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
-    const prevControlX = previousWaypoint.x + Math.cos(previousWaypoint.angle) * previousWaypoint.startMagnitude;
-    const prevControlY = previousWaypoint.y + Math.sin(previousWaypoint.angle) * previousWaypoint.startMagnitude;
+    const prevControlX = previousWaypoint.point.x + Math.cos(previousWaypoint.angle) * previousWaypoint.startMagnitude;
+    const prevControlY = previousWaypoint.point.y + Math.sin(previousWaypoint.angle) * previousWaypoint.startMagnitude;
 
-    const currControlX = waypoint.x + Math.cos(waypoint.angle) * -waypoint.endMagnitude;
-    const currControlY = waypoint.y + Math.sin(waypoint.angle) * -waypoint.endMagnitude;
+    const currControlX = waypoint.point.x + Math.cos(waypoint.angle) * -waypoint.endMagnitude;
+    const currControlY = waypoint.point.y + Math.sin(waypoint.angle) * -waypoint.endMagnitude;
 
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        points={[previousWaypoint.x, previousWaypoint.y, prevControlX, prevControlY, currControlX, currControlY, waypoint.x, waypoint.y]}
+        points={[previousWaypoint.point.x,
+        previousWaypoint.point.y,
+            prevControlX,
+            prevControlY,
+            currControlX,
+            currControlY,
+        waypoint.point.x,
+        waypoint.point.y
+        ]}
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
@@ -283,17 +301,13 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
     const manipulators = isSelected ? (<>
         <MagnitudeManipulator
-            startX={previousWaypoint.x}
-            startY={previousWaypoint.y}
-            x={prevControlX}
-            y={prevControlY}
+            startPoint={previousWaypoint.point}
+            currentPoint={waypoint.point}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, previousWaypoint.id, MagnitudePosition.START)}
         />
         <MagnitudeManipulator
-            startX={waypoint.x}
-            startY={waypoint.y}
-            x={currControlX}
-            y={currControlY}
+            startPoint={waypoint.point}
+            currentPoint={{ x: currControlX, y: currControlY }}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, waypoint.id, MagnitudePosition.END)}
         />
     </>) : (null);
@@ -316,10 +330,8 @@ function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitud
 }
 
 interface MagnitudeManipulatorProps {
-    startX: number;
-    startY: number;
-    x: number;
-    y: number;
+    startPoint: Point;
+    currentPoint: Point;
     handleManipulatorDrag: (e: KonvaEventObject<MouseEvent>) => void;
 }
 
@@ -328,16 +340,16 @@ function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
     const [isSelected, setSelected] = React.useState<boolean>(false);
 
     const line = (<Line
-        points={[props.startX, props.startY, props.x, props.y]}
+        points={[props.startPoint.x, props.startPoint.y,
+        props.currentPoint.x, props.currentPoint.y]}
         strokeWidth={0.25 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
     />);
 
     return (<>
         <Circle
+            {...props.currentPoint}
             radius={2 * Units.INCH}
-            x={props.x}
-            y={props.y}
             hitStrokeWidth={3 * Units.INCH}
             fill={isSelected ? Colors.ORANGE1 : Colors.BLACK}
             shadowEnabled={isHovered}

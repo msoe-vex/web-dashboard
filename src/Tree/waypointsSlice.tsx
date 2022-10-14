@@ -26,7 +26,7 @@ interface WaypointBase {
  * @param {number} startMagnitude - The start magnitude of the path, representing the magnitude of the spline leaving the waypoint.
  */
 export interface ControlWaypoint extends WaypointBase {
-    position: Point;
+    point: Point;
     angle: number;
     endMagnitude: number;
     // flipEnd: boolean;
@@ -36,7 +36,7 @@ export interface ControlWaypoint extends WaypointBase {
 
 export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
     const controlWaypoint = waypoint as ControlWaypoint;
-    return controlWaypoint.position !== undefined &&
+    return controlWaypoint.point !== undefined &&
         controlWaypoint.angle !== undefined &&
         controlWaypoint.endMagnitude !== undefined &&
         // controlWaypoint.flipEnd !== undefined &&
@@ -84,7 +84,7 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    position: {
+                    point: {
                         x: 0 * Units.INCH,
                         y: 0 * Units.INCH
                     },
@@ -128,8 +128,8 @@ export const waypointsSlice = createSlice({
                 copy.id = action.payload.newWaypointId;
                 copy.name = "Copy of " + copy.name;
                 if (isControlWaypoint(copy)) {
-                    copy.position.x += 1 * Units.FEET;
-                    copy.position.y += 1 * Units.FEET;
+                    copy.point.x += 1 * Units.FEET;
+                    copy.point.y += 1 * Units.FEET;
                 } else { copy.parameter += 0.1; }
                 waypointsAdapter.addOne(waypointState, copy);
             }
@@ -146,7 +146,7 @@ export const waypointsSlice = createSlice({
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        position: {
+                        point: {
                             x: (index ? 5 : 1) * Units.FEET,
                             y: (index ? 3 : 1) * Units.FEET
                         },
