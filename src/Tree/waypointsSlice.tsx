@@ -99,7 +99,7 @@ export const waypointsSlice = createSlice({
         },
         deletedWaypoint: waypointsAdapter.removeOne,
         changedWaypoint: waypointsAdapter.updateOne,
-        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, position: Point }>) => {
+        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload });
         },
         waypointMagnitudeMoved: (waypointState, action: PayloadAction<{

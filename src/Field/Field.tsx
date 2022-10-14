@@ -11,10 +11,11 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState, Store } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved } from "../Tree/waypointsSlice";
+import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved, waypointRobotRotated } from "../Tree/waypointsSlice";
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Point, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
+import { couldStartTrivia } from "typescript";
 
 /**
  * We need a couple manipulators
@@ -68,15 +69,15 @@ function FieldStage(props: FieldStageProps): JSX.Element {
 
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
 
-    setContextMenu(
-        <Menu>
-            <MenuDivider />
-        </Menu>
-    );
+    // setContextMenu(
+    //     <Menu>
+    //         <MenuDivider />
+    //     </Menu>
+    // );
 
-    const getContextMenu = React.useCallback(
-        (): JSX.Element => (contextMenu), [contextMenu]
-    );
+    // const getContextMenu = React.useCallback(
+    //     (): JSX.Element => (contextMenu), [contextMenu]
+    // );
 
     const fieldDimensions = selectFieldDimensions(props.store.getState());
     const fieldTransform = computeFieldTransform(canvasHeight, canvasWidth, fieldDimensions);
@@ -90,16 +91,16 @@ function FieldStage(props: FieldStageProps): JSX.Element {
     >
         {/* Make store available again inside stage */}
         <Provider store={props.store}>
-            <ContextMenu2
+            {/* <ContextMenu2
                 content={getContextMenu}
                 className={"App-context-menu"}
-            >
-                <FieldLayer
-                    fieldTransform={fieldTransform}
-                    fieldDimensions={fieldDimensions}
-                />
-                <ElementLayer fieldTransform={fieldTransform} />
-            </ContextMenu2>
+            > */}
+            <FieldLayer
+                fieldTransform={fieldTransform}
+                fieldDimensions={fieldDimensions}
+            />
+            <ElementLayer fieldTransform={fieldTransform} />
+            {/* </ContextMenu2> */}
         </Provider>
     </Stage>);
 }
@@ -202,7 +203,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
             dispatch(waypointMoved({
                 id: waypoint.id,
-                position: {
+                point: {
                     x: e.target.x() + 9 * Units.INCH,
                     y: e.target.y() + 9 * Units.INCH
                 }
@@ -220,9 +221,10 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
-        return (<Rect
-            x={waypoint.point.x - 9 * Units.INCH}
-            y={waypoint.point.y - 9 * Units.INCH}
+        const robotRectangle = (<Rect
+            x={waypoint.point.x}
+            y={waypoint.point.y}
+            offset={{ x: 9 * Units.INCH, y: 9 * Units.INCH }}
             width={18 * Units.INCH}
             height={18 * Units.INCH}
             rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
@@ -240,6 +242,29 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
         />);
+
+        const ballPoint = {
+            x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
+            y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
+        };
+        const rotationManipulator = isSelected ? (<MagnitudeManipulator
+            startPoint={waypoint.point}
+            currentPoint={ballPoint}
+            handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
+                dispatch(waypointRobotRotated({
+                    id: waypoint.id,
+                    point: {
+                        x: e.target.x(),
+                        y: e.target.y()
+                    }
+                }))
+            }}
+        />) : (null);
+
+        return (<>
+            {robotRectangle}
+            {rotationManipulator}
+        </>);
     }
     else {
         return null;
@@ -302,7 +327,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const manipulators = isSelected ? (<>
         <MagnitudeManipulator
             startPoint={previousWaypoint.point}
-            currentPoint={waypoint.point}
+            currentPoint={{ x: prevControlX, y: prevControlY }}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, previousWaypoint.id, MagnitudePosition.START)}
         />
         <MagnitudeManipulator
@@ -323,8 +348,10 @@ function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitud
         dispatch(waypointMagnitudeMoved({
             id,
             magnitudePosition,
-            x: e.target.x(),
-            y: e.target.y(),
+            point: {
+                x: e.target.x(),
+                y: e.target.y(),
+            }
         }));
     };
 }
