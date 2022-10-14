@@ -98,6 +98,10 @@ export function AppTree(): JSX.Element {
     }, [dispatch]);
 
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
+    // A callback function which actually renders the context menu
+    const getContextMenu = React.useCallback(
+        (): JSX.Element => (contextMenu), [contextMenu]
+    );
 
     const handleNodeContextMenu = React.useCallback(
         (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
@@ -128,11 +132,6 @@ export function AppTree(): JSX.Element {
                 </div >);
         }, []);
 
-    // A callback function which actually renders the context menu
-    const createContextMenu = React.useCallback(
-        (): JSX.Element => (contextMenu), [contextMenu]
-    );
-
     return (
         <Card className="App-tree-card"
             onClick={(e: React.MouseEvent) => {
@@ -142,8 +141,8 @@ export function AppTree(): JSX.Element {
             <H5>{routine.name}</H5>
 
             <ContextMenu2
-                content={createContextMenu}
-                className={"App-tree-context-menu-popover"}
+                content={getContextMenu}
+                className={"App-context-menu"}
                 popoverProps={{ popoverClassName: "App-tree-context-menu-popover" }}
             >
                 {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}

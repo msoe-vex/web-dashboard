@@ -13,6 +13,7 @@ import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagni
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
+import { ContextMenu2 } from "@blueprintjs/popover2";
 
 /**
  * We need a couple manipulators
@@ -22,16 +23,28 @@ import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds
  * Robot angle (custom rotation manipulator, rendered as a dot?)
  */
 export function Field(): JSX.Element {
+    // const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
+
+    // const getContextMenu = React.useCallback(
+    //     (): JSX.Element => (contextMenu), [contextMenu]
+    // );
     // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
     // https://github.com/konvajs/react-konva/issues/311#issuecomment-536634446
-    return (<div id="field">
-        {/* Consumer is a component which takes a function as a child */}
-        <ReactReduxContext.Consumer>
-            {({ store }) => {
-                return (<FieldStage store={store} />);
-            }}
-        </ReactReduxContext.Consumer>
-    </div >);
+    return (
+        // <ContextMenu2
+        //     content={getContextMenu}
+        //     className={"App-context-menu"}
+        // >
+        <div id="field">
+            {/* Consumer is a component which takes a function as a child */}
+            <ReactReduxContext.Consumer>
+                {({ store }) => {
+                    return (<FieldStage store={store} />);
+                }}
+            </ReactReduxContext.Consumer>
+        </div >
+    );
+    // </ContextMenu2>);
 }
 
 interface FieldStageProps {
