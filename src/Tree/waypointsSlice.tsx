@@ -104,16 +104,16 @@ export const waypointsSlice = createSlice({
         },
         waypointMagnitudeMoved: (waypointState, action: PayloadAction<{
             id: EntityId,
-            x: number,
-            y: number,
+            point: Point,
             magnitudePosition: MagnitudePosition
         }>) => {
-            const { id, x, y, magnitudePosition } = action.payload;
+            const { id, point, magnitudePosition } = action.payload;
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
-            const newAngle = Math.atan2(y - waypoint.y, x - waypoint.x);
-            const newMagnitude = Math.sqrt((x - waypoint.x) * (x - waypoint.x) + (y - waypoint.y) * (y - waypoint.y));
+            const newAngle = Math.atan2(point.y - waypoint.point.y, point.x - waypoint.point.x);
+            const newMagnitude = Math.sqrt((point.x - waypoint.point.x) * (point.x - waypoint.point.x) +
+                (point.y - waypoint.point.y) * (point.y - waypoint.point.y));
             const changes = (magnitudePosition === MagnitudePosition.START) ?
                 // magnitude out
                 { angle: newAngle, startMagnitude: newMagnitude } :
@@ -121,13 +121,13 @@ export const waypointsSlice = createSlice({
                 { angle: newAngle + 180 * Units.DEGREE, endMagnitude: newMagnitude };
             waypointsAdapter.updateOne(waypointState, { id, changes });
         },
-        waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number}>) => {
-            const {id, x, y} = action.payload;
+        waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
+            const { id, point } = action.payload;
             const waypoint = simpleSelectors.selectById(waypointState, id);
-            if (!waypoint || !isControlWaypoint(waypoint)) {throw new Error("Expected waypoint to be a control waypoint."); }
+            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
-            const newAngle = Math.atan2(y - waypoint.y, x-waypoint.x);
-            waypointsAdapter.updateOne(waypointState, {id: action.payload.id, changes: {robotAngle: newAngle}});
+            const newAngle = Math.atan2(point.y - waypoint.point.y, point.x - waypoint.point.x);
+            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { robotAngle: newAngle } });
         },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
