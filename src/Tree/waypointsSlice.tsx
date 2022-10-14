@@ -189,7 +189,8 @@ export const {
     changedWaypoint,
     renamedWaypoint,
     waypointMoved,
-    waypointMagnitudeMoved
+    waypointMagnitudeMoved,
+    waypointRobotRotated
 } = waypointsSlice.actions;
 
 export const waypointsSliceReducer = undoable(waypointsSlice.reducer);
