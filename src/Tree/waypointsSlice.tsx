@@ -117,6 +117,14 @@ export const waypointsSlice = createSlice({
                 { angle: newAngle + 180 * Units.DEGREE, endMagnitude: newMagnitude };
             waypointsAdapter.updateOne(waypointState, { id, changes });
         },
+        waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number}>) => {
+            const {id, x, y} = action.payload;
+            const waypoint = simpleSelectors.selectById(waypointState, id);
+            if (!waypoint || !isControlWaypoint(waypoint)) {throw new Error("Expected waypoint to be a control waypoint."); }
+
+            const newAngle = Math.atan2(y - waypoint.y, x-waypoint.x);
+            waypointsAdapter.updateOne(waypointState, {id: action.payload.id, changes: {robotAngle: newAngle}});
+        },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             if (waypoint) {
