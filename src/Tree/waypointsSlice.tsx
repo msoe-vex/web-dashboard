@@ -1,7 +1,7 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 import undoable from "redux-undo";
 
-import { Units } from "../Field/mathUtils";
+import { Point, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
@@ -20,15 +20,13 @@ interface WaypointBase {
 /**
  * A waypoint which defines a point the path passes through.
  * 
- * @param {number} x - The x position of the waypoint in meters.
- * @param {number} y - The y position of the waypoint in meters.
+ * @param {Point} position - The position of the waypoint.
  * @param {number} angle - The angle of the path through the waypoint. Always relative to the world, not the robot.
  * @param {number} endMagnitude - The end magnitude of the path, representing the magnitude of the spline coming into the waypoint. 
  * @param {number} startMagnitude - The start magnitude of the path, representing the magnitude of the spline leaving the waypoint.
  */
 export interface ControlWaypoint extends WaypointBase {
-    x: number;
-    y: number;
+    position: Point;
     angle: number;
     endMagnitude: number;
     // flipEnd: boolean;
@@ -38,8 +36,7 @@ export interface ControlWaypoint extends WaypointBase {
 
 export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
     const controlWaypoint = waypoint as ControlWaypoint;
-    return controlWaypoint.x !== undefined &&
-        controlWaypoint.y !== undefined &&
+    return controlWaypoint.position !== undefined &&
         controlWaypoint.angle !== undefined &&
         controlWaypoint.endMagnitude !== undefined &&
         // controlWaypoint.flipEnd !== undefined &&
@@ -87,8 +84,10 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    x: 0 * Units.INCH,
-                    y: 0 * Units.INCH,
+                    position: {
+                        x: 0 * Units.INCH,
+                        y: 0 * Units.INCH
+                    },
                     angle: 0 * Units.DEGREE,
                     startMagnitude: 1 * Units.FEET,
                     endMagnitude: 1 * Units.FEET
@@ -100,10 +99,15 @@ export const waypointsSlice = createSlice({
         },
         deletedWaypoint: waypointsAdapter.removeOne,
         changedWaypoint: waypointsAdapter.updateOne,
-        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number }>) => {
+        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, position: Point }>) => {
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload });
         },
-        waypointMagnitudeMoved: (waypointState, action: PayloadAction<{ id: EntityId, x: number, y: number, magnitudePosition: MagnitudePosition }>) => {
+        waypointMagnitudeMoved: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            x: number,
+            y: number,
+            magnitudePosition: MagnitudePosition
+        }>) => {
             const { id, x, y, magnitudePosition } = action.payload;
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
@@ -124,8 +128,8 @@ export const waypointsSlice = createSlice({
                 copy.id = action.payload.newWaypointId;
                 copy.name = "Copy of " + copy.name;
                 if (isControlWaypoint(copy)) {
-                    copy.x += 1 * Units.FEET;
-                    copy.y += 1 * Units.FEET;
+                    copy.position.x += 1 * Units.FEET;
+                    copy.position.y += 1 * Units.FEET;
                 } else { copy.parameter += 0.1; }
                 waypointsAdapter.addOne(waypointState, copy);
             }
@@ -142,8 +146,10 @@ export const waypointsSlice = createSlice({
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        x: (index ? 5 : 1) * Units.FEET,
-                        y: (index ? 3 : 1) * Units.FEET,
+                        position: {
+                            x: (index ? 5 : 1) * Units.FEET,
+                            y: (index ? 3 : 1) * Units.FEET
+                        },
                         angle: 0 * Units.DEGREE,
                         startMagnitude: 1 * Units.FEET,
                         endMagnitude: 1 * Units.FEET
