@@ -136,8 +136,10 @@ export const waypointsSlice = createSlice({
                 copy.id = action.payload.newWaypointId;
                 copy.name = "Copy of " + copy.name;
                 if (isControlWaypoint(copy)) {
-                    copy.point.x += 1 * Units.FEET;
-                    copy.point.y += 1 * Units.FEET;
+                    copy.point = {
+                        x: copy.point.x + 1 * Units.FEET,
+                        y: copy.point.y + 1 * Units.FEET
+                    };
                 } else { copy.parameter += 0.1; }
                 waypointsAdapter.addOne(waypointState, copy);
             }
