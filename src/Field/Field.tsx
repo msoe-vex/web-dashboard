@@ -221,6 +221,12 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
+        const shadowProps = {
+            shadowColor : Colors.ORANGE3,
+            shadowBlur : 3 * Units.INCH,
+            shadowOpactity : 1
+        }
+
         const robotRectangle = (<Rect
             x={waypoint.point.x}
             y={waypoint.point.y}
@@ -232,9 +238,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
-            shadowColor={Colors.ORANGE3}
-            shadowBlur={3 * Units.INCH}
-            shadowOpacity={1}
+            {...shadowProps} //Takes key : value pairs from shadowProps.
             onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey)); }}
             draggable={!isHidden && isSelected}
             onDragMove={onWaypointDrag}
@@ -242,7 +246,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
         />);
-
+        
         const ballPoint = {
             x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
             y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
