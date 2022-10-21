@@ -204,8 +204,8 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             dispatch(waypointMoved({
                 id: waypoint.id,
                 point: {
-                    x: e.target.x() + 9 * Units.INCH,
-                    y: e.target.y() + 9 * Units.INCH
+                    x: e.target.x(),
+                    y: e.target.y()
                 }
             }));
         };
@@ -302,14 +302,15 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        points={[previousWaypoint.point.x,
-        previousWaypoint.point.y,
+        points={[
+            previousWaypoint.point.x,
+            previousWaypoint.point.y,
             prevControlX,
             prevControlY,
             currControlX,
             currControlY,
-        waypoint.point.x,
-        waypoint.point.y
+            waypoint.point.x,
+            waypoint.point.y
         ]}
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
