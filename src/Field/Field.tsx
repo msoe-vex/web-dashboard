@@ -28,7 +28,7 @@ import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds
  const shadowProps = {
     shadowColor : Colors.ORANGE3,
     shadowBlur : 3 * Units.INCH,
-    shadowOpactity : 1
+    shadowOpacity : 1
 }
 
 export function Field(): JSX.Element {
