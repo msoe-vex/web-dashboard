@@ -11,11 +11,11 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState, Store } from "../Store/store";
 import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved, waypointMoved, waypointRobotRotated } from "../Tree/waypointsSlice";
+import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved as waypointMagnitudeChanged, waypointMoved, waypointRobotRotated } from "../Tree/waypointsSlice";
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Point, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
-import { couldStartTrivia } from "typescript";
+
 
 /**
  * We need a couple manipulators
@@ -222,8 +222,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
         const robotRectangle = (<Rect
-            x={waypoint.point.x}
-            y={waypoint.point.y}
+            {...waypoint.point}
             offset={{ x: 9 * Units.INCH, y: 9 * Units.INCH }}
             width={18 * Units.INCH}
             height={18 * Units.INCH}
@@ -247,7 +246,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
             y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
         };
-        const rotationManipulator = isSelected ? (<MagnitudeManipulator
+        const rotationManipulator = isSelected ? (<BallManipulator
             startPoint={waypoint.point}
             currentPoint={ballPoint}
             handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
@@ -326,12 +325,12 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     />);
 
     const manipulators = isSelected ? (<>
-        <MagnitudeManipulator
+        <BallManipulator
             startPoint={previousWaypoint.point}
             currentPoint={{ x: prevControlX, y: prevControlY }}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, previousWaypoint.id, MagnitudePosition.START)}
         />
-        <MagnitudeManipulator
+        <BallManipulator
             startPoint={waypoint.point}
             currentPoint={{ x: currControlX, y: currControlY }}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, waypoint.id, MagnitudePosition.END)}
@@ -346,7 +345,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
 function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitudePosition: MagnitudePosition) {
     return (e: KonvaEventObject<MouseEvent>) => {
-        dispatch(waypointMagnitudeMoved({
+        dispatch(waypointMagnitudeChanged({
             id,
             magnitudePosition,
             point: {
@@ -357,13 +356,13 @@ function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitud
     };
 }
 
-interface MagnitudeManipulatorProps {
+interface BallManipulatorProps {
     startPoint: Point;
     currentPoint: Point;
     handleManipulatorDrag: (e: KonvaEventObject<MouseEvent>) => void;
 }
 
-function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
+function BallManipulator(props: BallManipulatorProps): JSX.Element {
     const [isHovered, setHovered] = React.useState<boolean>(false);
     const [isSelected, setSelected] = React.useState<boolean>(false);
 

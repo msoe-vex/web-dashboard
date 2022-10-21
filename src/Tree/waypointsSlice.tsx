@@ -29,9 +29,7 @@ export interface ControlWaypoint extends WaypointBase {
     point: Point;
     angle: number;
     endMagnitude: number;
-    // flipEnd: boolean;
     startMagnitude: number;
-    // flipStart: boolean;
 }
 
 export function isControlWaypoint(waypoint: Waypoint): waypoint is ControlWaypoint {
@@ -63,7 +61,6 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 }
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
-
 
 const waypointsAdapter = createEntityAdapter<Waypoint>();
 const simpleSelectors = waypointsAdapter.getSelectors();

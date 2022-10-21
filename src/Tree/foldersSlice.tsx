@@ -24,7 +24,7 @@ export const foldersSlice = createSlice({
     reducers: {
         /**
          * @param index : @optional
-         *      The index to insert at. The exisiting folder at the index is shifted back to make room.
+         *      The index to insert at. The existing folder at the index is shifted back to make room.
          */
         addedFolderInternal: (folderState, action: PayloadAction<{
             id: EntityId,
