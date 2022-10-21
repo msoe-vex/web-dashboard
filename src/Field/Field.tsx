@@ -24,6 +24,13 @@ import { couldStartTrivia } from "typescript";
  * Angle (could be tied to position manipulator, ala Onshape sketch transform)
  * Robot angle (custom rotation manipulator, rendered as a dot?)
  */
+
+ const shadowProps = {
+    shadowColor : Colors.ORANGE3,
+    shadowBlur : 3 * Units.INCH,
+    shadowOpactity : 1
+}
+
 export function Field(): JSX.Element {
     // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
     // https://github.com/konvajs/react-konva/issues/311#issuecomment-536634446
@@ -221,12 +228,6 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
-        const shadowProps = {
-            shadowColor : Colors.ORANGE3,
-            shadowBlur : 3 * Units.INCH,
-            shadowOpactity : 1
-        }
-
         const robotRectangle = (<Rect
             x={waypoint.point.x}
             y={waypoint.point.y}
@@ -321,9 +322,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
         hitStrokeWidth={3 * Units.INCH}
         shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)))}
-        shadowColor={Colors.ORANGE3}
-        shadowBlur={3 * Units.INCH}
-        shadowOpacity={1}
+        {...shadowProps}
         onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
@@ -385,9 +384,7 @@ function MagnitudeManipulator(props: MagnitudeManipulatorProps): JSX.Element {
             hitStrokeWidth={3 * Units.INCH}
             fill={isSelected ? Colors.ORANGE1 : Colors.BLACK}
             shadowEnabled={isHovered}
-            shadowColor={Colors.ORANGE3}
-            shadowBlur={3 * Units.INCH}
-            shadowOpacity={1}
+            {...shadowProps}
             draggable={true}
             onDragStart={() => { setSelected(true); }}
             onDragMove={props.handleManipulatorDrag}
