@@ -24,6 +24,13 @@ import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds
  * Angle (could be tied to position manipulator, ala Onshape sketch transform)
  * Robot angle (custom rotation manipulator, rendered as a dot?)
  */
+
+ const shadowProps = {
+    shadowColor : Colors.ORANGE3,
+    shadowBlur : 3 * Units.INCH,
+    shadowOpactity : 1
+}
+
 export function Field(): JSX.Element {
     // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
     // https://github.com/konvajs/react-konva/issues/311#issuecomment-536634446
@@ -231,9 +238,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
-            shadowColor={Colors.ORANGE3}
-            shadowBlur={3 * Units.INCH}
-            shadowOpacity={1}
+            {...shadowProps} //Takes key : value pairs from shadowProps.
             onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey)); }}
             draggable={!isHidden && isSelected}
             onDragMove={onWaypointDrag}
@@ -241,7 +246,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
         />);
-
+        
         const ballPoint = {
             x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
             y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
@@ -316,9 +321,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
         hitStrokeWidth={3 * Units.INCH}
         shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)))}
-        shadowColor={Colors.ORANGE3}
-        shadowBlur={3 * Units.INCH}
-        shadowOpacity={1}
+        {...shadowProps}
         onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
@@ -380,9 +383,7 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
             hitStrokeWidth={3 * Units.INCH}
             fill={isSelected ? Colors.ORANGE1 : Colors.BLACK}
             shadowEnabled={isHovered}
-            shadowColor={Colors.ORANGE3}
-            shadowBlur={3 * Units.INCH}
-            shadowOpacity={1}
+            {...shadowProps}
             draggable={true}
             onDragStart={() => { setSelected(true); }}
             onDragMove={props.handleManipulatorDrag}
