@@ -95,9 +95,11 @@ export const pathsSlice = createSlice({
     }
 });
 
+
 export function deletedPath(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const path = selectPathById(getState(), pathId);
+        // const routineId = selectOwnerRoutine(pathId);
         dispatch(deletedPathInternal({
             id: pathId,
             folderIds: path?.folderIds ?? [],

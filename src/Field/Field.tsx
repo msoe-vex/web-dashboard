@@ -208,13 +208,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
 
     if (isControlWaypoint(waypoint)) {
         const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
-            dispatch(waypointMoved({
-                id: waypoint.id,
-                point: {
-                    x: e.target.x(),
-                    y: e.target.y()
-                }
-            }));
+            dispatch(waypointMoved(waypoint.id, { x: e.target.x(), y: e.target.y() }));
         };
 
         // Several different behaviors depending on state

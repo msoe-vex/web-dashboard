@@ -7,7 +7,7 @@ import { uiSlice } from "../Tree/uiSlice";
 import undoable, { excludeAction, GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
-import { renamedWaypoint, waypointMagnitudeMoved, waypointMoved, waypointsSlice } from "../Tree/waypointsSlice";
+import { renamedWaypoint, waypointMagnitudeMoved, waypointMoved, waypointMovedInternal, waypointsSlice } from "../Tree/waypointsSlice";
 import {
     tempUiSlice,
 } from "../Tree/tempUiSlice";
@@ -24,7 +24,7 @@ const stateReducer = combineReducers({
 
 const groupActionTypes = [
     waypointMagnitudeMoved.type,
-    waypointMoved.type,
+    waypointMovedInternal.type,
     renamedWaypoint.type,
     renamedRoutine.type,
     renamedFolder.type
@@ -36,7 +36,7 @@ const groupActions: GroupByFunction = (action) => {
     if (groupActionTypes.includes(action.type)) {
         if (prevAction &&
             action.type === prevAction.type &&
-            (action.type === waypointMoved.type ||
+            (action.type === waypointMovedInternal.type ||
                 action.type === waypointMagnitudeMoved.type) &&
             action.payload.id === prevAction.payload.id) {
             prevAction = action;

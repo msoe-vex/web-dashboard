@@ -5,6 +5,8 @@ import { Point, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
+import { deletedPathInternal } from "./pathsSlice";
+import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { getNextName } from "./Utils";
 
 /**
@@ -96,8 +98,28 @@ export const waypointsSlice = createSlice({
         },
         deletedWaypoint: waypointsAdapter.removeOne,
         changedWaypoint: waypointsAdapter.updateOne,
-        waypointMoved: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
-            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: action.payload });
+        waypointMovedInternal: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            point: Point,
+            selectedWaypointIds: EntityId[]
+        }>) => {
+            const { id, point, selectedWaypointIds } = action.payload;
+            const waypoint = simpleSelectors.selectById(waypointState, id);
+            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+
+            const offsetX = point.x - waypoint.point.x;
+            const offsetY = point.y - waypoint.point.y;
+
+            const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
+                const waypoint = simpleSelectors.selectById(waypointState, selectedWaypointId);
+                if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+                const newPoint = {
+                    x: waypoint.point.x + offsetX,
+                    y: waypoint.point.y + offsetY
+                };
+                return { id: selectedWaypointId, changes: { point: newPoint } };
+            });
+            waypointsAdapter.updateMany(waypointState, updateObjects);
         },
         waypointMagnitudeMoved: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -169,7 +191,7 @@ export const waypointsSlice = createSlice({
             })
             // matchers must come last
             .addMatcher(
-                isAnyOf(deletedRoutineInternal, deletedFolderInternal),
+                isAnyOf(deletedRoutineInternal, deletedPathInternal, deletedFolderInternal),
                 (waypointState, action) => waypointsAdapter.removeMany(waypointState, action.payload.waypointIds))
     }
 });
@@ -181,9 +203,17 @@ export const waypointsSlice = createSlice({
  */
 export function duplicatedWaypoint(id: EntityId): AppThunk {
     return (dispatch) =>
-        dispatch(waypointsSlice.actions.duplicatedWaypointInternal({
+        dispatch(duplicatedWaypointInternal({
             waypointId: id,
             newWaypointId: nanoid()
+        }));
+}
+
+export function waypointMoved(id: EntityId, point: Point): AppThunk {
+    return (dispatch, getState) =>
+        dispatch(waypointsSlice.actions.waypointMovedInternal({
+            id, point,
+            selectedWaypointIds: selectSelectedWaypointIds(getState())
         }));
 }
 
@@ -193,9 +223,9 @@ export const {
     deletedWaypoint,
     changedWaypoint,
     renamedWaypoint,
-    waypointMoved,
     waypointMagnitudeMoved,
-    waypointRobotRotated
+    waypointRobotRotated,
+    waypointMovedInternal
 } = waypointsSlice.actions;
 
 export const waypointsSliceReducer = undoable(waypointsSlice.reducer);
