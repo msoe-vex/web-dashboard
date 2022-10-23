@@ -1,7 +1,7 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 import undoable from "redux-undo";
 
-import { Point, Units } from "../Field/mathUtils";
+import { Point, PointUtils, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
@@ -107,16 +107,12 @@ export const waypointsSlice = createSlice({
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
-            const offsetX = point.x - waypoint.point.x;
-            const offsetY = point.y - waypoint.point.y;
+            const offset = PointUtils.sub(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
                 const waypoint = simpleSelectors.selectById(waypointState, selectedWaypointId);
                 if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
-                const newPoint = {
-                    x: waypoint.point.x + offsetX,
-                    y: waypoint.point.y + offsetY
-                };
+                const newPoint = PointUtils.add(waypoint.point, offset);
                 return { id: selectedWaypointId, changes: { point: newPoint } };
             });
             waypointsAdapter.updateMany(waypointState, updateObjects);

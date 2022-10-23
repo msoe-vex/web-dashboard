@@ -30,6 +30,22 @@ export interface Point {
     y: number;
 }
 
+export class PointUtils {
+    static add(lhs: Point, rhs: Point): Point {
+        return {
+            x: lhs.x + rhs.x,
+            y: lhs.y + rhs.y
+        };
+    }
+
+    static sub(lhs: Point, rhs: Point): Point {
+        return {
+            x: lhs.x - rhs.x,
+            y: lhs.y - rhs.y
+        };
+    }
+}
+
 /**
  * Deprecated
  * Defines information and utility functions for working with canvases that represent the field.
