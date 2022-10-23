@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Tree, TreeNodeInfo, IconName, Button, Card, H5 } from "@blueprintjs/core";
-import { ContextMenu2 } from "@blueprintjs/popover2";
+import { Tree, TreeNodeInfo, IconName, Button, Card, H5, Menu } from "@blueprintjs/core";
+import { ContextMenu2, MenuItem2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -100,12 +100,34 @@ export function AppTree(): JSX.Element {
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
     // A callback function which actually renders the context menu
     const getContextMenu = React.useCallback(
-        (): JSX.Element => (contextMenu), [contextMenu]
-    );
+        (): JSX.Element => (contextMenu),
+        [contextMenu]);
+
+    const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
+        // true if right click is on card specifically
+        if (e.currentTarget === e.target) {
+            const contextMenu = (
+                <Menu>
+                    <MenuItem2 label="Ahh" />
+                </Menu>);
+            setContextMenu(
+                <div style={{
+                    position: "absolute",
+                    left: e.clientX,
+                    top: e.clientY
+                }} >
+                    {contextMenu}
+                </div >);
+        }
+    }, []);
 
     const handleNodeContextMenu = React.useCallback(
         (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
-            const contextMenuProps = { id: node.id, handleRenameClick: () => setRenamingId(node.id) };
+            const contextMenuProps = {
+                id: node.id,
+                handleRenameClick: () => { setRenamingId(node.id); }
+            };
+
             let contextMenu;
             switch (node.nodeData) {
                 case ItemType.PATH:
@@ -127,28 +149,33 @@ export function AppTree(): JSX.Element {
                     throw new Error("Specified tree item does not have a tree context menu.");
             }
             setContextMenu(
-                <div style={{ position: "absolute", left: e.clientX, top: e.clientY }} >
+                <div style={{
+                    position: "absolute",
+                    left: e.clientX,
+                    top: e.clientY
+                }} >
                     {contextMenu}
                 </div >);
         }, []);
 
     return (
-        <Card className="App-tree-card"
-            onClick={(e: React.MouseEvent) => {
-                if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
-            }}
+        <ContextMenu2
+            content={getContextMenu}
+            className={"App-context-menu"}
         >
-            <H5>{routine.name}</H5>
-
-            <ContextMenu2
-                content={getContextMenu}
-                className={"App-context-menu"}
-                popoverProps={{ popoverClassName: "App-tree-context-menu-popover" }}
+            <Card
+                className={"App-tree-card"}
+                onClick={(e: React.MouseEvent) => {
+                    if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
+                }}
+                onContextMenu={handleContextMenu}
             >
+                <H5>{routine.name}</H5>
                 {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
-                < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }} >
+                < div
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}
+                >
                     <Tree
-                        className="App-tree"
                         contents={treeNodeInfo}
                         onNodeClick={handleNodeClick}
                         onNodeCollapse={handleNodeCollapse}
@@ -158,8 +185,8 @@ export function AppTree(): JSX.Element {
                         onNodeMouseLeave={handleNodeMouseLeave}
                     />
                 </div>
-            </ContextMenu2>
-        </Card>
+            </Card>
+        </ContextMenu2>
     );
 };
 

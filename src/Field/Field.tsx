@@ -1,21 +1,24 @@
 import React from "react";
-import { Colors } from "@blueprintjs/core/lib/esm/common";
 import { EntityId } from "@reduxjs/toolkit";
+
 import { KonvaEventObject } from "konva/lib/Node";
 import { Circle, Layer, Line, Rect, Stage } from "react-konva";
-import { Provider, ReactReduxContext } from "react-redux";
-import { ContextMenu2 } from "@blueprintjs/popover2";
+
+import { Colors } from "@blueprintjs/core/lib/esm/common";
+import { ContextMenu2, MenuItem2 } from "@blueprintjs/popover2";
 import { Menu, MenuDivider } from "@blueprintjs/core";
 
+import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { AppDispatch, RootState, Store } from "../Store/store";
+
 import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved as waypointMagnitudeChanged, waypointMoved, waypointRobotRotated } from "../Tree/waypointsSlice";
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Point, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
-
+import Konva from "konva";
 
 /**
  * We need a couple manipulators
@@ -24,12 +27,6 @@ import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds
  * Angle (could be tied to position manipulator, ala Onshape sketch transform)
  * Robot angle (custom rotation manipulator, rendered as a dot?)
  */
-
- const shadowProps = {
-    shadowColor : Colors.ORANGE3,
-    shadowBlur : 3 * Units.INCH,
-    shadowOpacity : 1
-}
 
 export function Field(): JSX.Element {
     // Konva does not like Redux, so some shenanigans are required to make the store available inside the Konva stage
@@ -74,43 +71,65 @@ function FieldStage(props: FieldStageProps): JSX.Element {
         return () => window.removeEventListener("resize", resizeCanvas);
     }, [resizeCanvas]);
 
+    // context menu hooks
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
+    const getContextMenu = React.useCallback((): JSX.Element => (contextMenu), [contextMenu]);
 
-    // setContextMenu(
-    //     <Menu>
-    //         <MenuDivider />
-    //     </Menu>
-    // );
-
-    // const getContextMenu = React.useCallback(
-    //     (): JSX.Element => (contextMenu), [contextMenu]
-    // );
+    const handleContextMenu = (contextMenu: JSX.Element) => {
+        return (e: KonvaEventObject<MouseEvent>) => {
+            setContextMenu(
+                <div style={{
+                    position: "absolute",
+                    left: e.evt.clientX,
+                    top: e.evt.clientY
+                }}>
+                    {contextMenu}
+                </div>);
+        };
+    };
 
     const fieldDimensions = selectFieldDimensions(props.store.getState());
     const fieldTransform = computeFieldTransform(canvasHeight, canvasWidth, fieldDimensions);
 
-    return (<Stage
-        width={canvasWidth}
-        height={canvasHeight}
-        onClick={(e: KonvaEventObject<MouseEvent>) => {
-            if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
-        }}
-    >
-        {/* Make store available again inside stage */}
-        <Provider store={props.store}>
-            {/* <ContextMenu2
-                content={getContextMenu}
-                className={"App-context-menu"}
-            > */}
-            <FieldLayer
-                fieldTransform={fieldTransform}
-                fieldDimensions={fieldDimensions}
-            />
-            <ElementLayer fieldTransform={fieldTransform} />
-            {/* </ContextMenu2> */}
-        </Provider>
-    </Stage>);
+    return (
+        <ContextMenu2
+            content={getContextMenu}
+            className={"App-context-menu"}
+        >
+            <Stage
+                width={canvasWidth}
+                height={canvasHeight}
+                onClick={(e: KonvaEventObject<MouseEvent>) => {
+                    if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
+                }}
+                onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
+                    if (!e.cancelBubble) {
+                        handleContextMenu(
+                            <Menu>
+                                <MenuItem2 label="Generic (outside)" />
+                            </Menu>
+                        );
+                    }
+                }}
+            >
+                {/* Make store available again inside stage */}
+                <Provider store={props.store}>
+                    <FieldLayer
+                        fieldTransform={fieldTransform}
+                        fieldDimensions={fieldDimensions}
+                        handleContextMenu={handleContextMenu}
+                    />
+                    <ElementLayer
+                        fieldTransform={fieldTransform}
+                        handleContextMenu={handleContextMenu}
+                    />
+                </Provider>
+            </Stage>
+        </ContextMenu2>
+    );
 }
+
+type HandleContextMenu = (contextMenu: JSX.Element) => (e: KonvaEventObject<MouseEvent>) => void;
 
 function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldDimensions: FieldDimensions): Transform {
     const heightToWidth = fieldDimensions.width / fieldDimensions.height;
@@ -131,10 +150,16 @@ function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldD
 interface FieldLayerProps {
     fieldTransform: Transform;
     fieldDimensions: FieldDimensions;
+    handleContextMenu: HandleContextMenu;
 }
 
 function FieldLayer(props: FieldLayerProps): JSX.Element {
-    return (<Layer {...props.fieldTransform}>
+    return (<Layer {...props.fieldTransform}
+        onContextMenu={props.handleContextMenu(
+            <Menu >
+                <MenuItem2 label="Generic" />
+            </Menu>)}
+    >
         <Rect
             x={0.5 * Units.INCH}
             y={0.5 * Units.INCH}
@@ -149,17 +174,22 @@ function FieldLayer(props: FieldLayerProps): JSX.Element {
 
 interface ElementLayerProps {
     fieldTransform: Transform;
+    handleContextMenu: HandleContextMenu;
 }
 
 function ElementLayer(props: ElementLayerProps): JSX.Element {
     return (<Layer {...props.fieldTransform}
         onClick={(e: KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; }}
     >
-        <RobotElements />
+        <RobotElements handleContextMenu={props.handleContextMenu} />
     </Layer>)
 }
 
-export function RobotElements(): JSX.Element {
+interface RobotElementsProps {
+    handleContextMenu: HandleContextMenu;
+}
+
+export function RobotElements(props: RobotElementsProps): JSX.Element {
     const paths = useAppSelector((state: RootState) => {
         const activeRoutine = selectActiveRoutine(state);
         if (!activeRoutine) { throw new Error("Field expected valid active routine."); }
@@ -176,6 +206,7 @@ export function RobotElements(): JSX.Element {
             <RobotElement
                 key={waypointId}
                 waypointId={waypointId}
+                handleContextMenu={props.handleContextMenu}
             />))}
         {paths.flatMap(path => {
             var elements = [];
@@ -184,6 +215,7 @@ export function RobotElements(): JSX.Element {
                     key={path.waypointIds[i]}
                     previousWaypointId={path.waypointIds[i - 1]}
                     waypointId={path.waypointIds[i]}
+                    handleContextMenu={props.handleContextMenu}
                 />);
             }
             return elements;
@@ -191,7 +223,16 @@ export function RobotElements(): JSX.Element {
     </>);
 }
 
-interface RobotElementProps { waypointId: EntityId; }
+const shadowProps = {
+    shadowColor: Colors.ORANGE3,
+    shadowBlur: 3 * Units.INCH,
+    shadowOpacity: 1
+}
+
+interface RobotElementProps {
+    waypointId: EntityId;
+    handleContextMenu: HandleContextMenu;
+}
 
 export function RobotElement(props: RobotElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
@@ -239,8 +280,13 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onDragEnd={onWaypointDrag}
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
+            onContextMenu={props.handleContextMenu(
+                <Menu>
+                    <MenuItem2 label="Robot" />
+                </Menu>
+            )}
         />);
-        
+
         const ballPoint = {
             x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
             y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
@@ -251,10 +297,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
                 dispatch(waypointRobotRotated({
                     id: waypoint.id,
-                    point: {
-                        x: e.target.x(),
-                        y: e.target.y()
-                    }
+                    point: { x: e.target.x(), y: e.target.y() }
                 }))
             }}
         />) : (null);
@@ -272,6 +315,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
 interface SplineElementProps {
     previousWaypointId: EntityId;
     waypointId: EntityId;
+    handleContextMenu: HandleContextMenu;
 }
 
 export function SplineElement(props: SplineElementProps): JSX.Element | null {
@@ -319,6 +363,11 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
+        onContextMenu={props.handleContextMenu(
+            <Menu>
+                <MenuItem2 label="Spline" />
+            </Menu>
+        )}
     />);
 
     const manipulators = isSelected ? (<>

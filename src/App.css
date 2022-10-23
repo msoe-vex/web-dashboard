@@ -24,6 +24,7 @@
   width: 325px;
   min-width: 325px;
   max-width: 325px;
+  height: 100vh !important;
 }
 
 .App-eye-button:hover {
