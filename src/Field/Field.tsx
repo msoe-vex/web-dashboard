@@ -19,6 +19,8 @@ import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
 import { Point, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
 import Konva from "konva";
+import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
+import { node } from "prop-types";
 
 /**
  * We need a couple manipulators
@@ -263,6 +265,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         if (isHidden) { fill = isSelected ? Colors.ORANGE3 : undefined; }
         else { fill = isSelected ? Colors.ORANGE1 : Colors.BLUE1; }
 
+
         const robotRectangle = (<Rect
             {...waypoint.point}
             offset={{ x: 9 * Units.INCH, y: 9 * Units.INCH }}
@@ -281,9 +284,11 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
             onContextMenu={props.handleContextMenu(
-                <Menu>
-                    <MenuItem2 label="Robot" />
-                </Menu>
+                (<WaypointContextMenu
+                    id={waypoint.id}
+                    menuLocation={MenuLocation.FIELD} handleRenameClick={() => {
+                        throw new Error("Cannont rename");
+                    }} />)
             )}
         />);
 

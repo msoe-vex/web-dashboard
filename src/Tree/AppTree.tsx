@@ -14,7 +14,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
 import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
@@ -143,6 +143,7 @@ export function AppTree(): JSX.Element {
                 case ItemType.WAYPOINT:
                     contextMenu = (<WaypointContextMenu
                         {...contextMenuProps}
+                        menuLocation = {MenuLocation.TREE}
                     />);
                     break;
                 default:

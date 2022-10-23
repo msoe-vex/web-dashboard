@@ -21,6 +21,12 @@ import { MenuItem2 } from "@blueprintjs/popover2";
 interface WaypointContextMenuProps {
     id: EntityId;
     handleRenameClick: () => void;
+    menuLocation: MenuLocation;
+}
+
+export enum MenuLocation {
+    FIELD, //waypoit/robot associated with click
+    TREE
 }
 
 export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Element {
@@ -28,22 +34,27 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
 
     const showAll = (<ShowAllMenuItem dispatch={dispatch} />);
     const hideAll = (<HideAllMenuItem dispatch={dispatch} />);
+    const onTree = (props.menuLocation === MenuLocation.TREE);
+    
     return (
         <Menu>
-            <RenameMenuItem onClick={props.handleRenameClick} />
+            {onTree ? <RenameMenuItem onClick={props.handleRenameClick} /> : null}
             {/* <EditMenuItem onClick={dispatch(editedWaypoint(props.id))} /> */}
             <DuplicateMenuItem onClick={() => { dispatch(duplicatedWaypoint(props.id)); }} />
-            <AddSelectionToNewFolderMenuItem dispatch={dispatch} />
+
+            {onTree ? <AddSelectionToNewFolderMenuItem dispatch={dispatch} /> : null}
 
             <MenuDivider />
 
-            <CollapseAndExpandFoldersMenuItems dispatch={dispatch} />
+            {onTree ? <CollapseAndExpandFoldersMenuItems dispatch={dispatch} /> : null}
 
             {showAll}
             {hideAll}
             <MenuDivider />
 
             <DeleteMenuItem onClick={() => { dispatch(deletedWaypoint(props.id)); }} />
+
+            {/* set speed option */}
         </Menu>
     );
 }
