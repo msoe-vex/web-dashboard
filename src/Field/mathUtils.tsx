@@ -1,3 +1,5 @@
+import { KonvaEventObject } from "konva/lib/Node";
+
 /**
  * A class defining basic unit conversions.
  * By default, all lengths should be in meters, and angles in radians.
@@ -31,6 +33,18 @@ export interface Point {
 }
 
 export class PointUtils {
+    static Point(x: number, y: number): Point {
+        return { x, y };
+    }
+
+    static PolarPoint(base: Point, angle: number, magnitude: number): Point {
+        return this.add(base, this.Point(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude));
+    }
+
+    static KonvaEventPoint(e: KonvaEventObject<MouseEvent>) {
+        return this.Point(e.target.x(), e.target.y());
+    }
+
     static add(lhs: Point, rhs: Point): Point {
         return {
             x: lhs.x + rhs.x,
@@ -43,6 +57,20 @@ export class PointUtils {
             x: lhs.x - rhs.x,
             y: lhs.y - rhs.y
         };
+    }
+
+    static distance(start: Point, end: Point): number {
+        return Math.sqrt((start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y));
+    }
+
+    static angle(point: Point): number {
+        return Math.atan2(point.y, point.x);
+    }
+
+
+
+    static flatten(points: Point[]) {
+        return points.flatMap(point => [point.x, point.y]);
     }
 }
 

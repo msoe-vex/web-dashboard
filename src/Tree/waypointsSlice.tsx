@@ -83,10 +83,7 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    point: {
-                        x: 0 * Units.INCH,
-                        y: 0 * Units.INCH
-                    },
+                    point: PointUtils.Point(0 * Units.INCH, 0 * Units.INCH),
                     angle: 0 * Units.DEGREE,
                     startMagnitude: 1 * Units.FEET,
                     endMagnitude: 1 * Units.FEET
@@ -126,9 +123,9 @@ export const waypointsSlice = createSlice({
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
-            const newAngle = Math.atan2(point.y - waypoint.point.y, point.x - waypoint.point.x);
-            const newMagnitude = Math.sqrt((point.x - waypoint.point.x) * (point.x - waypoint.point.x) +
-                (point.y - waypoint.point.y) * (point.y - waypoint.point.y));
+            const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
+            const newMagnitude = PointUtils.distance(point, waypoint.point);
+
             const changes = (magnitudePosition === MagnitudePosition.START) ?
                 // magnitude out
                 { angle: newAngle, startMagnitude: newMagnitude } :
@@ -141,7 +138,7 @@ export const waypointsSlice = createSlice({
             const waypoint = simpleSelectors.selectById(waypointState, id);
             if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
-            const newAngle = Math.atan2(point.y - waypoint.point.y, point.x - waypoint.point.x);
+            const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { robotAngle: newAngle } });
         },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
@@ -151,10 +148,7 @@ export const waypointsSlice = createSlice({
                 copy.id = action.payload.newWaypointId;
                 copy.name = "Copy of " + copy.name;
                 if (isControlWaypoint(copy)) {
-                    copy.point = {
-                        x: copy.point.x + 1 * Units.FEET,
-                        y: copy.point.y + 1 * Units.FEET
-                    };
+                    copy.point = PointUtils.add(copy.point, PointUtils.Point(1 * Units.FEET, 1 * Units.FEET));
                 } else { copy.parameter += 0.1; }
                 waypointsAdapter.addOne(waypointState, copy);
             }
@@ -171,10 +165,9 @@ export const waypointsSlice = createSlice({
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        point: {
-                            x: (index ? 5 : 1) * Units.FEET,
-                            y: (index ? 3 : 1) * Units.FEET
-                        },
+                        point: PointUtils.Point(
+                            (index ? 5 : 1) * Units.FEET,
+                            (index ? 3 : 1) * Units.FEET),
                         angle: 0 * Units.DEGREE,
                         startMagnitude: 1 * Units.FEET,
                         endMagnitude: 1 * Units.FEET

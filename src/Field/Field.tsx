@@ -16,7 +16,7 @@ import { selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, MagnitudePosition, selectWaypointById, waypointMagnitudeMoved as waypointMagnitudeChanged, waypointMoved, waypointRobotRotated } from "../Tree/waypointsSlice";
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
-import { Point, Transform, Units } from "./mathUtils";
+import { Point, PointUtils, Transform, Units } from "./mathUtils";
 import { allItemsDeselected, selectHoveredWaypointIds, selectSelectedWaypointIds, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave, itemSelected } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu, wrapContextMenu } from "../Tree/TreeContextMenu";
 
@@ -235,7 +235,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
 
     if (isControlWaypoint(waypoint)) {
         const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
-            dispatch(waypointMoved(waypoint.id, { x: e.target.x(), y: e.target.y() }));
+            dispatch(waypointMoved(waypoint.id, PointUtils.KonvaEventPoint(e)));
         };
 
         // Several different behaviors depending on state
@@ -272,17 +272,14 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             />)}
         />);
 
-        const ballPoint = {
-            x: waypoint.point.x + Math.cos(waypoint.robotAngle ?? 0) * 2 * Units.FEET,
-            y: waypoint.point.y + Math.sin(waypoint.robotAngle ?? 0) * 2 * Units.FEET
-        };
+        const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);
         const rotationManipulator = isSelected ? (<BallManipulator
             startPoint={waypoint.point}
             currentPoint={ballPoint}
             handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
                 dispatch(waypointRobotRotated({
                     id: waypoint.id,
-                    point: { x: e.target.x(), y: e.target.y() }
+                    point: PointUtils.KonvaEventPoint(e)
                 }))
             }}
         />) : (null);
@@ -320,25 +317,13 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
     if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
-    const prevControlX = previousWaypoint.point.x + Math.cos(previousWaypoint.angle) * previousWaypoint.startMagnitude;
-    const prevControlY = previousWaypoint.point.y + Math.sin(previousWaypoint.angle) * previousWaypoint.startMagnitude;
-
-    const currControlX = waypoint.point.x + Math.cos(waypoint.angle) * -waypoint.endMagnitude;
-    const currControlY = waypoint.point.y + Math.sin(waypoint.angle) * -waypoint.endMagnitude;
+    const prevControl = PointUtils.PolarPoint(previousWaypoint.point, previousWaypoint.angle, previousWaypoint.startMagnitude);
+    const currControl = PointUtils.PolarPoint(waypoint.point, waypoint.angle, -waypoint.endMagnitude);
 
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        points={[
-            previousWaypoint.point.x,
-            previousWaypoint.point.y,
-            prevControlX,
-            prevControlY,
-            currControlX,
-            currControlY,
-            waypoint.point.x,
-            waypoint.point.y
-        ]}
+        points={PointUtils.flatten([previousWaypoint.point, prevControl, currControl, waypoint.point])}
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
@@ -356,12 +341,12 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const manipulators = isSelected ? (<>
         <BallManipulator
             startPoint={previousWaypoint.point}
-            currentPoint={{ x: prevControlX, y: prevControlY }}
+            currentPoint={prevControl}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, previousWaypoint.id, MagnitudePosition.START)}
         />
         <BallManipulator
             startPoint={waypoint.point}
-            currentPoint={{ x: currControlX, y: currControlY }}
+            currentPoint={currControl}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, waypoint.id, MagnitudePosition.END)}
         />
     </>) : (null);
@@ -377,10 +362,7 @@ function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitud
         dispatch(waypointMagnitudeChanged({
             id,
             magnitudePosition,
-            point: {
-                x: e.target.x(),
-                y: e.target.y(),
-            }
+            point: PointUtils.KonvaEventPoint(e)
         }));
     };
 }
@@ -396,8 +378,7 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
     const [isSelected, setSelected] = React.useState<boolean>(false);
 
     const line = (<Line
-        points={[props.startPoint.x, props.startPoint.y,
-        props.currentPoint.x, props.currentPoint.y]}
+        points={PointUtils.flatten([props.startPoint, props.currentPoint])}
         strokeWidth={0.25 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
     />);
