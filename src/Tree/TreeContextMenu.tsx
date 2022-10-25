@@ -18,6 +18,33 @@ import {
 } from "./MenuItems";
 import { MenuItem2 } from "@blueprintjs/popover2";
 
+export function wrapContextMenu(e: MouseEvent, contextMenu: JSX.Element): JSX.Element {
+    return (
+        <div style={{
+            position: "absolute",
+            left: e.clientX,
+            top: e.clientY
+        }}>
+            {contextMenu}
+        </div>);
+}
+
+// interface ContextMenuProps {
+//     event: React.MouseEvent;
+//     children: JSX.Element;
+// }
+
+// export function ContextMenu(props: ContextMenuProps): JSX.Element {
+//     return (
+//         <div style={{
+//             position: "absolute",
+//             left: props.event.clientX,
+//             top: props.event.clientY
+//         }}>
+//             {props.children}
+//         </div>);
+// }
+
 interface WaypointContextMenuProps {
     id: EntityId;
     handleRenameClick: () => void;
@@ -35,7 +62,7 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
     const showAll = (<ShowAllMenuItem dispatch={dispatch} />);
     const hideAll = (<HideAllMenuItem dispatch={dispatch} />);
     const onTree = (props.menuLocation === MenuLocation.TREE);
-    
+
     return (
         <Menu>
             {onTree ? <RenameMenuItem onClick={props.handleRenameClick} /> : null}

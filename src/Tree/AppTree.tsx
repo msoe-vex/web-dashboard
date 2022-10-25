@@ -14,7 +14,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, wrapContextMenu } from "./TreeContextMenu";
 import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
@@ -99,9 +99,7 @@ export function AppTree(): JSX.Element {
 
     const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
     // A callback function which actually renders the context menu
-    const getContextMenu = React.useCallback(
-        (): JSX.Element => (contextMenu),
-        [contextMenu]);
+    const getContextMenu = React.useCallback((): JSX.Element => (contextMenu), [contextMenu]);
 
     const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
         // true if right click is on card specifically
@@ -110,14 +108,7 @@ export function AppTree(): JSX.Element {
                 <Menu>
                     <MenuItem2 label="Ahh" />
                 </Menu>);
-            setContextMenu(
-                <div style={{
-                    position: "absolute",
-                    left: e.clientX,
-                    top: e.clientY
-                }} >
-                    {contextMenu}
-                </div >);
+            setContextMenu(wrapContextMenu(e.nativeEvent, contextMenu));
         }
     }, []);
 
@@ -143,20 +134,13 @@ export function AppTree(): JSX.Element {
                 case ItemType.WAYPOINT:
                     contextMenu = (<WaypointContextMenu
                         {...contextMenuProps}
-                        menuLocation = {MenuLocation.TREE}
+                        menuLocation={MenuLocation.TREE}
                     />);
                     break;
                 default:
                     throw new Error("Specified tree item does not have a tree context menu.");
             }
-            setContextMenu(
-                <div style={{
-                    position: "absolute",
-                    left: e.clientX,
-                    top: e.clientY
-                }} >
-                    {contextMenu}
-                </div >);
+            setContextMenu(wrapContextMenu(e.nativeEvent, contextMenu));
         }, []);
 
     return (
@@ -171,11 +155,11 @@ export function AppTree(): JSX.Element {
                 }}
                 onContextMenu={handleContextMenu}
             >
-                <H5>{routine.name}</H5>
+                <H5
+                    onContextMenu={handleContextMenu}
+                >{routine.name}</H5>
                 {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
-                < div
-                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}
-                >
+                < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}>
                     <Tree
                         contents={treeNodeInfo}
                         onNodeClick={handleNodeClick}
