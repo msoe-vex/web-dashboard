@@ -14,7 +14,7 @@ import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { selectWaypointById, isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved } from "../Tree/waypointsSlice";
 import { Units, PointUtils, Point } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
-import { ContextMenuHandlerContext } from "./Field";
+import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
 export function FieldElements(): JSX.Element {
     const paths = useAppSelector((state: RootState) => {
@@ -60,7 +60,7 @@ interface RobotElementProps {
 
 export function RobotElement(props: RobotElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const getContextMenuHandler = React.useContext(ContextMenuHandlerContext);
+    const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
     const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
     if (!waypoint) { throw new Error("Path spline expected valid waypoint."); }
@@ -105,10 +105,11 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             onDragEnd={onWaypointDrag}
             onMouseEnter={() => { dispatch(itemMouseEnter(waypoint.id, ItemType.WAYPOINT)); }}
             onMouseLeave={() => { dispatch(itemMouseLeave(waypoint.id, ItemType.WAYPOINT)); }}
-            onContextMenu={getContextMenuHandler(<WaypointContextMenu
-                id={waypoint.id}
-                menuLocation={MenuLocation.FIELD} handleRenameClick={() => { }}
-            />)}
+            onContextMenu={konvaContextMenuHandler(
+                <WaypointContextMenu
+                    id={waypoint.id}
+                    menuLocation={MenuLocation.FIELD} handleRenameClick={() => { }}
+                />)}
         />);
 
         const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);
@@ -140,7 +141,7 @@ interface SplineElementProps {
 
 export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const getContextMenuHandler = React.useContext(ContextMenuHandlerContext);
+    const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
     const previousWaypoint = useAppSelector(state => selectWaypointById(state, props.previousWaypointId));
     const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
@@ -172,9 +173,10 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
         onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
-        onContextMenu={getContextMenuHandler(<Menu>
-            <MenuItem2 label="Spline" />
-        </Menu>)}
+        onContextMenu={konvaContextMenuHandler(
+            <Menu>
+                <MenuItem2 label="Spline" />
+            </Menu>)}
     />);
 
     const manipulators = isSelected ? (<>

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Tree, TreeNodeInfo, IconName, Button, Card, H5, Menu } from "@blueprintjs/core";
-import { ContextMenu2, MenuItem2 } from "@blueprintjs/popover2";
+import { MenuItem2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -14,7 +14,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, wrapContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
 import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
@@ -30,6 +30,7 @@ import {
     treeItemsExpanded,
     TreeItemType
 } from "./tempUiSlice";
+import { ContextMenuHandlerContext } from "../Field/AppContextMenu";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -97,9 +98,7 @@ export function AppTree(): JSX.Element {
         dispatch(itemMouseLeave(node.id, node.nodeData));
     }, [dispatch]);
 
-    const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
-    // A callback function which actually renders the context menu
-    const getContextMenu = React.useCallback((): JSX.Element => (contextMenu), [contextMenu]);
+    const contextMenuHandler = React.useContext(ContextMenuHandlerContext);
 
     const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
         // true if right click is on card specifically
@@ -108,9 +107,9 @@ export function AppTree(): JSX.Element {
                 <Menu>
                     <MenuItem2 label="Ahh" />
                 </Menu>);
-            setContextMenu(wrapContextMenu(e.nativeEvent, contextMenu));
+            contextMenuHandler(contextMenu, e.nativeEvent);
         }
-    }, []);
+    }, [contextMenuHandler]);
 
     const handleNodeContextMenu = React.useCallback(
         (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
@@ -140,14 +139,10 @@ export function AppTree(): JSX.Element {
                 default:
                     throw new Error("Specified tree item does not have a tree context menu.");
             }
-            setContextMenu(wrapContextMenu(e.nativeEvent, contextMenu));
-        }, []);
+            contextMenuHandler(contextMenu, e.nativeEvent);
+        }, [contextMenuHandler]);
 
     return (
-        <ContextMenu2
-            content={getContextMenu}
-            className={"App-context-menu"}
-        >
             <Card
                 className={"App-tree-card"}
                 onClick={(e: React.MouseEvent) => {
@@ -171,7 +166,6 @@ export function AppTree(): JSX.Element {
                     />
                 </div>
             </Card>
-        </ContextMenu2>
     );
 };
 

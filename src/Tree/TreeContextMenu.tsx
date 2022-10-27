@@ -18,16 +18,6 @@ import {
 } from "./MenuItems";
 import { MenuItem2 } from "@blueprintjs/popover2";
 
-export function wrapContextMenu(e: MouseEvent, contextMenu: JSX.Element): JSX.Element {
-    return (
-        <div style={{
-            position: "absolute",
-            left: e.clientX,
-            top: e.clientY
-        }}>
-            {contextMenu}
-        </div>);
-}
 
 // interface ContextMenuProps {
 //     event: React.MouseEvent;
