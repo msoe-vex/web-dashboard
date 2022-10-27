@@ -40,7 +40,7 @@ export function Field(): JSX.Element {
                     </ContextMenuHandlerContext.Consumer>
                 }
             </ReactReduxContext.Consumer>
-        </div >
+        </div>
     );
 }
 

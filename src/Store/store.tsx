@@ -7,7 +7,7 @@ import { uiSlice } from "../Tree/uiSlice";
 import undoable, { excludeAction, GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
-import { renamedWaypoint, waypointMagnitudeMoved, waypointMoved, waypointMovedInternal, waypointsSlice } from "../Tree/waypointsSlice";
+import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointsSlice } from "../Tree/waypointsSlice";
 import {
     tempUiSlice,
 } from "../Tree/tempUiSlice";
