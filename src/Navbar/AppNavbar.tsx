@@ -11,8 +11,15 @@ import {
 import { RoutineMenu } from "./RoutineMenu";
 import { RobotMenu } from "./RobotMenu";
 import { ExportMenu } from "./ExportMenu";
+import { useAppSelector } from "../Store/hooks";
+import { selectActiveRoutine } from "../Tree/uiSlice";
 
 export function AppNavbar(): JSX.Element {
+    const exportMenu = useAppSelector(selectActiveRoutine) ? (<>
+        <NavbarDivider />
+        <ExportMenu />
+    </>) : null;
+
     return (
         <Navbar className="App-navbar">
             <NavbarGroup align={Alignment.LEFT}>
@@ -21,8 +28,7 @@ export function AppNavbar(): JSX.Element {
                 <RoutineMenu />
                 <NavbarDivider />
                 <RobotMenu />
-                <NavbarDivider />
-                <ExportMenu />
+                {exportMenu}
             </NavbarGroup>
         </Navbar>
     );

@@ -2,23 +2,27 @@ import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@bluep
 import React from "react";
 import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { exportDialogClosed, exportDialogOpened, selectIsExportDialogOpen } from "../Tree/tempUiSlice";
+import { selectActiveRoutine } from "../Tree/uiSlice";
 
 // interface ExportMenuProps {
 // }
 
 export function ExportMenu(): JSX.Element {
-    const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
-    const handleClose = () => { setIsExportMenuOpen(false); }
+    const dispatch = useAppDispatch();
 
-    const exportMenuButton = (<ExportMenuButton
-        onClick={() => { setIsExportMenuOpen(true); }}
-    />);
+    const handleClose = React.useCallback(
+        () => { dispatch(exportDialogClosed()); }
+        , [dispatch]);
+
+    const activeRoutine = useAppSelector(selectActiveRoutine);
+    if (!activeRoutine) { throw new Error("Export dialog must have an active routine."); }
 
     return (<>
-        {exportMenuButton}
+        <ExportMenuButton onClick={() => { dispatch(exportDialogOpened()); }} />
         <Dialog
-            title="Export path"
-            isOpen={isExportMenuOpen}
+            title={"Export " + activeRoutine.name}
+            isOpen={useAppSelector(selectIsExportDialogOpen)}
             onClose={handleClose}
             isCloseButtonShown={true}
         >
@@ -33,7 +37,7 @@ interface ExportMenuContentsProps {
 
 function ExportMenuContents(props: ExportMenuContentsProps): JSX.Element {
     const dispatch = useAppDispatch();
-    // should probably live in field slice
+    // should probably live in field slice (or robot slice?)
     const [maxVelocity, setMaxVelocity] = React.useState(50);
     const [maxAcceleration, setMaxAcceleration] = React.useState(100);
 

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
+import { DUMMY_ID } from "../Store/dummyId";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
 import { selectPathById } from "./pathsSlice";
@@ -14,6 +15,7 @@ import { selectedActiveRoutine } from "./uiSlice";
  *      Takes precedence over activeWaypoints.
  * @property selectedSplineIds - A list of waypointId pairs representing splines which are currently selected.
  * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
+ * @property robotDialog - The id of the robot dialog which is currently open, or `DUMMY_ID` if none is.
  */
 export interface TempUi {
     collapsedFolderIds: EntityId[];
@@ -21,6 +23,8 @@ export interface TempUi {
     hoveredWaypointIds: EntityId[];
     selectedSplineIds: EntityId[][];
     hoveredSplineIds: EntityId[][];
+    isExportDialogOpen: boolean;
+    robotDialog: EntityId;
 }
 
 export enum ItemType {
@@ -42,7 +46,9 @@ const defaultTempUiState: TempUi = {
     hoveredWaypointIds: [],
     selectedWaypointIds: [],
     hoveredSplineIds: [],
-    selectedSplineIds: []
+    selectedSplineIds: [],
+    isExportDialogOpen: false,
+    robotDialog: DUMMY_ID
 };
 
 export const tempUiSlice = createSlice({
@@ -141,6 +147,19 @@ export const tempUiSlice = createSlice({
                 uiState.selectedWaypointIds = []; // Remove waypoint selection
                 uiState.selectedSplineIds = [action.payload]; // Only one at a time (for now?)
             }
+        },
+        exportDialogOpened(uiState) {
+            uiState.isExportDialogOpen = true;
+            uiState.robotDialog = DUMMY_ID;
+        },
+        exportDialogClosed(uiState) {
+            uiState.isExportDialogOpen = false;
+        },
+        robotDialogOpened(uiState, action: PayloadAction<EntityId>) {
+            uiState.robotDialog = action.payload;
+        },
+        robotDialogClosed(uiState) {
+            uiState.robotDialog = DUMMY_ID;
         }
     },
     extraReducers: (builder) => {
@@ -192,7 +211,11 @@ export const {
     treeItemsExpanded,
     splineMouseEnter,
     splineMouseLeave,
-    splineSelected
+    splineSelected,
+    exportDialogOpened,
+    exportDialogClosed,
+    robotDialogOpened,
+    robotDialogClosed,
 } = tempUiSlice.actions;
 
 /**
@@ -225,3 +248,7 @@ export function selectSelectedWaypointIds(state: RootState) { return state.tempU
 
 export function selectHoveredSplineIds(state: RootState) { return state.tempUi.hoveredSplineIds; }
 export function selectSelectedSplineIds(state: RootState) { return state.tempUi.selectedSplineIds; }
+
+export function selectIsExportDialogOpen(state: RootState) { return state.tempUi.isExportDialogOpen; }
+export function selectIsRobotDialogOpen(state: RootState) { return selectRobotDialogId(state) !== DUMMY_ID; }
+export function selectRobotDialogId(state: RootState) { return state.tempUi.robotDialog; }
