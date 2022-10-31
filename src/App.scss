@@ -47,15 +47,6 @@
   height: 100vh;
 }
 
-.export-menu {
-  $export-menu-width: $pt-grid-size * 40;
-
-  left: calc(50vw - #{$export-menu-width * 0.5});
-  margin: 10vh 0;
-  top: 0;
-  width: $export-menu-width;
-}
-
 /* .base-canvas {
   width: 100%;
   height: 100%;

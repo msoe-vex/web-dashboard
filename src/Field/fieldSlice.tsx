@@ -5,6 +5,7 @@ import { Units } from "./mathUtils";
 export interface Field {
     // image: Image;
     fieldDimensions: FieldDimensions;
+    splinePointCount: number;
 }
 
 export interface FieldDimensions {
@@ -17,20 +18,29 @@ export const fieldSlice = createSlice({
     initialState: {
         fieldDimensions: {
             height: 12 * Units.FEET + 2 * Units.INCH,
-            width: 12 * Units.FEET + 2 * Units.INCH
-        }
+            width: 12 * Units.FEET + 2 * Units.INCH,
+        },
+        splinePointCount: 10
     } as Field,
     reducers: {
         fieldDimensionsChanged(fieldState, action: PayloadAction<FieldDimensions>) {
             fieldState.fieldDimensions = action.payload;
         },
+        splinePointCountChanged(fieldState, action: PayloadAction<number>) {
+            fieldState.splinePointCount = action.payload;
+        }
     }
 });
 
 export const {
-    fieldDimensionsChanged
+    fieldDimensionsChanged,
+    splinePointCountChanged
 } = fieldSlice.actions;
 
 export function selectFieldDimensions(state: RootState) {
     return state.history.present.field.fieldDimensions;
+}
+
+export function selectSplinePointCount(state: RootState) {
+    return state.history.present.field.splinePointCount;
 }

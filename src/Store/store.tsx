@@ -7,7 +7,7 @@ import { uiSlice } from "../Tree/uiSlice";
 import undoable, { excludeAction, GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
-import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointsSlice } from "../Tree/waypointsSlice";
+import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
 import {
     tempUiSlice,
 } from "../Tree/tempUiSlice";
@@ -22,13 +22,17 @@ const stateReducer = combineReducers({
     ui: uiSlice.reducer
 });
 
-const groupActionTypes = [
+const dragActionTypes = [
     waypointMagnitudeMoved.type,
     waypointMovedInternal.type,
+    waypointRobotRotated.type
+];
+
+const groupActionTypes = [
     renamedWaypoint.type,
     renamedRoutine.type,
     renamedFolder.type
-];
+].concat(dragActionTypes);
 
 // let ignoreRapid = false;
 let prevAction: AnyAction;
@@ -36,14 +40,15 @@ const groupActions: GroupByFunction = (action) => {
     if (groupActionTypes.includes(action.type)) {
         if (prevAction &&
             action.type === prevAction.type &&
-            (action.type === waypointMovedInternal.type ||
-                action.type === waypointMagnitudeMoved.type) &&
+            dragActionTypes.includes(action.type) &&
             action.payload.id === prevAction.payload.id) {
             prevAction = action;
-            return true;
+            return false;
         }
-        prevAction = action;
-        return false;
+        else {
+            prevAction = action;
+            return false;
+        }
         // if (!prevAction || action.type !== prevAction.type) {
         //     ignoreRapid = false;
         //     prevAction = action;

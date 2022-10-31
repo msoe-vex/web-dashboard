@@ -150,9 +150,7 @@ export function AppTree(): JSX.Element {
             }}
             onContextMenu={handleContextMenu}
         >
-            <H5
-                onContextMenu={handleContextMenu}
-            >{routine.name}</H5>
+            <H5 onContextMenu={handleContextMenu}>{routine.name}</H5>
             {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
             < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}>
                 <Tree

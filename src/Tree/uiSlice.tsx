@@ -13,8 +13,8 @@ import { selectAllTreeWaypointIds } from "./treeActions";
  * @property hiddenWaypointIds - A list of waypoints which are currently hidden.
  */
 export interface Ui {
-    activeRoutineId: EntityId,
-    hiddenWaypointIds: EntityId[],
+    activeRoutineId: EntityId;
+    hiddenWaypointIds: EntityId[];
 }
 
 const defaultUiState: Ui = {

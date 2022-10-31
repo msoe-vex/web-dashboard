@@ -1,66 +1,91 @@
-import { Button, Card, FormGroup, NumericInput, Overlay } from "@blueprintjs/core";
+import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import React from "react";
+import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
 
-interface ExportMenuProps {
+// interface ExportMenuProps {
+// }
 
-}
-
-export function ExportMenu(props: ExportMenuProps): JSX.Element {
-    const [isOverlayOpen, setIsOverlayOpen] = React.useState(false);
-    const closeOverlay = () => { setIsOverlayOpen(false); }
+export function ExportMenu(): JSX.Element {
+    const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+    const handleClose = () => { setIsExportMenuOpen(false); }
 
     const exportMenuButton = (<ExportMenuButton
-        onClick={() => { setIsOverlayOpen(true); }}
+        onClick={() => { setIsExportMenuOpen(true); }}
     />);
-
 
     return (<>
         {exportMenuButton}
-        < Overlay
-            isOpen={isOverlayOpen}
-            onClose={closeOverlay}
-        // canOutsideClickClose={false}
+        <Dialog
+            title="Export path"
+            isOpen={isExportMenuOpen}
+            onClose={handleClose}
+            isCloseButtonShown={true}
         >
-            <ExportMenuOverlayContents closeOverlay={closeOverlay} />
-        </Overlay>
+            <ExportMenuContents handleClose={handleClose} />
+        </Dialog>
     </>);
 }
 
-interface ExportMenuOverlayContentsProps {
-    closeOverlay: () => void;
+interface ExportMenuContentsProps {
+    handleClose: () => void;
 }
 
-function ExportMenuOverlayContents(props: ExportMenuOverlayContentsProps): JSX.Element {
+function ExportMenuContents(props: ExportMenuContentsProps): JSX.Element {
+    const dispatch = useAppDispatch();
     // should probably live in field slice
-    const [stepPoints, setStepPoints] = React.useState(7);
+    const [maxVelocity, setMaxVelocity] = React.useState(50);
+    const [maxAcceleration, setMaxAcceleration] = React.useState(100);
 
-    return (<Card
-        elevation={3}
-        className="export-menu"
-    >
+    const splinePointCount = (
         <FormGroup
-            label="Spline points"
+            label="Spline point count"
+            helperText="The number of points to generate between each waypoint."
         >
             <NumericInput
                 majorStepSize={null}
                 minorStepSize={null}
                 max={100}
                 min={1}
-                value={stepPoints}
-                onValueChange={(value) => { setStepPoints(value); }}
+                selectAllOnFocus={true}
+                value={useAppSelector(selectSplinePointCount)}
+                onValueChange={(value) => { dispatch(splinePointCountChanged(value)); }}
             />
         </FormGroup>
-        <FormGroup>
-            <Button
-                text="Export"
-                onClick={props.closeOverlay}
-            />
-            <Button
-                text="Cancel"
-                onClick={props.closeOverlay}
-            />
-        </FormGroup>
-    </Card>);
+    );
+
+    return (<>
+        <div className={Classes.DIALOG_BODY}>
+            {splinePointCount}
+            <FormGroup label="Max velocity">
+                <NumericInput
+                    max={500}
+                    min={1}
+                    selectAllOnFocus={true}
+                    value={maxVelocity}
+                    onValueChange={(value) => { setMaxVelocity(value); }}
+                />
+            </FormGroup>
+            <FormGroup label="Max acceleration">
+                <NumericInput
+                    max={500}
+                    min={1}
+                    selectAllOnFocus={true}
+                    value={maxAcceleration}
+                    onValueChange={(value) => { setMaxAcceleration(value); }}
+                />
+            </FormGroup>
+        </div>
+        <div className={Classes.DIALOG_FOOTER}>
+            <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+                <Button
+                    text="Export"
+                    onClick={props.handleClose}
+                    intent={Intent.PRIMARY}
+                />
+            </div>
+        </div>
+    </>);
 }
 
 interface ExportMenuButtonProps {

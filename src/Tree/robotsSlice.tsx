@@ -47,7 +47,7 @@ export const robotsSlice = createSlice({
     // extraReducers: (builder) => { }
 });
 
-export const { 
+export const {
     addedRobot,
     renamedRobot,
     deletedRobot
