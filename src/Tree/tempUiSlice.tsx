@@ -15,6 +15,7 @@ import { selectedActiveRoutine } from "./uiSlice";
  *      Takes precedence over activeWaypoints.
  * @property selectedSplineIds - A list of waypointId pairs representing splines which are currently selected.
  * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
+ * @property isExportDialogOpen - Whether or not the export menu dialog is currently open.
  * @property robotDialog - The id of the robot dialog which is currently open, or `DUMMY_ID` if none is.
  */
 export interface TempUi {
@@ -150,7 +151,6 @@ export const tempUiSlice = createSlice({
         },
         exportDialogOpened(uiState) {
             uiState.isExportDialogOpen = true;
-            uiState.robotDialog = DUMMY_ID;
         },
         exportDialogClosed(uiState) {
             uiState.isExportDialogOpen = false;

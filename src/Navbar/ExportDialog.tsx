@@ -1,14 +1,14 @@
-import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import React from "react";
+import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { exportDialogClosed, exportDialogOpened, selectIsExportDialogOpen } from "../Tree/tempUiSlice";
 import { selectActiveRoutine } from "../Tree/uiSlice";
 
-// interface ExportMenuProps {
-// }
-
-export function ExportMenu(): JSX.Element {
+/**
+ * Defines the a dialog menu used for exporting.
+ */
+export function ExportDialog(): JSX.Element {
     const dispatch = useAppDispatch();
 
     const handleClose = React.useCallback(
@@ -19,23 +19,23 @@ export function ExportMenu(): JSX.Element {
     if (!activeRoutine) { throw new Error("Export dialog must have an active routine."); }
 
     return (<>
-        <ExportMenuButton onClick={() => { dispatch(exportDialogOpened()); }} />
+        <ExportDialogButton onClick={() => { dispatch(exportDialogOpened()); }} />
         <Dialog
             title={"Export " + activeRoutine.name}
             isOpen={useAppSelector(selectIsExportDialogOpen)}
             onClose={handleClose}
             isCloseButtonShown={true}
         >
-            <ExportMenuContents handleClose={handleClose} />
+            <ExportDialogContents handleClose={handleClose} />
         </Dialog>
     </>);
 }
 
-interface ExportMenuContentsProps {
+interface ExportDialogMenuContentsProps {
     handleClose: () => void;
 }
 
-function ExportMenuContents(props: ExportMenuContentsProps): JSX.Element {
+function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element {
     const dispatch = useAppDispatch();
     // should probably live in field slice (or robot slice?)
     const [maxVelocity, setMaxVelocity] = React.useState(50);
@@ -92,11 +92,11 @@ function ExportMenuContents(props: ExportMenuContentsProps): JSX.Element {
     </>);
 }
 
-interface ExportMenuButtonProps {
+interface ExportDialogButtonProps {
     onClick: () => void;
 }
 
-function ExportMenuButton(props: ExportMenuButtonProps): JSX.Element {
+function ExportDialogButton(props: ExportDialogButtonProps): JSX.Element {
     return (<Button
         {...props}
         icon="export"

@@ -10,14 +10,14 @@ import {
 
 import { RoutineMenu } from "./RoutineMenu";
 import { RobotMenu } from "./RobotMenu";
-import { ExportMenu } from "./ExportMenu";
+import { ExportDialog } from "./ExportDialog";
 import { useAppSelector } from "../Store/hooks";
 import { selectActiveRoutine } from "../Tree/uiSlice";
 
 export function AppNavbar(): JSX.Element {
-    const exportMenu = useAppSelector(selectActiveRoutine) ? (<>
+    const exportDialog = useAppSelector(selectActiveRoutine) ? (<>
         <NavbarDivider />
-        <ExportMenu />
+        <ExportDialog />
     </>) : null;
 
     return (
@@ -28,7 +28,7 @@ export function AppNavbar(): JSX.Element {
                 <RoutineMenu />
                 <NavbarDivider />
                 <RobotMenu />
-                {exportMenu}
+                {exportDialog}
             </NavbarGroup>
         </Navbar>
     );
