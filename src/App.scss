@@ -1,4 +1,6 @@
-/* @import "~@blueprintjs/core/src/blueprint.scss"; */
+@import "~@blueprintjs/core/lib/scss/variables";
+// @import "~@blueprintjs/core/src/components/icon/icon-mixins";
+// @import "~@blueprintjs/icons/lib/scss/variables";
 
 .App {
   height: 100vh;
@@ -43,6 +45,15 @@
   border-color: blue !important;
   border-width: 15px !important; */
   height: 100vh;
+}
+
+.export-menu {
+  $export-menu-width: $pt-grid-size * 40;
+
+  left: calc(50vw - #{$export-menu-width * 0.5});
+  margin: 10vh 0;
+  top: 0;
+  width: $export-menu-width;
 }
 
 /* .base-canvas {

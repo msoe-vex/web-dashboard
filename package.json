@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@types/fabric": "^4.5.11",
-    "@types/lodash-es": "^4.17.6"
+    "@types/lodash-es": "^4.17.6",
+    "sass": "^1.55.0"
   }
 }

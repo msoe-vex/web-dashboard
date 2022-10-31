@@ -19,7 +19,7 @@ export function ExportMenu(props: ExportMenuProps): JSX.Element {
         < Overlay
             isOpen={isOverlayOpen}
             onClose={closeOverlay}
-            canOutsideClickClose={false}
+        // canOutsideClickClose={false}
         >
             <ExportMenuOverlayContents closeOverlay={closeOverlay} />
         </Overlay>
@@ -36,6 +36,7 @@ function ExportMenuOverlayContents(props: ExportMenuOverlayContentsProps): JSX.E
 
     return (<Card
         elevation={3}
+        className="export-menu"
     >
         <FormGroup
             label="Spline points"

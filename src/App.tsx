@@ -1,11 +1,10 @@
 import React, { ReactNode } from "react";
-import "./App.css";
+import "./App.scss";
 import { FocusStyleManager, HotkeysProvider, useHotkeys } from "@blueprintjs/core";
 // import logo from "./logo.svg";
 
 import { Provider } from "react-redux";
 import { store } from "./Store/store";
-
 
 import { AppNavbar } from "./Navbar/AppNavbar";
 import { AppBody } from "./AppBody";
@@ -17,10 +16,10 @@ function App() {
   return (
     <Provider store={store}>
       <HotkeysProvider>
-        <GlobalHotkeysDiv>
+        <GlobalHotkeys>
           <AppNavbar />
           <AppBody className="App-body" />
-        </GlobalHotkeysDiv>
+        </GlobalHotkeys>
       </HotkeysProvider>
     </Provider>
   );
@@ -28,11 +27,11 @@ function App() {
 
 export default App;
 
-interface GlobalHotkeysDivProps {
+interface GlobalHotkeysProps {
   children: ReactNode;
 }
 
-function GlobalHotkeysDiv(props: GlobalHotkeysDivProps) {
+function GlobalHotkeys(props: GlobalHotkeysProps) {
   const dispatch = useAppDispatch();
   const hotkeys = React.useMemo(() => [
     {
@@ -48,6 +47,7 @@ function GlobalHotkeysDiv(props: GlobalHotkeysDivProps) {
       onKeyDown: () => { dispatch(ActionCreators.redo()); }
     }
   ], [dispatch]);
+
   const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
   return (
     <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="App">
