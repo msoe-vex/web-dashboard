@@ -16,13 +16,12 @@ import { selectedActiveRoutine } from "./uiSlice";
  * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
  */
 export interface TempUi {
-    collapsedFolderIds: EntityId[],
-    selectedWaypointIds: EntityId[],
-    hoveredWaypointIds: EntityId[],
-    selectedSplineIds: EntityId[][],
-    hoveredSplineIds: EntityId[][]
+    collapsedFolderIds: EntityId[];
+    selectedWaypointIds: EntityId[];
+    hoveredWaypointIds: EntityId[];
+    selectedSplineIds: EntityId[][];
+    hoveredSplineIds: EntityId[][];
 }
-
 
 export enum ItemType {
     PATH = 0,

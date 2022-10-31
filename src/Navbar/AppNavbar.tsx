@@ -2,8 +2,6 @@ import React from "react";
 
 import {
     Alignment,
-    Button,
-    Classes,
     Navbar,
     NavbarDivider,
     NavbarGroup,
@@ -12,6 +10,7 @@ import {
 
 import { RoutineMenu } from "./RoutineMenu";
 import { RobotMenu } from "./RobotMenu";
+import { ExportMenu } from "./ExportMenu";
 
 export function AppNavbar(): JSX.Element {
     return (
@@ -22,6 +21,8 @@ export function AppNavbar(): JSX.Element {
                 <RoutineMenu />
                 <NavbarDivider />
                 <RobotMenu />
+                <NavbarDivider />
+                <ExportMenu />
             </NavbarGroup>
         </Navbar>
     );

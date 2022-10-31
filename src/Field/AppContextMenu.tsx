@@ -29,12 +29,12 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
     );
 }
 
-export type konvaContextMenuHandler = (contextMenu: JSX.Element) => (e: KonvaEventObject<MouseEvent>) => void;
+export type KonvaContextMenuHandler = (contextMenu: JSX.Element) => (e: KonvaEventObject<MouseEvent>) => void;
 
 /**
  * @returns a function which takes a contextMenu as an argument and returns a konva event handler for setting that menu.
  */
-export function getKonvaContextMenuHandler(contextMenuHandler: ContextMenuHandler): konvaContextMenuHandler {
+export function getKonvaContextMenuHandler(contextMenuHandler: ContextMenuHandler): KonvaContextMenuHandler {
     return (contextMenu: JSX.Element) =>
         (e: KonvaEventObject<MouseEvent>) => {
             contextMenuHandler(contextMenu, e.evt);

@@ -89,12 +89,12 @@ export function AppTree(): JSX.Element {
     }, [dispatch]);
 
     const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
-        if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
+        if (!node.nodeData) { throw new Error("Expected valid nodeData."); }
         dispatch(itemMouseEnter(node.id, node.nodeData));
     }, [dispatch]);
 
     const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
-        if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
+        if (!node.nodeData) { throw new Error("Expected valid nodeData."); }
         dispatch(itemMouseLeave(node.id, node.nodeData));
     }, [dispatch]);
 
@@ -143,29 +143,29 @@ export function AppTree(): JSX.Element {
         }, [contextMenuHandler]);
 
     return (
-            <Card
-                className={"App-tree-card"}
-                onClick={(e: React.MouseEvent) => {
-                    if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
-                }}
+        <Card
+            className={"App-tree-card"}
+            onClick={(e: React.MouseEvent) => {
+                if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
+            }}
+            onContextMenu={handleContextMenu}
+        >
+            <H5
                 onContextMenu={handleContextMenu}
-            >
-                <H5
-                    onContextMenu={handleContextMenu}
-                >{routine.name}</H5>
-                {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
-                < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}>
-                    <Tree
-                        contents={treeNodeInfo}
-                        onNodeClick={handleNodeClick}
-                        onNodeCollapse={handleNodeCollapse}
-                        onNodeExpand={handleNodeExpand}
-                        onNodeContextMenu={handleNodeContextMenu}
-                        onNodeMouseEnter={handleNodeMouseEnter}
-                        onNodeMouseLeave={handleNodeMouseLeave}
-                    />
-                </div>
-            </Card>
+            >{routine.name}</H5>
+            {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
+            < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}>
+                <Tree
+                    contents={treeNodeInfo}
+                    onNodeClick={handleNodeClick}
+                    onNodeCollapse={handleNodeCollapse}
+                    onNodeExpand={handleNodeExpand}
+                    onNodeContextMenu={handleNodeContextMenu}
+                    onNodeMouseEnter={handleNodeMouseEnter}
+                    onNodeMouseLeave={handleNodeMouseLeave}
+                />
+            </div>
+        </Card>
     );
 };
 
