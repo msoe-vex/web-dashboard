@@ -12,6 +12,8 @@ export interface Robot {
     robotType: RobotType;
     width: number;
     length: number;
+    maxVelocity: number;
+    maxAcceleration: number;
 }
 
 export enum RobotType {
@@ -34,7 +36,9 @@ export const robotsSlice = createSlice({
                     name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
                     robotType: RobotType.SWERVE,
                     width: 18 * Units.INCH,
-                    length: 18 * Units.INCH
+                    length: 18 * Units.INCH,
+                    maxAcceleration: 100,
+                    maxVelocity: 10
                 });
             },
             prepare: () => { return { payload: nanoid() }; }
@@ -62,7 +66,7 @@ export const {
 } = robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots);
 
 /**
- * Selects the robot which owns (is associated with) a given item.
+ * Selects the robot associated with a given item.
  */
 export function selectOwnerRobot(state: RootState, itemId: EntityId, itemType: TreeItemType): Robot {
     let path;

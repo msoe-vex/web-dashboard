@@ -241,14 +241,14 @@ export function selectContainedWaypointIds(state: RootState, id: EntityId | Enti
     }
 }
 
-export function selectCollapsedFolderIds(state: RootState) { return state.tempUi.collapsedFolderIds; }
+export function selectCollapsedFolderIds(state: RootState): EntityId[] { return state.tempUi.collapsedFolderIds; }
 
-export function selectHoveredWaypointIds(state: RootState) { return state.tempUi.hoveredWaypointIds; }
-export function selectSelectedWaypointIds(state: RootState) { return state.tempUi.selectedWaypointIds; }
+export function selectHoveredWaypointIds(state: RootState): EntityId[] { return state.tempUi.hoveredWaypointIds; }
+export function selectSelectedWaypointIds(state: RootState): EntityId[] { return state.tempUi.selectedWaypointIds; }
 
-export function selectHoveredSplineIds(state: RootState) { return state.tempUi.hoveredSplineIds; }
-export function selectSelectedSplineIds(state: RootState) { return state.tempUi.selectedSplineIds; }
+export function selectHoveredSplineIds(state: RootState): EntityId[][] { return state.tempUi.hoveredSplineIds; }
+export function selectSelectedSplineIds(state: RootState): EntityId[][] { return state.tempUi.selectedSplineIds; }
 
-export function selectIsExportDialogOpen(state: RootState) { return state.tempUi.isExportDialogOpen; }
-export function selectIsRobotDialogOpen(state: RootState) { return selectRobotDialogId(state) !== DUMMY_ID; }
-export function selectRobotDialogId(state: RootState) { return state.tempUi.robotDialog; }
+export function selectIsExportDialogOpen(state: RootState): boolean { return state.tempUi.isExportDialogOpen; }
+export function selectIsRobotDialogOpen(state: RootState): boolean { return selectRobotDialogId(state) !== DUMMY_ID; }
+export function selectRobotDialogId(state: RootState): EntityId { return state.tempUi.robotDialog; }
