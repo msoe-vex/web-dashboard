@@ -35,7 +35,7 @@ export function Field(): JSX.Element {
                 {({ store }) =>
                     <ContextMenuHandlerContext.Consumer>
                         {(value) =>
-                            <FieldStage store={store} contextMenuHandler={value} />
+                            <FieldStage store={store as Store} contextMenuHandler={value} />
                         }
                     </ContextMenuHandlerContext.Consumer>
                 }

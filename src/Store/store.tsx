@@ -1,16 +1,20 @@
-import { configureStore, ThunkAction, AnyAction, combineReducers } from "@reduxjs/toolkit";
+import {
+    configureStore,
+    ThunkAction,
+    AnyAction,
+    combineReducers,
+} from "@reduxjs/toolkit";
 
 import { fieldSlice } from "../Field/fieldSlice";
 import { foldersSlice, renamedFolder } from "../Tree/foldersSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
-import undoable, { excludeAction, GroupByFunction } from "redux-undo";
+import undoable, { GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Tree/pathsSlice";
 import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
-import {
-    tempUiSlice,
-} from "../Tree/tempUiSlice";
+import { tempUiSlice, } from "../Tree/tempUiSlice";
+import { listenerMiddleware } from "./localStorage";
 
 const stateReducer = combineReducers({
     field: fieldSlice.reducer,
@@ -72,27 +76,29 @@ const groupActions: GroupByFunction = (action) => {
 
 const undoableReducer = undoable(stateReducer, {
     limit: 200,
-    filter: excludeAction([
-        // tempUiSlice.actions.itemMouseEnterInternal.type,
-        // tempUiSlice.actions.itemMouseLeaveInternal.type,
-        // tempUiSlice.actions.itemBatchSelectedInternal.type,
-        // tempUiSlice.actions.itemSelectedInternal.type,
-        // splineMouseEnter.type,
-        // splineMouseLeave.type,
-        // splineSelected.type,
-        // allItemsDeselected.type,
-        // // tree expand/collapse doesn't go in state
-        // treeItemsCollapsed.type,
-        // treeItemsExpanded.type
-    ]),
     groupBy: groupActions
 });
 
+function getPreloadedState() {
+    const store = localStorage.getItem("store");
+    if (!store) { return undefined; }
+    return {
+        tempUi: tempUiSlice.getInitialState(),
+        history: {
+            present: JSON.parse(store),
+            past: [],
+            future: []
+        }
+    };
+}
+
 export const store = configureStore({
+    preloadedState: getPreloadedState(),
     reducer: combineReducers({
         history: undoableReducer,
         tempUi: tempUiSlice.reducer
-    })
+    }),
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

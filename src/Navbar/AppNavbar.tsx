@@ -1,12 +1,6 @@
 import React from "react";
 
-import {
-    Alignment,
-    Navbar,
-    NavbarDivider,
-    NavbarGroup,
-    NavbarHeading,
-} from "@blueprintjs/core";
+import { Alignment, Navbar, NavbarDivider, NavbarGroup, NavbarHeading } from "@blueprintjs/core";
 
 import { RoutineMenu } from "./RoutineMenu";
 import { RobotMenu } from "./RobotMenu";
