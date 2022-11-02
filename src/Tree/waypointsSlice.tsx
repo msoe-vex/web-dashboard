@@ -65,9 +65,7 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
 export function verifyIsControlWaypoint(waypoint: Waypoint): ControlWaypoint {
-    if (!isControlWaypoint(waypoint)) {
-        throw new Error("Expected control waypoint.");
-    }
+    if (!isControlWaypoint(waypoint)) { throw new Error("Expected control waypoint."); }
     return waypoint;
 }
 
@@ -108,9 +106,7 @@ export const waypointsSlice = createSlice({
             selectedWaypointIds: EntityId[]
         }>) => {
             const { id, point, selectedWaypointIds } = action.payload;
-            const waypoint = simpleSelectors.selectById(waypointState, id);
-            if (!isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
-
+            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
             const offset = PointUtils.sub(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {

@@ -50,7 +50,6 @@ export const robotsSlice = createSlice({
         deletedRobot: robotsAdapter.removeOne,
         duplicatedRobot(robotState, action: PayloadAction<EntityId>) {
             const robot = simpleSelectors.selectById(robotState, action.payload);
-            if (!robot) { throw new Error("Expected valid robot."); }
             let copy = Object.assign({}, robot);
             copy.id = nanoid();
             copy.name = "Copy of " + copy.name;

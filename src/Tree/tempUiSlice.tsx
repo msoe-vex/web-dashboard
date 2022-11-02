@@ -51,6 +51,11 @@ const defaultTempUiState: TempUi = {
     robotDialogId: undefined
 };
 
+export function verifySplineId(splineId: EntityId | EntityId[]): EntityId[] {
+    if (!Array.isArray(splineId) || splineId.length !== 2) { throw new Error("Expected spline id size to be 2."); }
+    return splineId;
+}
+
 export const tempUiSlice = createSlice({
     name: "tempUi",
     initialState: defaultTempUiState,
@@ -87,8 +92,8 @@ export const tempUiSlice = createSlice({
             if (lastSelectedIndex === -1) { throw new Error("Expected last selected index to exist in tree."); }
 
             const index = treeWaypointIds.findIndex(treeId => treeId === containedWaypointIds[containedWaypointIds.length - 1]);
-
             if (index === -1) { throw new Error("Expected id to exist in tree."); }
+
             // won't be same as index since lastSelectedId is not in containedWaypointIds
             else if (lastSelectedIndex < index) {
                 // container = 5, 6 (index = 6), lastSelected = 2, we want 3, 4, 5, 6 (in that order)
@@ -131,16 +136,16 @@ export const tempUiSlice = createSlice({
             uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
         },
         splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length !== 2) { throw new Error("Expected spline to have two waypoints."); }
+            verifySplineId(action.payload);
             uiState.hoveredSplineIds.push(action.payload);
         },
         splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length !== 2) { throw new Error("Expected spline to have two waypoints."); }
+            verifySplineId(action.payload);
             // removes array sets that share every id with an id in action.payload
             uiState.hoveredSplineIds = uiState.hoveredSplineIds.filter(splineIds => !splineIds.every(splineId => action.payload.includes(splineId)));
         },
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
-            if (action.payload.length !== 2) { throw new Error("Expected spline to have two waypoints."); }
+            verifySplineId(action.payload);
             if (uiState.selectedSplineIds.some(splineId => splineId.every(splineId => action.payload.includes(splineId)))) {
                 uiState.selectedSplineIds = [];
             } else {
@@ -222,8 +227,7 @@ export const {
  */
 export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: SelectableItemType): EntityId[] {
     if (itemType === ItemType.SPLINE) {
-        if (!Array.isArray(id)) { throw new Error("Expected splineId to be an array."); }
-        return id;
+        return verifySplineId(id);
     }
     else {
         if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }

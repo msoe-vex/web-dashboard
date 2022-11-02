@@ -81,12 +81,11 @@ interface RobotItemProps {
 function RobotItem(props: RobotItemProps): JSX.Element {
     const dispatch = useAppDispatch();
 
-    const name = useAppSelector(state => selectRobotById(state, props.id)?.name);
-    if (!name) { throw new Error("Expected valid routine name."); }
+    const robotName = useAppSelector(state => selectRobotById(state, props.id)).name;
 
     const [isRenaming, setIsRenaming] = React.useState(false);
     return isRenaming ? (<NameInput
-        initialName={name}
+        initialName={robotName}
         icon="playbook"
         newNameSubmitted={(newName) => {
             if (newName) { dispatch(renamedRobot({ newName, id: props.id })); }
@@ -96,7 +95,7 @@ function RobotItem(props: RobotItemProps): JSX.Element {
     />) :
         (<MenuItem2
             icon="playbook"
-            text={name}
+            text={robotName}
             onDoubleClick={() => { dispatch(robotDialogOpened(props.id)); }}
             submenuProps={{ className: Classes.ELEVATION_2 }}
         >
