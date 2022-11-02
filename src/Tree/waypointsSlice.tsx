@@ -5,7 +5,7 @@ import { Point, PointUtils, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
-import { deletedPathInternal } from "./pathsSlice";
+import { deletedPathInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { getNextName } from "./Utils";
 

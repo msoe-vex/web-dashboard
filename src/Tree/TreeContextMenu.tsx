@@ -5,7 +5,7 @@ import { EntityId } from "@reduxjs/toolkit";
 import { useAppDispatch } from "../Store/hooks";
 import { deletedWaypoint, duplicatedWaypoint } from "./waypointsSlice";
 import { unpackedFolder, deletedFolder } from "./foldersSlice";
-import { deletedPath } from "./pathsSlice";
+import { deletedPath } from "../Navbar/pathsSlice";
 import {
     AddSelectionToNewFolderMenuItem,
     CollapseAndExpandAllMenuItems,

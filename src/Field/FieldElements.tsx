@@ -7,7 +7,7 @@ import { Line, Circle, Rect } from "react-konva";
 
 import { useAppSelector, useAppDispatch } from "../Store/hooks";
 import { RootState, AppDispatch } from "../Store/store";
-import { selectPathById } from "../Tree/pathsSlice";
+import { selectPathById } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";

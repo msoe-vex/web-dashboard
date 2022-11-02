@@ -2,7 +2,7 @@ import { createSlice, createEntityAdapter, nanoid, EntityId, PayloadAction } fro
 import { Units } from "../Field/mathUtils";
 
 import { RootState } from "../Store/store";
-import { selectOwnerPath, selectPathById } from "./pathsSlice";
+import { selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
 import { ItemType, TreeItemType } from "./tempUiSlice";
 import { getNextName } from "./Utils";
 

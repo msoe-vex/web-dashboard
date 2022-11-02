@@ -11,7 +11,7 @@ import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
 import undoable, { GroupByFunction } from "redux-undo";
 import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
-import { pathsSlice } from "../Tree/pathsSlice";
+import { pathsSlice } from "../Navbar/pathsSlice";
 import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
 import { tempUiSlice, } from "../Tree/tempUiSlice";
 import { listenerMiddleware } from "./localStorage";

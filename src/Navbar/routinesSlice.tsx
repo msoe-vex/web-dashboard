@@ -5,7 +5,7 @@ import { DUMMY_ID, getErrorlessSelectors } from "../Store/storeUtils";
 // JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
 import { Folder, selectFolderById } from "../Tree/foldersSlice";
-import { deletedPathInternal, Path, selectPathById } from "../Tree/pathsSlice";
+import { deletedPathInternal, Path, selectPathById } from "./pathsSlice";
 import { selectActiveRoutineId } from "../Tree/uiSlice";
 import { getNextName } from "../Tree/Utils";
 import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";

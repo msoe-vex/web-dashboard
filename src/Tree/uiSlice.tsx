@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
 import { addedRoutineInternal, deletedRoutineInternal, selectRoutineById } from "../Navbar/routinesSlice";
-import { DUMMY_ID } from "../Store/dummyId";
+import { DUMMY_ID } from "../Store/storeUtils";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
-import { selectPathById } from "./pathsSlice";
+import { selectPathById } from "../Navbar/pathsSlice";
 import { SelectableItemType, ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 

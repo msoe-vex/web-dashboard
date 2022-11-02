@@ -1,7 +1,7 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
 import { selectActiveRoutineId } from "./uiSlice";
-import { Path, selectOwnerPath, selectPathById } from "./pathsSlice";
+import { Path, selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { renamedWaypoint } from "./waypointsSlice";

@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { DUMMY_ID } from "../Store/dummyId";
+import { DUMMY_ID } from "../Store/storeUtils";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
-import { selectPathById } from "./pathsSlice";
+import { selectPathById } from "../Navbar/pathsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 import { selectedActiveRoutine } from "./uiSlice";
 

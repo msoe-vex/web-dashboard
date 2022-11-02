@@ -2,7 +2,7 @@ import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAn
 
 import { AppThunk, RootState } from "../Store/store";
 import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
-import { deletedPathInternal, selectOwnerPath } from "./pathsSlice";
+import { deletedPathInternal, selectOwnerPath } from "../Navbar/pathsSlice";
 import { getNextName } from "./Utils";
 import { duplicatedWaypointInternal } from "./waypointsSlice";
 import { ItemType } from "./tempUiSlice";
