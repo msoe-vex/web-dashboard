@@ -11,9 +11,8 @@ export interface ErrorlessSelectors<T, V> {
 
 export function getErrorlessSelectors<T>(selectors: EntitySelectors<T, any>): ErrorlessSelectors<T, any> {
     const errorlessSelectById = (state: any, id: EntityId): T => {
-        const result = selectors.selectById(state, id);
-        if (!result) { throw new Error("Expected valid id when accessing store."); }
-        return result;
+        let result = selectors.selectById(state, id);
+        return verifyValueIsValid(result);
     };
 
     return {
@@ -22,4 +21,9 @@ export function getErrorlessSelectors<T>(selectors: EntitySelectors<T, any>): Er
         selectAll: selectors.selectAll,
         selectEntities: selectors.selectEntities
     };
+}
+
+export function verifyValueIsValid<T>(value: T | undefined): T {
+    if (!value) { throw new Error("Expected valid value."); }
+    return value;
 }
