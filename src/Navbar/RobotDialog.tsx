@@ -3,10 +3,11 @@ import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/cor
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
-import { Robot, robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, robotTypeChanged, selectRobotById } from "../Tree/robotsSlice";
+import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, robotTypeChanged, selectRobotById } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
+import { verifyValueIsValid } from "../Store/storeUtils";
 
-export function RobotDialog(): JSX.Element | null {
+export function RobotDialog(): JSX.Element {
     const dispatch = useAppDispatch();
 
     const handleClose = React.useCallback(
@@ -15,26 +16,24 @@ export function RobotDialog(): JSX.Element | null {
 
     const robotDialogId = useAppSelector(selectRobotDialogId);
     // hook cannot go below early exit
-    let robot = useAppSelector(state => selectRobotById(state, robotDialogId));
+    let robotName = useAppSelector(state => robotDialogId ? selectRobotById(state, robotDialogId).name : "");
 
     return (
         <Dialog
-            title={robot.name ?? ""}
+            title={robotName}
             isOpen={robotDialogId !== undefined}
             onClose={handleClose}
             isCloseButtonShown={true}
         >
-            <RobotDialogContents robot={robot} />
+            <RobotDialogContents />
         </Dialog>);
 }
 
-interface RobotDialogMenuContentsProps {
-    robot: Robot;
-}
-
-function RobotDialogContents(props: RobotDialogMenuContentsProps): JSX.Element {
+function RobotDialogContents(): JSX.Element {
     const dispatch = useAppDispatch();
-    const robot = props.robot;
+    const robot = useAppSelector(state =>
+         selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
+
     return (<>
         <div className={Classes.DIALOG_BODY}>
             <FormGroup label="Robot type" >
