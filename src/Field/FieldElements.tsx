@@ -11,7 +11,7 @@ import { selectPathById } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { selectWaypointById, isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved } from "../Tree/waypointsSlice";
+import { selectWaypointById, isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, verifyIsControlWaypoint } from "../Tree/waypointsSlice";
 import { Units, PointUtils, Point } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
@@ -53,7 +53,6 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
     const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
     const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
-    if (!waypoint) { throw new Error("Path spline expected valid waypoint."); }
 
     const hoveredWaypointIds = useAppSelector(selectHoveredWaypointIds);
     const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
@@ -133,13 +132,8 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
-    const previousWaypoint = useAppSelector(state => selectWaypointById(state, props.previousWaypointId));
-    const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
-
-    if (!previousWaypoint || !waypoint) { throw new Error("Path spline expected valid waypoint."); }
-    if (!isControlWaypoint(previousWaypoint) || !isControlWaypoint(waypoint)) {
-        throw new Error("Follower waypoints are not supported by SplineElement.");
-    }
+    const previousWaypoint = verifyIsControlWaypoint(useAppSelector(state => selectWaypointById(state, props.previousWaypointId)));
+    const waypoint = verifyIsControlWaypoint(useAppSelector(state => selectWaypointById(state, props.waypointId)));
 
     const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
     const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
@@ -169,7 +163,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
             </Menu>)}
     />);
 
-    const manipulators = isSelected ? (<>
+    const manipulators = !isSelected ? null : (<>
         <BallManipulator
             startPoint={previousWaypoint.point}
             currentPoint={prevControl}
@@ -180,7 +174,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
             currentPoint={currControl}
             handleManipulatorDrag={getManipulatorDragHandler(dispatch, waypoint.id, MagnitudePosition.END)}
         />
-    </>) : (null);
+    </>);
 
     return (<>
         {line}

@@ -64,7 +64,7 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
-export function verifyWaypointIsControl(waypoint: Waypoint): ControlWaypoint {
+export function verifyIsControlWaypoint(waypoint: Waypoint): ControlWaypoint {
     if (!isControlWaypoint(waypoint)) {
         throw new Error("Expected control waypoint.");
     }
@@ -114,7 +114,7 @@ export const waypointsSlice = createSlice({
             const offset = PointUtils.sub(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
-                const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, selectedWaypointId));
+                const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
                 const newPoint = PointUtils.add(waypoint.point, offset);
                 return { id: selectedWaypointId, changes: { point: newPoint } };
             });
@@ -126,7 +126,7 @@ export const waypointsSlice = createSlice({
             magnitudePosition: MagnitudePosition
         }>) => {
             const { id, point, magnitudePosition } = action.payload;
-            const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, id));
+            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
             const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
             const newMagnitude = PointUtils.distance(point, waypoint.point);
@@ -140,7 +140,7 @@ export const waypointsSlice = createSlice({
         },
         waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
             const { id, point } = action.payload;
-            const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, id));
+            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
             const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { robotAngle: newAngle } });
