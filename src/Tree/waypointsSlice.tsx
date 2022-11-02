@@ -8,6 +8,7 @@ import { deletedFolderInternal } from "./foldersSlice";
 import { deletedPathInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { getNextName } from "./Utils";
+import { getErrorlessSelectors } from "../Store/storeUtils";
 
 /**
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
@@ -185,6 +186,25 @@ export const waypointsSlice = createSlice({
     }
 });
 
+// Runtime selectors
+export const {
+    selectById: selectWaypointById,
+    selectIds: selectWaypointIds,
+    selectAll: selectAllWaypoints,
+    selectEntities: selectWaypointDictionary,
+} = getErrorlessSelectors(waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints));
+
+export const {
+    duplicatedWaypointInternal,
+    addedWaypoint,
+    deletedWaypoint,
+    changedWaypoint,
+    renamedWaypoint,
+    waypointMagnitudeMoved,
+    waypointRobotRotated,
+    waypointMovedInternal
+} = waypointsSlice.actions;
+
 /**
  * Made tricky by the need to insert into the correct location in path.
  * Could currently be a prepare function.
@@ -205,24 +225,3 @@ export function waypointMoved(id: EntityId, point: Point): AppThunk {
             selectedWaypointIds: selectSelectedWaypointIds(getState())
         }));
 }
-
-export const {
-    duplicatedWaypointInternal,
-    addedWaypoint,
-    deletedWaypoint,
-    changedWaypoint,
-    renamedWaypoint,
-    waypointMagnitudeMoved,
-    waypointRobotRotated,
-    waypointMovedInternal
-} = waypointsSlice.actions;
-
-export const waypointsSliceReducer = undoable(waypointsSlice.reducer);
-
-// Runtime selectors
-export const {
-    selectById: selectWaypointById,
-    selectIds: selectWaypointIds,
-    selectAll: selectAllWaypoints,
-    selectEntities: selectWaypointDictionary,
-} = waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints);

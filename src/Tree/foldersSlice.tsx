@@ -6,6 +6,7 @@ import { deletedPathInternal, selectOwnerPath } from "../Navbar/pathsSlice";
 import { getNextName } from "./Utils";
 import { duplicatedWaypointInternal } from "./waypointsSlice";
 import { ItemType } from "./tempUiSlice";
+import { getErrorlessSelectors } from "../Store/storeUtils";
 
 export interface Folder {
     id: EntityId;
@@ -111,7 +112,7 @@ export const {
     selectIds: selectFolderIds,
     selectAll: selectAllFolders,
     selectEntities: selectFolderDictionary,
-} = foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders);
+} = getErrorlessSelectors(foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders));
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
     return selectFolderById(state, folderId)?.waypointIds ?? [];

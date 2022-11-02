@@ -124,8 +124,6 @@ export const {
     deletedPathInternal
 } = pathsSlice.actions;
 
-export const pathsSliceReducer = undoable(pathsSlice.reducer);
-
 // Runtime selectors
 export const {
     selectById: selectPathById,

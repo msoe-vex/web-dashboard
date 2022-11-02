@@ -5,6 +5,7 @@ import { RootState } from "../Store/store";
 import { selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
 import { ItemType, TreeItemType } from "./tempUiSlice";
 import { getNextName } from "./Utils";
+import { getErrorlessSelectors } from "../Store/storeUtils";
 
 export interface Robot {
     id: EntityId;
@@ -63,7 +64,7 @@ export const {
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
     selectEntities: selectRobotDictionary,
-} = robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots);
+} = getErrorlessSelectors(robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots));
 
 /**
  * Selects the robot associated with a given item.
