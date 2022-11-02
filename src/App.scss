@@ -9,8 +9,6 @@
   flex-flow: column nowrap;
 }
 
-/* .App-navbar { } */
-
 .non-ideal-state {
   height: 70vh;
 }
@@ -26,9 +24,10 @@
 }
 
 .App-tree-card {
-  width: 325px;
-  min-width: 325px;
-  max-width: 325px;
+  $tree-width: $pt-grid-size * 30;
+  width: $tree-width;
+  min-width: $tree-width;
+  max-width: $tree-width;
   height: 100vh;
 }
 
@@ -45,6 +44,10 @@
   border-color: blue !important;
   border-width: 15px !important; */
   height: 100vh;
+}
+
+.select-menu {
+  width: $pt-grid-size * 25;
 }
 
 /* .base-canvas {

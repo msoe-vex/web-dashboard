@@ -7,7 +7,9 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
-import { addedRobot, deletedRobot, renamedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
+import { robotDialogOpened } from "../Tree/tempUiSlice";
+import { addedRobot, deletedRobot, duplicatedRobot, renamedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
+import { RobotDialog } from "./RobotDialog";
 
 export function RobotMenu(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -55,16 +57,19 @@ export function RobotMenu(): JSX.Element {
         </Menu>);
 
     return (robotIds.length === 0 ? ownerButton :
-        <Popover2
-            children={ownerButton}
-            content={robotMenu}
-            usePortal={true}
-            minimal={true}
-            position={Position.BOTTOM_LEFT}
-            matchTargetWidth={true}
-            isOpen={isOpen}
-            onClose={() => { setIsOpen(globalIsRenaming); }} // setIsOpen to globalIsRenaming (which is usually false)
-        />);
+        <>
+            <Popover2
+                children={ownerButton}
+                content={robotMenu}
+                usePortal={true}
+                minimal={true}
+                position={Position.BOTTOM_LEFT}
+                matchTargetWidth={true}
+                isOpen={isOpen}
+                onClose={() => { setIsOpen(globalIsRenaming); }} // setIsOpen to globalIsRenaming (which is usually false)
+            />
+            <RobotDialog />
+        </>);
 }
 
 interface RobotItemProps {
@@ -84,7 +89,7 @@ function RobotItem(props: RobotItemProps): JSX.Element {
         initialName={name}
         icon="playbook"
         newNameSubmitted={(newName) => {
-            if (newName) { dispatch(renamedRobot({ newName: newName, id: props.id })); }
+            if (newName) { dispatch(renamedRobot({ newName, id: props.id })); }
             setIsRenaming(false);
             props.setGlobalIsRenaming(false);
         }}
@@ -92,22 +97,18 @@ function RobotItem(props: RobotItemProps): JSX.Element {
         (<MenuItem2
             icon="playbook"
             text={name}
-            // selected={props.selected}
-            // onClick={() => {
-            //     props.setIsOpen(false);
-            //     dispatch(selectedActiveRobot(props.id));
-            // }}
-            // doesn't work for some reason
-            // submenuProps={{ className: Classes.ELEVATION_2 }}
-            children={
-                < RobotSubmenu
-                    id={props.id}
-                    handleRenameClick={() => {
-                        setIsRenaming(true);
-                        props.setGlobalIsRenaming(true);
-                    }}
-                />}
-        />);
+            onDoubleClick={() => { dispatch(robotDialogOpened(props.id)); }}
+            submenuProps={{ className: Classes.ELEVATION_2 }}
+        >
+            <RobotSubmenu
+                id={props.id}
+                handleRenameClick={() => {
+                    setIsRenaming(true);
+                    props.setGlobalIsRenaming(true);
+                }}
+            />
+        </MenuItem2 >
+        );
 }
 
 interface RobotSubmenuProps {
@@ -119,9 +120,9 @@ function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
     const dispatch = useAppDispatch();
     const dismissProps = { shouldDismissPopover: false };
     return (<>
-        {/* <EditMenuItem onClick={() => dispatch(selectedActiveRobot(props.id))} /> */}
+        <EditMenuItem onClick={() => dispatch(robotDialogOpened(props.id))} />
         <RenameMenuItem {...dismissProps} onClick={props.handleRenameClick} />
-        {/* <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} /> */}
+        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} />
         <MenuDivider />
         <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRobot(props.id)); }} />
     </>);

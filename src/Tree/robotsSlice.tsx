@@ -38,8 +38,8 @@ export const robotsSlice = createSlice({
                     robotType: RobotType.SWERVE,
                     width: 18 * Units.INCH,
                     length: 18 * Units.INCH,
-                    maxAcceleration: 100,
-                    maxVelocity: 10
+                    maxVelocity: 50,
+                    maxAcceleration: 100
                 });
             },
             prepare: () => { return { payload: nanoid() }; }
@@ -48,14 +48,35 @@ export const robotsSlice = createSlice({
             robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { name: action.payload.newName } });
         },
         deletedRobot: robotsAdapter.removeOne,
-    },
+        duplicatedRobot(robotState, action: PayloadAction<EntityId>) {
+            const robot = simpleSelectors.selectById(robotState, action.payload);
+            if (!robot) { throw new Error("Expected valid robot."); }
+            let copy = Object.assign({}, robot);
+            copy.id = nanoid();
+            copy.name = "Copy of " + copy.name;
+            robotsAdapter.addOne(robotState, copy);
+        },
+        robotTypeChanged(robotState, action: PayloadAction<{ id: EntityId, robotType: RobotType }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { ...action.payload } });
+        },
+        robotMaxVelocityChanged(robotState, action: PayloadAction<{ id: EntityId, value: number }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { maxVelocity: action.payload.value } });
+        },
+        robotMaxAccelerationChanged(robotState, action: PayloadAction<{ id: EntityId, value: number }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { maxAcceleration: action.payload.value } });
+        },
+    }
     // extraReducers: (builder) => { }
 });
 
 export const {
     addedRobot,
     renamedRobot,
-    deletedRobot
+    deletedRobot,
+    duplicatedRobot,
+    robotMaxAccelerationChanged,
+    robotMaxVelocityChanged,
+    robotTypeChanged
 } = robotsSlice.actions;
 
 // Runtime selectors

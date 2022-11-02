@@ -29,7 +29,7 @@ export function RoutineMenu(): JSX.Element {
     const [isOpen, setIsOpen] = React.useState(false);
     const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
-    const ownerButton = (activeRoutineId == DUMMY_ID ?
+    const ownerButton = (activeRoutineId === DUMMY_ID ?
         <Button
             icon="add"
             text={"Add routine"}
@@ -103,24 +103,25 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
         }}
     />) :
         (<MenuItem2
+            className={props.selected ? Classes.SELECTED : ""}
             icon="playbook"
             text={name}
+            roleStructure="listoption"
             selected={props.selected}
+            submenuProps={{ className: Classes.ELEVATION_2 }}
             onClick={() => {
                 props.setIsOpen(false);
                 dispatch(selectedActiveRoutine(props.id));
             }}
-            // doesn't work for some reason
-            // submenuProps={{ className: Classes.ELEVATION_2 }}
-            children={
-                < RoutineSubmenu
-                    id={props.id}
-                    handleRenameClick={() => {
-                        setIsRenaming(true);
-                        props.setGlobalIsRenaming(true);
-                    }}
-                />}
-        />);
+        >
+            < RoutineSubmenu
+                id={props.id}
+                handleRenameClick={() => {
+                    setIsRenaming(true);
+                    props.setGlobalIsRenaming(true);
+                }}
+            />
+        </MenuItem2>);
 }
 
 interface RoutineSubmenuProps {

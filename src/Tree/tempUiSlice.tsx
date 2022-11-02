@@ -250,5 +250,4 @@ export function selectHoveredSplineIds(state: RootState): EntityId[][] { return 
 export function selectSelectedSplineIds(state: RootState): EntityId[][] { return state.tempUi.selectedSplineIds; }
 
 export function selectIsExportDialogOpen(state: RootState): boolean { return state.tempUi.isExportDialogOpen; }
-export function selectIsRobotDialogOpen(state: RootState): boolean { return selectRobotDialogId(state) !== DUMMY_ID; }
 export function selectRobotDialogId(state: RootState): EntityId { return state.tempUi.robotDialog; }
