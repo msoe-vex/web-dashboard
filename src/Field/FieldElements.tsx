@@ -6,7 +6,7 @@ import { Colors, Menu } from "@blueprintjs/core";
 import { Line, Circle, Rect } from "react-konva";
 
 import { useAppSelector, useAppDispatch } from "../Store/hooks";
-import { RootState, AppDispatch } from "../Store/store";
+import { AppDispatch } from "../Store/store";
 import { selectPathById } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
@@ -16,36 +16,26 @@ import { Units, PointUtils, Point } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
-export function FieldElements(): JSX.Element {
-    const paths = useAppSelector((state: RootState) => {
-        const activeRoutine = selectActiveRoutine(state);
-        if (!activeRoutine) { throw new Error("Field expected valid active routine."); }
-
-        return activeRoutine.pathIds.map(pathId => {
-            const path = selectPathById(state, pathId);
-            if (!path) { throw new Error("Field expected valid paths."); }
-            return path;
-        });
+export function FieldElements(): null | JSX.Element {
+    const paths = useAppSelector(state => {
+        return selectActiveRoutine(state)?.pathIds.map(pathId => selectPathById(state, pathId));
     });
 
-    return (<>
+    return (!paths ? null : (<>
         {paths.flatMap(path => path.waypointIds.map(waypointId =>
             <RobotElement
                 key={waypointId}
                 waypointId={waypointId}
             />))}
-        {paths.flatMap(path => {
-            var elements = [];
-            for (let i = 1; i < path.waypointIds.length; ++i) {
-                elements.push(<SplineElement
-                    key={path.waypointIds[i]}
-                    previousWaypointId={path.waypointIds[i - 1]}
-                    waypointId={path.waypointIds[i]}
-                />);
-            }
-            return elements;
-        })}
-    </>);
+
+        {paths.flatMap(path =>
+            path.waypointIds.map((waypointId, i, waypointIds) =>
+                (i === 0) ? null : (<SplineElement
+                    key={waypointId}
+                    waypointId={waypointId}
+                    previousWaypointId={waypointIds[i - 1]}
+                />)))}
+    </>));
 }
 
 const shadowProps = {

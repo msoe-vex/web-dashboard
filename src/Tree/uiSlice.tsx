@@ -69,7 +69,7 @@ export const uiSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(deletedRoutineInternal, (uiState, action) => {
-                if (action.payload.newActiveRoutineId) { uiState.activeRoutineId = action.payload.newActiveRoutineId; }
+                uiState.activeRoutineId = action.payload.newActiveRoutineId;
             })
             .addCase(addedRoutineInternal, (uiState, action) => { uiState.activeRoutineId = action.payload.routineId; })
     }
