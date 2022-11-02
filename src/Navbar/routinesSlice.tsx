@@ -1,11 +1,11 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary } from "@reduxjs/toolkit";
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary, EntityState } from "@reduxjs/toolkit";
 import undoable from "redux-undo";
-import { DUMMY_ID } from "../Store/dummyId";
+import { DUMMY_ID, getErrorlessSelectors } from "../Store/storeUtils";
 
 // JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
 import { Folder, selectFolderById } from "../Tree/foldersSlice";
-import { Path, selectPathById } from "../Tree/pathsSlice";
+import { deletedPathInternal, Path, selectPathById } from "../Tree/pathsSlice";
 import { selectActiveRoutineId } from "../Tree/uiSlice";
 import { getNextName } from "../Tree/Utils";
 import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";
@@ -63,6 +63,14 @@ export const routinesSlice = createSlice({
             routinesAdapter.updateOne(routineState, { id: action.payload.id, changes: { name: action.payload.newName } });
         }
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(deletedPathInternal, (routineState, action) => {
+                const routine = selectOwnerRoutineInternal(routineState, action.payload.id);
+                routine.pathIds = routine.pathIds.filter(pathId => pathId != action.payload.id);
+                routinesAdapter.upsertOne(routineState, routine);
+            })
+    }
 });
 
 /**
@@ -80,7 +88,6 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
         };
 
         const state = getState();
-
         const routineToDelete = selectRoutineById(state, routineId);
         if (routineToDelete !== undefined) {
             arg.pathIds = routineToDelete.pathIds;
@@ -185,4 +192,19 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = routinesAdapter.getSelectors<RootState>(state => state.history.present.routines);
+} = getErrorlessSelectors(routinesAdapter.getSelectors<RootState>(state => state.history.present.routines));
+
+/**
+ * Selects the routine which owns a given path.
+ * @param pathId - The item id to use.
+ * @param itemType - The ItemType to use.
+ */
+export function selectOwnerRoutine(state: RootState, pathId: EntityId): Routine {
+    return selectOwnerRoutineInternal(state.history.present.routines, pathId);
+}
+
+function selectOwnerRoutineInternal(routineState: EntityState<Routine>, pathId: EntityId) {
+    const routine = simpleSelectors.selectAll(routineState).find(routine => routine.pathIds.includes(pathId));
+    if (!routine) { throw new Error("Found orphaned item."); }
+    return routine;
+}
