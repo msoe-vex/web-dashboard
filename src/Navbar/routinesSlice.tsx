@@ -1,6 +1,5 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary, EntityState } from "@reduxjs/toolkit";
-import undoable from "redux-undo";
-import { DUMMY_ID, getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
+import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
 
 // JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
@@ -46,7 +45,7 @@ export const routinesSlice = createSlice({
             pathIds: EntityId[],
             waypointIds: EntityId[],
             folderIds: EntityId[],
-            newActiveRoutineId: EntityId
+            newActiveRoutineId: EntityId | undefined
         }>) {
             routinesAdapter.removeOne(routineState, action.payload.routineId);
         },
@@ -67,7 +66,7 @@ export const routinesSlice = createSlice({
         builder
             .addCase(deletedPathInternal, (routineState, action) => {
                 const routine = selectOwnerRoutineInternal(routineState, action.payload.id);
-                routine.pathIds = routine.pathIds.filter(pathId => pathId != action.payload.id);
+                routine.pathIds = routine.pathIds.filter(pathId => pathId !== action.payload.id);
                 routinesAdapter.upsertOne(routineState, routine);
             })
     }
@@ -84,7 +83,7 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
             pathIds: [] as EntityId[],
             folderIds: [] as EntityId[],
             waypointIds: [] as EntityId[],
-            newActiveRoutineId: DUMMY_ID
+            newActiveRoutineId: undefined as EntityId | undefined
         };
 
         const state = getState();
@@ -98,7 +97,12 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
 
         if (selectActiveRoutineId(state) === routineId) {
             const routineIds = selectRoutineIds(state);
-            arg.newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
+            if (routineIds.length === 1) {
+                arg.newActiveRoutineId = undefined;
+            }
+            else {
+                arg.newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
+            }
         }
         dispatch(deletedRoutineInternal(arg));
     };
@@ -108,7 +112,7 @@ export function addedRoutine(): AppThunk {
     return (dispatch) => {
         dispatch(addedRoutineInternal({
             routineId: nanoid(),
-            robotId: DUMMY_ID, // selectFirstRobotId(getState())
+            robotId: "", // selectFirstRobotId(getState())
             // only a single pathId
             pathId: nanoid(),
             waypointIds: [nanoid(), nanoid()]

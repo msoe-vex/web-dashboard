@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { DUMMY_ID } from "../Store/storeUtils";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
 import { selectPathById } from "../Navbar/pathsSlice";
@@ -16,7 +15,7 @@ import { selectedActiveRoutine } from "./uiSlice";
  * @property selectedSplineIds - A list of waypointId pairs representing splines which are currently selected.
  * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
  * @property isExportDialogOpen - Whether or not the export menu dialog is currently open.
- * @property robotDialog - The id of the robot dialog which is currently open, or `DUMMY_ID` if none is.
+ * @property robotDialogId - The id of the robot dialog which is currently open, or `DUMMY_ID` if none is.
  */
 export interface TempUi {
     collapsedFolderIds: EntityId[];
@@ -25,7 +24,7 @@ export interface TempUi {
     selectedSplineIds: EntityId[][];
     hoveredSplineIds: EntityId[][];
     isExportDialogOpen: boolean;
-    robotDialog: EntityId;
+    robotDialogId?: EntityId;
 }
 
 export enum ItemType {
@@ -49,7 +48,7 @@ const defaultTempUiState: TempUi = {
     hoveredSplineIds: [],
     selectedSplineIds: [],
     isExportDialogOpen: false,
-    robotDialog: DUMMY_ID
+    robotDialogId: undefined
 };
 
 export const tempUiSlice = createSlice({
@@ -156,10 +155,10 @@ export const tempUiSlice = createSlice({
             uiState.isExportDialogOpen = false;
         },
         robotDialogOpened(uiState, action: PayloadAction<EntityId>) {
-            uiState.robotDialog = action.payload;
+            uiState.robotDialogId = action.payload;
         },
         robotDialogClosed(uiState) {
-            uiState.robotDialog = DUMMY_ID;
+            uiState.robotDialogId = undefined;
         }
     },
     extraReducers: (builder) => {
@@ -250,4 +249,4 @@ export function selectHoveredSplineIds(state: RootState): EntityId[][] { return 
 export function selectSelectedSplineIds(state: RootState): EntityId[][] { return state.tempUi.selectedSplineIds; }
 
 export function selectIsExportDialogOpen(state: RootState): boolean { return state.tempUi.isExportDialogOpen; }
-export function selectRobotDialogId(state: RootState): EntityId { return state.tempUi.robotDialog; }
+export function selectRobotDialogId(state: RootState): EntityId | undefined { return state.tempUi.robotDialogId; }

@@ -30,7 +30,7 @@ import {
 } from "./tempUiSlice";
 import { ContextMenuHandlerContext } from "../Field/AppContextMenu";
 import { Path, selectPathById } from "../Navbar/pathsSlice";
-import { DUMMY_ID, verifyValueIsValid } from "../Store/storeUtils";
+import { verifyValueIsValid } from "../Store/storeUtils";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -42,7 +42,7 @@ export function AppTree(): JSX.Element {
     const pathIds = routine.pathIds;
     const paths = useAppSelector(state => pathIds.map(pathId => selectPathById(state, pathId)));
 
-    const [renamingId, setRenamingId] = React.useState<EntityId>(DUMMY_ID);
+    const [renamingId, setRenamingId] = React.useState<EntityId | undefined>(undefined);
 
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
     const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
@@ -153,8 +153,8 @@ function getPathNode(
     path: Path,
     orderedWaypoints: Waypoint[],
     folders: Folder[],
-    renamingId: EntityId,
-    setRenamingId: (newId: EntityId) => void,
+    renamingId: EntityId | undefined,
+    setRenamingId: (newId?: EntityId) => void,
     selectedWaypointIds: EntityId[],
     collapsedFolderIds: EntityId[],
 ): TreeNodeInfo<TreeItemType> {
@@ -166,7 +166,13 @@ function getPathNode(
             renamingId={renamingId}
         />);
 
-        const waypointLabel = getTreeLabel(waypoint, ItemType.WAYPOINT, renamingId, setRenamingId);
+        // call element manually
+        const waypointLabel = TreeNameInput({
+            treeItem: waypoint,
+            itemType: ItemType.WAYPOINT,
+            renamingId,
+            setRenamingId
+        });
 
         return {
             id: waypoint.id,
@@ -186,7 +192,13 @@ function getPathNode(
             renamingId={renamingId}
         />);
 
-        const folderLabel = getTreeLabel(folder, ItemType.FOLDER, renamingId, setRenamingId);
+        // call element manually
+        const folderLabel = TreeNameInput({
+            treeItem: folder,
+            itemType: ItemType.FOLDER,
+            renamingId,
+            setRenamingId
+        });
 
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
         if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
@@ -227,7 +239,7 @@ function getPathNode(
 interface TreeEyeButtonProps {
     treeItem: { id: EntityId, waypointIds?: EntityId[] };
     itemType: TreeItemType;
-    renamingId: EntityId;
+    renamingId?: EntityId;
 }
 
 function TreeEyeButton(props: TreeEyeButtonProps): JSX.Element | null {
@@ -253,29 +265,22 @@ function eyeIcon(waypointIds: EntityId[], hiddenWaypointIds: EntityId[]): IconNa
     return (allHidden) ? "eye-off" : "eye-open";
 }
 
-function getTreeLabel(treeItem: Waypoint | Folder, itemType: TreeItemType, renamingId: EntityId, setRenamingId: (newId: EntityId) => void): JSX.Element | string {
-    return (treeItem.id === renamingId) ? (
-        < TreeNameInput
-            treeItem={treeItem}
-            itemType={itemType}
-            setRenamingId={setRenamingId}
-        />
-    ) : treeItem.name;
-}
-
 interface TreeNameInputProps {
-    treeItem: { id: EntityId, name: string };
+    treeItem: Waypoint | Folder;
     itemType: TreeItemType;
-    setRenamingId: (newId: EntityId) => void;
+    renamingId?: EntityId;
+    setRenamingId: (newId: EntityId | undefined) => void;
 }
 
-function TreeNameInput(props: TreeNameInputProps): JSX.Element {
+function TreeNameInput(props: TreeNameInputProps): JSX.Element | string {
     const dispatch = useAppDispatch();
-    return (<NameInput
-        initialName={props.treeItem.name}
-        newNameSubmitted={(newName) => {
-            if (newName) { dispatch(treeItemRenamed(props.treeItem.id, props.itemType, newName)); }
-            props.setRenamingId(DUMMY_ID);
-        }}
-    />);
+    const { treeItem, renamingId } = props;
+    return (treeItem.id === renamingId) ?
+        (<NameInput
+            initialName={treeItem.name}
+            newNameSubmitted={(newName) => {
+                if (newName) { dispatch(treeItemRenamed(treeItem.id, props.itemType, newName)); }
+                props.setRenamingId(treeItem.id);
+            }}
+        />) : treeItem.name;
 }

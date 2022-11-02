@@ -5,43 +5,39 @@ import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import {
-    selectRoutineIds,
-    selectRoutineById,
     addedRoutine,
     deletedRoutine,
     renamedRoutine,
-    duplicatedRoutine
+    duplicatedRoutine,
+    Routine,
+    selectAllRoutines
 } from "./routinesSlice";
 import { selectActiveRoutine, selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
-import { DUMMY_ID } from "../Store/storeUtils";
 
 export function RoutineMenu(): JSX.Element {
     const dispatch = useAppDispatch();
 
-    const activeRoutineId = useAppSelector(selectActiveRoutineId);
-    const activeRoutineName = useAppSelector(state => {
-        return activeRoutineId === DUMMY_ID ? "" : selectActiveRoutine(state).name
-    });
+    const activeRoutine = useAppSelector(selectActiveRoutine);
 
     const [isOpen, setIsOpen] = React.useState(false);
     const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
-    const ownerButton = (activeRoutineId === DUMMY_ID ?
+    const ownerButton = (activeRoutine ?
+        <Button
+            icon="playbook"
+            rightIcon="chevron-down"
+            text={activeRoutine.name}
+            minimal={true}
+            onClick={() => { setIsOpen(true); }}
+        /> :
         <Button
             icon="add"
             text={"Add routine"}
             minimal={true}
             onClick={() => dispatch(addedRoutine())}
-        /> :
-        <Button
-            icon="playbook"
-            rightIcon="chevron-down"
-            text={activeRoutineName}
-            minimal={true}
-            onClick={() => { setIsOpen(true); }}
         />);
 
     const addRoutineItem = (
@@ -52,14 +48,13 @@ export function RoutineMenu(): JSX.Element {
             shouldDismissPopover={false}
         />);
 
-    const ids = useAppSelector(selectRoutineIds);
+    const routines = useAppSelector(selectAllRoutines);
     const routineMenu = (
         <Menu className={Classes.ELEVATION_2}>
-            {ids.map((id) =>
+            {routines.map(routine =>
                 <RoutineItem
-                    key={id} // key here to make React happy
-                    id={id}
-                    selected={id === activeRoutineId}
+                    key={routine.id} // key here to make React happy
+                    routine={routine}
                     setGlobalIsRenaming={setGlobalIsRenaming}
                     setIsOpen={setIsOpen}
                 />)}
@@ -67,7 +62,7 @@ export function RoutineMenu(): JSX.Element {
             {addRoutineItem}
         </Menu>);
 
-    return (!activeRoutineName ? ownerButton :
+    return (!activeRoutine ? ownerButton :
         <Popover2
             children={ownerButton}
             content={routineMenu}
@@ -81,41 +76,40 @@ export function RoutineMenu(): JSX.Element {
 }
 
 interface RoutineItemProps {
-    id: EntityId;
-    selected: boolean;
+    routine: Routine;
     setGlobalIsRenaming: (isRenaming: boolean) => void;
     setIsOpen: (state: boolean) => void;
 }
 
 function RoutineItem(props: RoutineItemProps): JSX.Element {
     const dispatch = useAppDispatch();
-
-    const name = useAppSelector(state => selectRoutineById(state, props.id).name);
+    const routine = props.routine;
+    const selected = (routine.id === useAppSelector(selectActiveRoutineId));
 
     const [isRenaming, setIsRenaming] = React.useState(false);
     return isRenaming ? (<NameInput
-        initialName={name}
+        initialName={routine.name}
         icon="playbook"
         newNameSubmitted={(newName) => {
-            if (newName) { dispatch(renamedRoutine({ newName: newName, id: props.id })); }
+            if (newName) { dispatch(renamedRoutine({ newName, id: routine.id })); }
             setIsRenaming(false);
             props.setGlobalIsRenaming(false);
         }}
     />) :
         (<MenuItem2
-            className={props.selected ? Classes.SELECTED : ""}
+            className={selected ? Classes.SELECTED : ""}
             icon="playbook"
-            text={name}
+            text={routine.name}
             roleStructure="listoption"
-            selected={props.selected}
+            selected={selected}
             submenuProps={{ className: Classes.ELEVATION_2 }}
             onClick={() => {
                 props.setIsOpen(false);
-                dispatch(selectedActiveRoutine(props.id));
+                dispatch(selectedActiveRoutine(routine.id));
             }}
         >
             < RoutineSubmenu
-                id={props.id}
+                id={routine.id}
                 handleRenameClick={() => {
                     setIsRenaming(true);
                     props.setGlobalIsRenaming(true);

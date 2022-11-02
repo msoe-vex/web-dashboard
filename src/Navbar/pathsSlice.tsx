@@ -1,7 +1,6 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
-import undoable from "redux-undo";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "./routinesSlice";
-import { DUMMY_ID, getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
+import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
@@ -109,7 +108,7 @@ export function addedPath(routineId: EntityId): AppThunk {
         dispatch(pathsSlice.actions.addedPathInternal({
             id: nanoid(),
             routineId,
-            robotId: DUMMY_ID, // selectFirstRobotId(getState(),
+            robotId: "", // selectFirstRobotId(getState(),
             waypointIds: [nanoid(), nanoid()]
         }));
     };

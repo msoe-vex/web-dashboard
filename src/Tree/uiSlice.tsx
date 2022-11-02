@@ -1,10 +1,7 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { addedRoutineInternal, deletedRoutineInternal, selectRoutineById } from "../Navbar/routinesSlice";
-import { DUMMY_ID } from "../Store/storeUtils";
+import { addedRoutineInternal, deletedRoutineInternal, Routine, selectRoutineById } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { selectFolderWaypointIds } from "./foldersSlice";
-import { selectPathById } from "../Navbar/pathsSlice";
-import { SelectableItemType, ItemType, selectSelectedWaypointIds, selectContainedWaypointIds } from "./tempUiSlice";
+import { SelectableItemType, selectSelectedWaypointIds, selectContainedWaypointIds } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 
 /**
@@ -13,12 +10,12 @@ import { selectAllTreeWaypointIds } from "./treeActions";
  * @property hiddenWaypointIds - A list of waypoints which are currently hidden.
  */
 export interface Ui {
-    activeRoutineId: EntityId;
+    activeRoutineId?: EntityId;
     hiddenWaypointIds: EntityId[];
 }
 
 const defaultUiState: Ui = {
-    activeRoutineId: DUMMY_ID,
+    activeRoutineId: undefined,
     hiddenWaypointIds: [],
 };
 
@@ -111,6 +108,9 @@ export const {
 } = uiSlice.actions;
 
 export function selectActiveRoutineId(state: RootState) { return state.history.present.ui.activeRoutineId; }
-export function selectActiveRoutine(state: RootState) { return selectRoutineById(state, selectActiveRoutineId(state)); }
+export function selectActiveRoutine(state: RootState): Routine | undefined {
+    const activeRoutineId = selectActiveRoutineId(state);
+    return activeRoutineId ? selectRoutineById(state, activeRoutineId) : undefined;
+}
 
 export function selectHiddenWaypointIds(state: RootState) { return state.history.present.ui.hiddenWaypointIds; }

@@ -1,7 +1,5 @@
 import { Dictionary, EntityId, EntitySelectors } from "@reduxjs/toolkit";
 
-export const DUMMY_ID = "" as EntityId;
-
 export interface ErrorlessSelectors<T, V> {
     selectById: (state: V, id: EntityId) => T;
     selectIds: (state: V) => EntityId[];
