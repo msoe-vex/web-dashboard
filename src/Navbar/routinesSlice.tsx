@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary, EntityState } from "@reduxjs/toolkit";
 import undoable from "redux-undo";
-import { DUMMY_ID, getErrorlessSelectors } from "../Store/storeUtils";
+import { DUMMY_ID, getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
 
 // JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
@@ -21,7 +21,7 @@ const routinesAdapter = createEntityAdapter<Routine>({
 });
 
 // Selectors which take routineState as an argument
-const simpleSelectors = routinesAdapter.getSelectors();
+const simpleSelectors = getErrorlessSelectors(routinesAdapter.getSelectors());
 
 export const routinesSlice = createSlice({
     name: "routines",
@@ -89,20 +89,16 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
 
         const state = getState();
         const routineToDelete = selectRoutineById(state, routineId);
-        if (routineToDelete !== undefined) {
-            arg.pathIds = routineToDelete.pathIds;
-            arg.pathIds.forEach(pathId => {
-                const path = selectPathById(state, pathId);
-                if (path !== undefined) {
-                    arg.waypointIds.push(...path.waypointIds);
-                    arg.folderIds.push(...path.folderIds);
-                }
-            });
-        }
+        arg.pathIds = routineToDelete.pathIds;
+        arg.pathIds.forEach(pathId => {
+            const path = selectPathById(state, pathId);
+            arg.waypointIds.push(...path.waypointIds);
+            arg.folderIds.push(...path.folderIds);
+        });
 
         if (selectActiveRoutineId(state) === routineId) {
             const routineIds = selectRoutineIds(state);
-            arg.newActiveRoutineId = routineIds[0] === routineId ? routineIds[1] : routineIds[0];
+            arg.newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
         }
         dispatch(deletedRoutineInternal(arg));
     };
@@ -128,18 +124,18 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
         // Each slice will then add the new objects to their state
         const state = getState();
         const routine = selectRoutineById(state, id);
-        const paths = routine?.pathIds.map(pathId => selectPathById(state, pathId));
-        const waypointIds = paths?.flatMap(path => path?.waypointIds);
+        const paths = routine.pathIds.map(pathId => selectPathById(state, pathId));
+        const waypointIds = paths.flatMap(path => path.waypointIds);
 
-        const waypoints = paths?.flatMap(path => path?.waypointIds.map(waypointId => selectWaypointById(state, waypointId)));
+        const waypoints = paths.flatMap(path => path.waypointIds.map(waypointId => selectWaypointById(state, waypointId)));
 
         let waypointDictionary: Dictionary<EntityId> = {};
-        waypointIds?.forEach(waypointId => {
+        waypointIds.forEach(waypointId => {
             if (waypointId) { waypointDictionary[waypointId] = nanoid(); }
         });
 
         const routineCopy = Object.assign({}, routine);
-        routineCopy.name = "Copy of " + routine?.name;
+        routineCopy.name = "Copy of " + routine.name;
         let arg = {
             routine: routineCopy,
             paths: [] as Path[],
@@ -147,15 +143,13 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
             folders: [] as Folder[]
         };
 
-        waypoints?.forEach(waypoint => {
-            if (!waypoint) { throw new Error("Expected valid waypoint."); }
+        waypoints.forEach(waypoint => {
             const waypointCopy = Object.assign({}, waypoint);
             waypointCopy.id = waypointDictionary[waypoint.id] as EntityId;
             arg.waypoints.push(waypointCopy);
         });
 
-        paths?.forEach(path => {
-            if (!path) { throw new Error("Expected valid path."); }
+        paths.forEach(path => {
             const pathCopy = Object.assign({}, path);
             pathCopy.id = nanoid();
 
@@ -205,6 +199,5 @@ export function selectOwnerRoutine(state: RootState, pathId: EntityId): Routine 
 
 function selectOwnerRoutineInternal(routineState: EntityState<Routine>, pathId: EntityId) {
     const routine = simpleSelectors.selectAll(routineState).find(routine => routine.pathIds.includes(pathId));
-    if (!routine) { throw new Error("Found orphaned item."); }
-    return routine;
+    return verifyValueIsValid(routine);
 }

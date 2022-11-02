@@ -5,7 +5,7 @@
  * @returns {string} - The next valid instance of the name followed by a string.
  */
 export function getNextName(items: { name: string }[], itemName: string): string {
-    const checkName = (newName: string): boolean =>
+    const checkName = (newName: string) =>
         items.every(item => item.name !== newName);
 
     for (let i = 1; ; ++i) {

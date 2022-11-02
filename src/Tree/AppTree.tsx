@@ -5,7 +5,6 @@ import { MenuItem2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { Path, selectAllPaths } from "./pathsSlice";
 import { selectWaypointDictionary, Waypoint } from "./waypointsSlice";
 import {
     selectActiveRoutineId,
@@ -15,7 +14,6 @@ import {
 import { selectRoutineById } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
 import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
-import { DUMMY_ID } from "../Store/dummyId";
 import { NameInput } from "../Navbar/NameInput";
 import { treeItemRenamed } from "./treeActions";
 import {
@@ -31,6 +29,8 @@ import {
     TreeItemType
 } from "./tempUiSlice";
 import { ContextMenuHandlerContext } from "../Field/AppContextMenu";
+import { Path, selectPathById } from "../Navbar/pathsSlice";
+import { DUMMY_ID, verifyValueIsValid } from "../Store/storeUtils";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -38,16 +38,9 @@ export function AppTree(): JSX.Element {
     // Could wrap activeRoutineId logic with card and simply pass pathIds
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
     const routine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
-    if (!routine) { throw new Error("Expected valid active routine in tree."); }
 
     const pathIds = routine.pathIds;
-    const allPaths = useAppSelector(selectAllPaths);
-    let paths = pathIds.map(pathId => {
-        // can't use selectors within callback function, so get allPaths and find instead
-        const result = allPaths.find(allPath => allPath.id === pathId);
-        if (!result) { throw new Error("Expected valid paths in tree."); }
-        return result;
-    });
+    const paths = useAppSelector(state => pathIds.map(pathId => selectPathById(state, pathId)));
 
     const [renamingId, setRenamingId] = React.useState<EntityId>(DUMMY_ID);
 
@@ -57,28 +50,19 @@ export function AppTree(): JSX.Element {
     const waypointDictionary = useAppSelector(selectWaypointDictionary);
 
     const treeNodeInfo = paths.map(path => {
-        const orderedWaypoints = path.waypointIds.map(waypointId => {
-            const waypoint = waypointDictionary[waypointId];
-            if (!waypoint) { throw new Error("Expected valid waypoint in path."); }
-            return waypoint;
-        });
+        const orderedWaypoints = path.waypointIds.map(waypointId =>
+            verifyValueIsValid(waypointDictionary[waypointId])
+        );
+        const folders = path.folderIds.map(folderId =>
+            verifyValueIsValid(folderDictionary[folderId]));
 
-        const folders = path.folderIds.map(folderId => {
-            const folder = folderDictionary[folderId];
-            if (!folder) { throw new Error("Expected valid folder in path."); }
-            return folder;
-        });
         return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedFolderIds);
     });
 
     const handleNodeClick = React.useCallback(
-        // _ marks arg as unused
         (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
-            // === undefined doesn't catch ItemType.PATH, unlike ! operator
-            if (node.nodeData === undefined) { throw new Error("Expected valid nodeData."); }
-            else if (renamingId !== DUMMY_ID) { return; }
-            dispatch(itemSelected(node.id, node.nodeData, e.shiftKey));
-        }, [renamingId, dispatch]);
+            dispatch(itemSelected(node.id, verifyValueIsValid(node.nodeData), e.shiftKey));
+        }, [dispatch]);
 
     const handleNodeCollapse = React.useCallback((node: TreeNodeInfo, _nodePath: number[]) => {
         dispatch(treeItemsCollapsed([node.id]));
@@ -89,13 +73,11 @@ export function AppTree(): JSX.Element {
     }, [dispatch]);
 
     const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
-        if (!node.nodeData) { throw new Error("Expected valid nodeData."); }
-        dispatch(itemMouseEnter(node.id, node.nodeData));
+        dispatch(itemMouseEnter(node.id, verifyValueIsValid(node.nodeData)));
     }, [dispatch]);
 
     const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
-        if (!node.nodeData) { throw new Error("Expected valid nodeData."); }
-        dispatch(itemMouseLeave(node.id, node.nodeData));
+        dispatch(itemMouseLeave(node.id, verifyValueIsValid(node.nodeData)));
     }, [dispatch]);
 
     const contextMenuHandler = React.useContext(ContextMenuHandlerContext);
@@ -209,7 +191,6 @@ function getPathNode(
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
         if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
 
-        // slice contents from waypointNodes and shift into new folder node
         const folderNode = {
             id: folder.id,
             hasCaret: true,
@@ -219,6 +200,7 @@ function getPathNode(
             secondaryLabel: folderEyeButton,
             nodeData: ItemType.FOLDER as TreeItemType
         }
+        // slice folder contents from waypointNodes and add new folder node
         const childNodes = waypointNodes.splice(startIndex, folder.waypointIds.length, folderNode);
         waypointNodes[startIndex].childNodes = childNodes;
     });

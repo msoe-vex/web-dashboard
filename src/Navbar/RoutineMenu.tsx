@@ -12,24 +12,24 @@ import {
     renamedRoutine,
     duplicatedRoutine
 } from "./routinesSlice";
-import { selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
+import { selectActiveRoutine, selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
+import { DUMMY_ID } from "../Store/storeUtils";
 
 export function RoutineMenu(): JSX.Element {
     const dispatch = useAppDispatch();
 
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
-    const activeRoutineName = useAppSelector((state) => {
-        const routine = selectRoutineById(state, activeRoutineId);
-        return routine?.name;
+    const activeRoutineName = useAppSelector(state => {
+        return activeRoutineId === DUMMY_ID ? "" : selectActiveRoutine(state).name
     });
 
     const [isOpen, setIsOpen] = React.useState(false);
     const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
-    const ownerButton = (!activeRoutineName ?
+    const ownerButton = (activeRoutineId == DUMMY_ID ?
         <Button
             icon="add"
             text={"Add routine"}
@@ -41,7 +41,7 @@ export function RoutineMenu(): JSX.Element {
             rightIcon="chevron-down"
             text={activeRoutineName}
             minimal={true}
-            onClick={() => { setIsOpen(true); }} // open popover
+            onClick={() => { setIsOpen(true); }}
         />);
 
     const addRoutineItem = (
@@ -90,8 +90,7 @@ interface RoutineItemProps {
 function RoutineItem(props: RoutineItemProps): JSX.Element {
     const dispatch = useAppDispatch();
 
-    const name = useAppSelector(state => selectRoutineById(state, props.id)?.name);
-    if (!name) { throw new Error("Expected valid routine name."); }
+    const name = useAppSelector(state => selectRoutineById(state, props.id).name);
 
     const [isRenaming, setIsRenaming] = React.useState(false);
     return isRenaming ? (<NameInput

@@ -230,9 +230,9 @@ export function selectContainedWaypointIds(state: RootState, id: EntityId | Enti
         if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
         switch (itemType) {
             case ItemType.FOLDER:
-                return selectFolderWaypointIds(state, id) ?? [];
+                return selectFolderWaypointIds(state, id);
             case ItemType.PATH:
-                return selectPathById(state, id)?.waypointIds ?? [];
+                return selectPathById(state, id).waypointIds;
             case ItemType.WAYPOINT:
                 return [id];
             default:

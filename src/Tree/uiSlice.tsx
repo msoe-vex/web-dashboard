@@ -4,7 +4,7 @@ import { DUMMY_ID } from "../Store/storeUtils";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
 import { selectPathById } from "../Navbar/pathsSlice";
-import { SelectableItemType, ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
+import { SelectableItemType, ItemType, selectSelectedWaypointIds, selectContainedWaypointIds } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 
 /**
@@ -109,29 +109,6 @@ export const {
     selectedActiveRoutine,
     allItemsShown,
 } = uiSlice.actions;
-
-/**
- * Returns an array containing the waypointIds contained by an item specified by id.
- */
-export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: SelectableItemType): EntityId[] {
-    if (itemType === ItemType.SPLINE) {
-        if (!Array.isArray(id)) { throw new Error("Expected splineId to be an array."); }
-        return id;
-    }
-    else {
-        if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
-        switch (itemType) {
-            case ItemType.FOLDER:
-                return selectFolderWaypointIds(state, id) ?? [];
-            case ItemType.PATH:
-                return selectPathById(state, id)?.waypointIds ?? [];
-            case ItemType.WAYPOINT:
-                return [id];
-            default:
-                throw new Error("Cannot select from specified item type.");
-        };
-    }
-}
 
 export function selectActiveRoutineId(state: RootState) { return state.history.present.ui.activeRoutineId; }
 export function selectActiveRoutine(state: RootState) { return selectRoutineById(state, selectActiveRoutineId(state)); }

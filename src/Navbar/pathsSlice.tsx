@@ -1,7 +1,7 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
 import undoable from "redux-undo";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "./routinesSlice";
-import { DUMMY_ID, getErrorlessSelectors } from "../Store/storeUtils";
+import { DUMMY_ID, getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
@@ -16,8 +16,7 @@ export interface Path {
 }
 
 const pathsAdapter = createEntityAdapter<Path>();
-const simpleSelectors = pathsAdapter.getSelectors();
-
+const simpleSelectors = getErrorlessSelectors(pathsAdapter.getSelectors());
 
 export const pathsSlice = createSlice({
     name: "paths",
@@ -80,11 +79,9 @@ export const pathsSlice = createSlice({
             })
             .addCase(addedFolderInternal, (pathState, action) => {
                 const path = simpleSelectors.selectById(pathState, action.payload.pathId);
-                if (path) {
-                    const newFolderIds = path.folderIds.slice();
-                    newFolderIds.push(action.payload.id);
-                    pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds } });
-                }
+                const newFolderIds = path.folderIds.slice();
+                newFolderIds.push(action.payload.id);
+                pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds } });
             })
             .addCase(deletedFolderInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.FOLDER);
@@ -95,15 +92,14 @@ export const pathsSlice = createSlice({
     }
 });
 
-
 export function deletedPath(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const path = selectPathById(getState(), pathId);
-        // const routineId = selectOwnerRoutine(pathId);
         dispatch(deletedPathInternal({
             id: pathId,
-            folderIds: path?.folderIds ?? [],
-            waypointIds: path?.waypointIds ?? []
+            folderIds: path.folderIds,
+            waypointIds: path.waypointIds,
+            // don't attach routine since it can handle it
         }));
     };
 }
@@ -142,7 +138,7 @@ export function selectOwnerPath(state: RootState, itemId: EntityId, itemType: It
 }
 
 function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT) {
-    let path : Path | undefined;
+    let path: Path | undefined;
     switch (itemType) {
         case ItemType.FOLDER:
             path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(itemId));
@@ -156,6 +152,5 @@ function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId,
         default:
             throw new Error("selectOwnerPath only supports folders, waypoints, and robots.");
     }
-    if (!path) { throw new Error("Found orphaned item."); }
-    return path;
+    return verifyValueIsValid(path);
 }

@@ -1,6 +1,6 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
-import { selectActiveRoutineId } from "./uiSlice";
+import { selectActiveRoutineId, selectHiddenWaypointIds } from "./uiSlice";
 import { Path, selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
 import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
 import { selectRoutineById } from "../Navbar/routinesSlice";
@@ -52,18 +52,11 @@ export function selectionAddedToNewFolder(): AppThunk {
 
 export function selectAllTreePaths(state: RootState): Path[] {
     const activeRoutine = selectRoutineById(state, selectActiveRoutineId(state));
-    let result: Path[] = [];
-    if (!activeRoutine) { return result; }
-    activeRoutine.pathIds.forEach(pathId => {
-        const path = selectPathById(state, pathId);
-        if (path) { result.push(path); }
-    });
-    return result;
+    return activeRoutine.pathIds.map(pathId => selectPathById(state, pathId));
 };
 
 export function selectAllTreeWaypointIds(state: RootState): EntityId[] {
-    const paths = selectAllTreePaths(state);
-    return paths?.flatMap(path => path ? path.waypointIds : []) ?? [];
+    return selectAllTreePaths(state).flatMap(path => path.waypointIds);
 };
 
 export function selectAllTreeContainerIds(state: RootState): EntityId[] {
@@ -79,7 +72,8 @@ export function selectAllTreeFolderIds(state: RootState): EntityId[] {
  */
 export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => state.history.present.ui.hiddenWaypointIds.includes(waypointId));
+    const hiddenWaypointIds = selectHiddenWaypointIds(state);
+    return treeWaypointIds.every(waypointId => hiddenWaypointIds.includes(waypointId));
 }
 
 /**
@@ -87,7 +81,8 @@ export function checkIfAllTreeItemsAreHidden(state: RootState): boolean {
  */
 export function checkIfAllTreeItemsAreShown(state: RootState): boolean {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
-    return treeWaypointIds.every(waypointId => !state.history.present.ui.hiddenWaypointIds.includes(waypointId));
+    const hiddenWaypointIds = selectHiddenWaypointIds(state);
+    return treeWaypointIds.every(waypointId => !hiddenWaypointIds.includes(waypointId));
 }
 
 /**
@@ -109,7 +104,7 @@ export function checkIfSelectionCanBePutInFolder(state: RootState): boolean {
     if (selection.some(waypointId => !ownerPath.waypointIds.includes(waypointId))) { return false; }
     // If some waypoint in selection is owned by a folder in owner path, return false
     else if (selection.some(waypointId =>
-        ownerPath.folderIds.some(folderId => selectFolderById(state, folderId)?.waypointIds.includes(waypointId))
+        ownerPath.folderIds.some(folderId => selectFolderById(state, folderId).waypointIds.includes(waypointId))
     )) { return false; }
     return true;
 };
@@ -120,9 +115,9 @@ export function checkIfSelectionCanBePutInFolder(state: RootState): boolean {
 export function makeSelectionContiguous(state: RootState): EntityId[] {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
     const currentSelection = selectSelectedWaypointIds(state);
-    const indicies = currentSelection.map(waypointId => treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);
-    if (indicies.length === 0) { return []; }
-    const min = Math.min(...indicies);
-    const max = Math.max(...indicies);
+    const indices = currentSelection.map(waypointId => treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);
+    if (indices.length === 0) { return []; }
+    const min = Math.min(...indices);
+    const max = Math.max(...indices);
     return treeWaypointIds.slice(min, max + 1);
 };

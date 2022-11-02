@@ -23,7 +23,7 @@ export enum RobotType {
 }
 
 const robotsAdapter = createEntityAdapter<Robot>();
-const simpleSelectors = robotsAdapter.getSelectors();
+const simpleSelectors = getErrorlessSelectors(robotsAdapter.getSelectors());
 
 export const robotsSlice = createSlice({
     name: "robots",
@@ -82,9 +82,5 @@ export function selectOwnerRobot(state: RootState, itemId: EntityId, itemType: T
         default:
             throw new Error("selectOwnerPath item type is not defined.");
     }
-
-    if (!path) { throw new Error("Expected valid pathId."); }
-    const robot = selectRobotById(state, path.robotId);
-    if (!robot) { throw new Error("Expected valid robotId."); }
-    return robot;
+    return selectRobotById(state, path.robotId);
 }

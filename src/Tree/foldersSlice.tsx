@@ -17,7 +17,7 @@ export interface Folder {
 
 const foldersAdapter = createEntityAdapter<Folder>();
 
-const simpleSelectors = foldersAdapter.getSelectors();
+const simpleSelectors = getErrorlessSelectors(foldersAdapter.getSelectors());
 
 export const foldersSlice = createSlice({
     name: "folders",
@@ -70,7 +70,6 @@ export const foldersSlice = createSlice({
 export function addedFolder(waypointIds: EntityId[]): AppThunk {
     return (dispatch, getState) => {
         const path = selectOwnerPath(getState(), waypointIds[0], ItemType.WAYPOINT);
-        if (!path) { throw new Error("Expected valid path in addedFolder."); }
 
         var orderedIds: EntityId[] = [];
         path.waypointIds.forEach(waypointId => {
@@ -88,7 +87,7 @@ export function addedFolder(waypointIds: EntityId[]): AppThunk {
 export function deletedFolder(folderId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const folder = selectFolderById(getState(), folderId);
-        dispatch(deletedFolderInternal({ id: folderId, waypointIds: folder?.waypointIds ?? [] }))
+        dispatch(deletedFolderInternal({ id: folderId, waypointIds: folder.waypointIds }))
     };
 }
 
@@ -115,24 +114,22 @@ export const {
 } = getErrorlessSelectors(foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders));
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
-    return selectFolderById(state, folderId)?.waypointIds ?? [];
+    return selectFolderById(state, folderId).waypointIds;
 }
 
-// /**
-//  * Returns the folder which owns a given waypointId, or undefined if it does not exist.
-//  * @param waypointId - The waypoint id to use.
-//  * @returns {Folder | undefined}
-//  */
-// export function selectOwnerFolder(state: RootState, waypointId: EntityId): Folder | undefined {
-//     return selectAllFolders(state).find(folder => folder.waypointIds.includes(waypointId));
-// }
+/**
+ * Returns the folder which owns a given waypointId, or undefined if it does not exist.
+ * Note that it can return undefined, unlike most other selectOwner functions.
+ * @param waypointId - The waypoint id to use.
+ */
+export function selectOwnerFolder(state: RootState, waypointId: EntityId): Folder | undefined {
+    return selectAllFolders(state).find(folder => folder.waypointIds.includes(waypointId));
+}
 
 /**
  * Returns true if a waypointId is in a folder, and false otherwise.
- * @param {EntityId} waypointId - The waypoint id to use.
- * @returns {boolean}
+ * @param waypointId - The waypoint id to use.
  */
 export function checkIfWaypointIdIsInFolder(state: RootState, waypointId: EntityId): boolean {
-    // alternative method - get owner path, then search only relevant folders
-    return selectAllFolders(state).every(folder => !folder.waypointIds.includes(waypointId));
+    return selectOwnerFolder(state, waypointId) !== undefined;
 }

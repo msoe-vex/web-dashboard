@@ -42,7 +42,7 @@ interface WaypointContextMenuProps {
 }
 
 export enum MenuLocation {
-    FIELD, //waypoit/robot associated with click
+    FIELD, 
     TREE
 }
 

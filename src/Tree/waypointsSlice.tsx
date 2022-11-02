@@ -1,5 +1,4 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
-import undoable from "redux-undo";
 
 import { Point, PointUtils, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
@@ -65,8 +64,15 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
+export function verifyWaypointIsControl(waypoint: Waypoint): ControlWaypoint {
+    if (!isControlWaypoint(waypoint)) {
+        throw new Error("Expected control waypoint.");
+    }
+    return waypoint;
+}
+
 const waypointsAdapter = createEntityAdapter<Waypoint>();
-const simpleSelectors = waypointsAdapter.getSelectors();
+const simpleSelectors = getErrorlessSelectors(waypointsAdapter.getSelectors());
 
 export const waypointsSlice = createSlice({
     name: "waypoints",
@@ -103,13 +109,12 @@ export const waypointsSlice = createSlice({
         }>) => {
             const { id, point, selectedWaypointIds } = action.payload;
             const waypoint = simpleSelectors.selectById(waypointState, id);
-            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+            if (!isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
 
             const offset = PointUtils.sub(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
-                const waypoint = simpleSelectors.selectById(waypointState, selectedWaypointId);
-                if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+                const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, selectedWaypointId));
                 const newPoint = PointUtils.add(waypoint.point, offset);
                 return { id: selectedWaypointId, changes: { point: newPoint } };
             });
@@ -121,8 +126,7 @@ export const waypointsSlice = createSlice({
             magnitudePosition: MagnitudePosition
         }>) => {
             const { id, point, magnitudePosition } = action.payload;
-            const waypoint = simpleSelectors.selectById(waypointState, id);
-            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+            const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, id));
 
             const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
             const newMagnitude = PointUtils.distance(point, waypoint.point);
@@ -136,23 +140,20 @@ export const waypointsSlice = createSlice({
         },
         waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
             const { id, point } = action.payload;
-            const waypoint = simpleSelectors.selectById(waypointState, id);
-            if (!waypoint || !isControlWaypoint(waypoint)) { throw new Error("Expected waypoint to be a control waypoint."); }
+            const waypoint = verifyWaypointIsControl(simpleSelectors.selectById(waypointState, id));
 
             const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { robotAngle: newAngle } });
         },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
-            if (waypoint) {
-                let copy = Object.assign({}, waypoint);
-                copy.id = action.payload.newWaypointId;
-                copy.name = "Copy of " + copy.name;
-                if (isControlWaypoint(copy)) {
-                    copy.point = PointUtils.add(copy.point, PointUtils.Point(1 * Units.FEET, 1 * Units.FEET));
-                } else { copy.parameter += 0.1; }
-                waypointsAdapter.addOne(waypointState, copy);
-            }
+            let copy = Object.assign({}, waypoint);
+            copy.id = action.payload.newWaypointId;
+            copy.name = "Copy of " + copy.name;
+            if (isControlWaypoint(copy)) {
+                copy.point = PointUtils.add(copy.point, PointUtils.Point(1 * Units.FEET, 1 * Units.FEET));
+            } else { copy.parameter += 0.1; }
+            waypointsAdapter.addOne(waypointState, copy);
         },
         renamedWaypoint(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { name: action.payload.newName } });
