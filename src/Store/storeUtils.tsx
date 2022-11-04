@@ -9,7 +9,11 @@ export interface ErrorlessSelectors<T, V> {
 
 export function getErrorlessSelectors<T>(selectors: EntitySelectors<T, any>): ErrorlessSelectors<T, any> {
     const errorlessSelectById = (state: any, id: EntityId): T => {
-        let result = selectors.selectById(state, id);
+        const result = selectors.selectById(state, id);
+        if (result === undefined) {
+            console.log(id);
+            console.log(state.history.present);
+        }
         return verifyValueIsValid(result);
     };
 
@@ -22,6 +26,8 @@ export function getErrorlessSelectors<T>(selectors: EntitySelectors<T, any>): Er
 }
 
 export function verifyValueIsValid<T>(value: T | undefined): T {
-    if (!value) { throw new Error("Expected valid value."); }
+    if (value === undefined) { 
+        throw new Error("Expected valid value."); 
+    }
     return value;
 }

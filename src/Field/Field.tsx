@@ -85,7 +85,8 @@ function FieldStage(props: FieldStageProps): JSX.Element {
             }}
             onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
                 if (e.currentTarget === e.target) {
-                    props.contextMenuHandler(<Menu>
+                    props.contextMenuHandler(
+                    <Menu>
                         <MenuItem2 label="Outside field" />
                     </Menu>, e.evt);
                 }
@@ -132,7 +133,7 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
         {...props.fieldTransform}
         onContextMenu={konvaContextMenuHandler(
             <Menu>
-                <MenuItem2 label="Generic" />
+                <MenuItem2 label="Field" />
             </Menu>)}
     >
         <Rect

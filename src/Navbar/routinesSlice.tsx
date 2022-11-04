@@ -98,10 +98,7 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
 
         if (selectActiveRoutineId(state) === routineId) {
             const routineIds = selectRoutineIds(state);
-            if (routineIds.length === 1) {
-                arg.newActiveRoutineId = undefined;
-            }
-            else {
+            if (routineIds.length !== 1) {
                 arg.newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
             }
         }
@@ -186,13 +183,18 @@ export const {
     renamedRoutine
 } = routinesSlice.actions;
 
+const selectors = routinesAdapter.getSelectors<RootState>(state => state.history.present.routines);
 // Runtime selectors
 export const {
-    selectById: selectRoutineById,
+    // selectById: selectRoutineById,
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = getErrorlessSelectors(routinesAdapter.getSelectors<RootState>(state => state.history.present.routines));
+} = selectors;
+
+export function selectRoutineById(state: any, routineId: EntityId) {
+    return verifyValueIsValid(selectors.selectById(state, routineId));
+}
 
 /**
  * Selects the routine which owns a given path.

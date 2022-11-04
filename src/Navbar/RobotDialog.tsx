@@ -32,24 +32,24 @@ export function RobotDialog(): JSX.Element {
 function RobotDialogContents(): JSX.Element | null {
     const dispatch = useAppDispatch();
     const robot = useAppSelector(state =>
-         selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
-
+        selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
+    const isSwerve = (robot.robotType === RobotType.SWERVE);
     return (<>
         <div className={Classes.DIALOG_BODY}>
             <FormGroup label="Robot type" >
                 <Menu className="select-menu" >
                     <MenuItem2
-                        className={robot.robotType === RobotType.SWERVE ? Classes.SELECTED : ""}
+                        className={isSwerve ? Classes.SELECTED : ""}
                         roleStructure="listoption"
-                        selected={robot.robotType === RobotType.SWERVE}
+                        selected={isSwerve}
                         label="Swerve"
                         icon="move"
                         onClick={() => { dispatch(robotTypeChanged({ id: robot.id, robotType: RobotType.SWERVE })); }}
                     />
                     <MenuItem2
-                        className={robot.robotType === RobotType.TANK ? Classes.SELECTED : ""}
+                        className={!isSwerve ? Classes.SELECTED : ""}
                         roleStructure="listoption"
-                        selected={robot.robotType === RobotType.TANK}
+                        selected={!isSwerve}
                         label="Tank"
                         icon="arrows-vertical"
                         onClick={() => { dispatch(robotTypeChanged({ id: robot.id, robotType: RobotType.TANK })); }}

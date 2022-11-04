@@ -5,7 +5,7 @@ import { MenuItem2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { selectWaypointById, selectWaypointDictionary, Waypoint } from "./waypointsSlice";
+import { selectWaypointDictionary, Waypoint } from "./waypointsSlice";
 import {
     selectActiveRoutineId,
     selectHiddenWaypointIds,

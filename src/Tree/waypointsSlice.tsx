@@ -7,7 +7,7 @@ import { deletedFolderInternal } from "./foldersSlice";
 import { deletedPathInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { getNextName } from "./Utils";
-import { getErrorlessSelectors } from "../Store/storeUtils";
+import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
 
 /**
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
@@ -184,12 +184,17 @@ export const waypointsSlice = createSlice({
 });
 
 // Runtime selectors
+const selectors = waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints);
 export const {
-    selectById: selectWaypointById,
+    // selectById: selectWaypointById,
     selectIds: selectWaypointIds,
     selectAll: selectAllWaypoints,
     selectEntities: selectWaypointDictionary,
-} = getErrorlessSelectors(waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints));
+} = selectors;
+
+export function selectWaypointById(state: any, waypointId: EntityId) {
+    return verifyValueIsValid(selectors.selectById(state, waypointId));
+}
 
 export const {
     duplicatedWaypointInternal,
