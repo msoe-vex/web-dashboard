@@ -20,12 +20,10 @@ export function AppBody(_props: AppBodyProps): JSX.Element {
             title="No routines"
             description="Add a routine or import an existing configuration to get started."
         />) :
-        (
-            <AppContextMenu >
-                <div id="App-body" >
-                    <AppTree />
-                    <Field />
-                </div>
-            </AppContextMenu>
-        );
+        (<AppContextMenu >
+            <div id="App-body" >
+                <AppTree />
+                <Field />
+            </div>
+        </AppContextMenu>);
 }

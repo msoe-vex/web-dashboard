@@ -6,8 +6,11 @@ import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
 import { ItemType } from "../Tree/tempUiSlice";
 import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "../Tree/waypointsSlice";
+import { getNextName } from "../Tree/Utils";
+import { selectRobotIds } from "../Tree/robotsSlice";
 
 export interface Path {
+    name: string;
     id: EntityId;
     robotId: EntityId;
     folderIds: EntityId[];
@@ -29,6 +32,7 @@ export const pathsSlice = createSlice({
         }>) {
             pathsAdapter.addOne(pathState, {
                 ...action.payload, // not routineId
+                name: getNextName(simpleSelectors.selectAll(pathState), "Path"),
                 folderIds: []
             });
         },
@@ -46,6 +50,7 @@ export const pathsSlice = createSlice({
             .addCase(addedRoutineInternal, (pathState, action) => {
                 pathsAdapter.addOne(pathState, {
                     ...action.payload,
+                    name: getNextName(simpleSelectors.selectAll(pathState), "Path"),
                     id: action.payload.pathId,
                     folderIds: []
                 });
@@ -98,17 +103,18 @@ export function deletedPath(pathId: EntityId): AppThunk {
             id: pathId,
             folderIds: path.folderIds,
             waypointIds: path.waypointIds,
-            // don't attach routine since it can handle it
+            // don't attach routine since routine can figure it out
         }));
     };
 }
 
 export function addedPath(routineId: EntityId): AppThunk {
-    return (dispatch) => {
+    return (dispatch, getState) => {
+        const robotIds = selectRobotIds(getState());
         dispatch(pathsSlice.actions.addedPathInternal({
             id: nanoid(),
             routineId,
-            robotId: "", // selectFirstRobotId(getState(),
+            robotId: robotIds[0], 
             waypointIds: [nanoid(), nanoid()]
         }));
     };

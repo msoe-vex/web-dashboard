@@ -8,6 +8,7 @@ import { deletedPathInternal, Path, selectPathById } from "./pathsSlice";
 import { selectActiveRoutineId } from "../Tree/uiSlice";
 import { getNextName } from "../Tree/Utils";
 import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";
+import { selectRobotIds } from "../Tree/robotsSlice";
 
 export interface Routine {
     id: EntityId;
@@ -109,10 +110,11 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
 }
 
 export function addedRoutine(): AppThunk {
-    return (dispatch) => {
+    return (dispatch, getState) => {
+        const robotIds = selectRobotIds(getState());
         dispatch(addedRoutineInternal({
             routineId: nanoid(),
-            robotId: "", // selectFirstRobotId(getState())
+            robotId: robotIds[0], // selectFirstRobotId(getState())
             // only a single pathId
             pathId: nanoid(),
             waypointIds: [nanoid(), nanoid()]
@@ -135,7 +137,7 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
 
         let waypointDictionary: Dictionary<EntityId> = {};
         waypointIds.forEach(waypointId => {
-            if (waypointId) { waypointDictionary[waypointId] = nanoid(); }
+            waypointDictionary[waypointId] = nanoid();
         });
 
         const routineCopy = Object.assign({}, routine);

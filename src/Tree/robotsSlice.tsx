@@ -83,7 +83,7 @@ export const {
     selectById: selectRobotById,
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
-    selectEntities: selectRobotDictionary,
+    selectEntities: selectRobotDictionary
 } = getErrorlessSelectors(robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots));
 
 /**

@@ -5,7 +5,7 @@ import { MenuItem2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { selectWaypointDictionary, Waypoint } from "./waypointsSlice";
+import { selectWaypointById, selectWaypointDictionary, Waypoint } from "./waypointsSlice";
 import {
     selectActiveRoutineId,
     selectHiddenWaypointIds,
@@ -39,20 +39,19 @@ export function AppTree(): JSX.Element {
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
     const routine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
 
-    const pathIds = routine.pathIds;
-    const paths = useAppSelector(state => pathIds.map(pathId => selectPathById(state, pathId)));
-
-    const [renamingId, setRenamingId] = React.useState<EntityId | undefined>(undefined);
+    const paths = useAppSelector(state => routine.pathIds.map(pathId => selectPathById(state, pathId)));
 
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
     const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     const folderDictionary = useAppSelector(selectFolderDictionary);
     const waypointDictionary = useAppSelector(selectWaypointDictionary);
 
+    const [renamingId, setRenamingId] = React.useState<EntityId | undefined>(undefined);
+
     const treeNodeInfo = paths.map(path => {
         const orderedWaypoints = path.waypointIds.map(waypointId =>
-            verifyValueIsValid(waypointDictionary[waypointId])
-        );
+            verifyValueIsValid(waypointDictionary[waypointId]));
+
         const folders = path.folderIds.map(folderId =>
             verifyValueIsValid(folderDictionary[folderId]));
 
@@ -64,19 +63,19 @@ export function AppTree(): JSX.Element {
             dispatch(itemSelected(node.id, verifyValueIsValid(node.nodeData), e.shiftKey));
         }, [dispatch]);
 
-    const handleNodeCollapse = React.useCallback((node: TreeNodeInfo, _nodePath: number[]) => {
+    const handleNodeCollapse = React.useCallback((node: TreeNodeInfo) => {
         dispatch(treeItemsCollapsed([node.id]));
     }, [dispatch]);
 
-    const handleNodeExpand = React.useCallback((node: TreeNodeInfo, _nodePath: number[]) => {
+    const handleNodeExpand = React.useCallback((node: TreeNodeInfo) => {
         dispatch(treeItemsExpanded([node.id]));
     }, [dispatch]);
 
-    const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
+    const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<TreeItemType>) => {
         dispatch(itemMouseEnter(node.id, verifyValueIsValid(node.nodeData)));
     }, [dispatch]);
 
-    const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<TreeItemType>, _nodePath: number[]) => {
+    const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<TreeItemType>) => {
         dispatch(itemMouseLeave(node.id, verifyValueIsValid(node.nodeData)));
     }, [dispatch]);
 

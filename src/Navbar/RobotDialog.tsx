@@ -29,7 +29,7 @@ export function RobotDialog(): JSX.Element {
         </Dialog>);
 }
 
-function RobotDialogContents(): JSX.Element {
+function RobotDialogContents(): JSX.Element | null {
     const dispatch = useAppDispatch();
     const robot = useAppSelector(state =>
          selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
