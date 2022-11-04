@@ -49,8 +49,8 @@ export enum MenuLocation {
 export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Element {
     const dispatch = useAppDispatch();
 
-    const showAll = (<ShowAllMenuItem dispatch={dispatch} />);
-    const hideAll = (<HideAllMenuItem dispatch={dispatch} />);
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
     const onTree = (props.menuLocation === MenuLocation.TREE);
 
     return (
@@ -59,11 +59,11 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
             {/* <EditMenuItem onClick={dispatch(editedWaypoint(props.id))} /> */}
             <DuplicateMenuItem onClick={() => { dispatch(duplicatedWaypoint(props.id)); }} />
 
-            {onTree ? <AddSelectionToNewFolderMenuItem dispatch={dispatch} /> : null}
+            {onTree ? <AddSelectionToNewFolderMenuItem /> : null}
 
             <MenuDivider />
 
-            {onTree ? <CollapseAndExpandFoldersMenuItems dispatch={dispatch} /> : null}
+            {onTree ? <CollapseAndExpandFoldersMenuItems /> : null}
 
             {showAll}
             {hideAll}
@@ -89,10 +89,10 @@ export function PathContextMenu(props: PathContextMenuProps): JSX.Element {
             {/* <MenuDivider /> */}
 
             {/* Comes with menu divider */}
-            <CollapseAndExpandAllMenuItems dispatch={dispatch} />
+            <CollapseAndExpandAllMenuItems />
 
-            <ShowAllMenuItem dispatch={dispatch} />
-            <HideAllMenuItem dispatch={dispatch} />
+            <ShowAllMenuItem />
+            <HideAllMenuItem />
             <MenuDivider />
 
             <DeleteMenuItem onClick={() => { dispatch(deletedPath(props.id)); }} />
@@ -113,10 +113,10 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
             <MenuDivider />
 
             {/* Comes with menu divider */}
-            <CollapseAndExpandFoldersMenuItems dispatch={dispatch} />
+            <CollapseAndExpandFoldersMenuItems />
 
-            <ShowAllMenuItem dispatch={dispatch} />
-            <HideAllMenuItem dispatch={dispatch} />
+            <ShowAllMenuItem />
+            <HideAllMenuItem />
             <MenuDivider />
 
             <MenuItem2
