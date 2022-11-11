@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
+import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { selectFolderWaypointIds } from "./foldersSlice";
-import { selectPathById } from "../Navbar/pathsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 import { selectedActiveRoutine } from "./uiSlice";
 
@@ -51,7 +51,7 @@ const defaultTempUiState: TempUi = {
     robotDialogId: undefined
 };
 
-export function verifySplineId(splineId: EntityId | EntityId[]): EntityId[] {
+export function assertValidSplineId(splineId: EntityId | EntityId[]): EntityId[] {
     if (!Array.isArray(splineId) || splineId.length !== 2) { throw new Error("Expected spline id size to be 2."); }
     return splineId;
 }
@@ -136,16 +136,16 @@ export const tempUiSlice = createSlice({
             uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
         },
         splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
-            verifySplineId(action.payload);
+            assertValidSplineId(action.payload);
             uiState.hoveredSplineIds.push(action.payload);
         },
         splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
-            verifySplineId(action.payload);
+            assertValidSplineId(action.payload);
             // removes array sets that share every id with an id in action.payload
             uiState.hoveredSplineIds = uiState.hoveredSplineIds.filter(splineIds => !splineIds.every(splineId => action.payload.includes(splineId)));
         },
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
-            verifySplineId(action.payload);
+            assertValidSplineId(action.payload);
             if (uiState.selectedSplineIds.some(splineId => splineId.every(splineId => action.payload.includes(splineId)))) {
                 uiState.selectedSplineIds = [];
             } else {
@@ -226,22 +226,20 @@ export const {
  * Returns an array containing the waypointIds contained by an item specified by id.
  */
 export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: SelectableItemType): EntityId[] {
-    if (itemType === ItemType.SPLINE) {
-        return verifySplineId(id);
-    }
-    else {
-        if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
-        switch (itemType) {
-            case ItemType.FOLDER:
-                return selectFolderWaypointIds(state, id);
-            case ItemType.PATH:
-                return selectPathById(state, id).waypointIds;
-            case ItemType.WAYPOINT:
-                return [id];
-            default:
-                throw new Error("Cannot select from specified item type.");
-        };
-    }
+    // spline contains itself
+    if (itemType === ItemType.SPLINE) { return assertValidSplineId(id); }
+    else if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
+
+    switch (itemType) {
+        case ItemType.FOLDER:
+            return selectFolderWaypointIds(state, id);
+        case ItemType.PATH:
+            return selectPathByValidId(state, id).waypointIds;
+        case ItemType.WAYPOINT:
+            return [id];
+        default:
+            throw new Error("Cannot select from specified item type.");
+    };
 }
 
 export function selectCollapsedFolderIds(state: RootState): EntityId[] { return state.tempUi.collapsedFolderIds; }

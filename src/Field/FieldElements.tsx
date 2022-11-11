@@ -7,21 +7,22 @@ import { Line, Circle, Rect } from "react-konva";
 
 import { useAppSelector, useAppDispatch } from "../Store/hooks";
 import { AppDispatch } from "../Store/store";
-import { selectPathById } from "../Navbar/pathsSlice";
+import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { selectWaypointById, isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, verifyIsControlWaypoint } from "../Tree/waypointsSlice";
+import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById } from "../Tree/waypointsSlice";
 import { Units, PointUtils, Point } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
 export function FieldElements(): null | JSX.Element {
     const paths = useAppSelector(state => {
-        return selectActiveRoutine(state)?.pathIds.map(pathId => selectPathById(state, pathId));
+        return selectActiveRoutine(state)?.pathIds.map(pathId => selectPathByValidId(state, pathId));
     });
+    if (!paths) { return null; }
 
-    return (!paths ? null : (<>
+    return (<>
         {paths.flatMap(path => path.waypointIds.map(waypointId =>
             <RobotElement
                 key={waypointId}
@@ -35,7 +36,7 @@ export function FieldElements(): null | JSX.Element {
                     waypointId={waypointId}
                     previousWaypointId={waypointIds[i - 1]}
                 />)))}
-    </>));
+    </>);
 }
 
 const shadowProps = {
@@ -57,6 +58,8 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
     const hoveredWaypointIds = useAppSelector(selectHoveredWaypointIds);
     const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
+
+    if (!waypoint) { return null; }
 
     const isHidden = hiddenWaypointIds.includes(waypoint.id);
     const isSelected = selectedWaypointIds.includes(waypoint.id);
@@ -103,16 +106,16 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
 
         const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);
         const rotationManipulator = !isSelected ? null :
-         (<BallManipulator
-            startPoint={waypoint.point}
-            currentPoint={ballPoint}
-            handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
-                dispatch(waypointRobotRotated({
-                    id: waypoint.id,
-                    point: PointUtils.KonvaEventPoint(e)
-                }))
-            }}
-        />);
+            (<BallManipulator
+                startPoint={waypoint.point}
+                currentPoint={ballPoint}
+                handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
+                    dispatch(waypointRobotRotated({
+                        id: waypoint.id,
+                        point: PointUtils.KonvaEventPoint(e)
+                    }))
+                }}
+            />);
 
         return (<>
             {robotRectangle}
@@ -133,13 +136,15 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
-    const previousWaypoint = verifyIsControlWaypoint(useAppSelector(state => selectWaypointById(state, props.previousWaypointId)));
-    const waypoint = verifyIsControlWaypoint(useAppSelector(state => selectWaypointById(state, props.waypointId)));
+    const previousWaypoint = useAppSelector(state => selectWaypointById(state, props.previousWaypointId));
+    const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
 
     const hiddenWaypointIds = useAppSelector(selectHiddenWaypointIds);
     const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
     const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
 
+    if (!waypoint || !previousWaypoint) { return null; }
+    else if (!isControlWaypoint(waypoint) || !isControlWaypoint(previousWaypoint)) { return null; }
     if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
     const prevControl = PointUtils.PolarPoint(previousWaypoint.point, previousWaypoint.angle, previousWaypoint.startMagnitude);

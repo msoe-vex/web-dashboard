@@ -5,7 +5,7 @@ import { AppTree } from "./Tree/AppTree";
 import { Field } from "./Field/Field";
 
 import { useAppSelector } from "./Store/hooks";
-import { selectActiveRoutine, selectActiveRoutineId } from "./Tree/uiSlice";
+import { selectActiveRoutineId } from "./Tree/uiSlice";
 import { AppContextMenu } from "./Field/AppContextMenu";
 
 interface AppBodyProps {
@@ -18,7 +18,7 @@ export function AppBody(_props: AppBodyProps): JSX.Element {
             className="non-ideal-state"
             icon="add"
             title="No routines"
-            description="Add a routine or import an existing configuration to get started."
+            description="Add a routine to get started."
         />) :
         (<AppContextMenu >
             <div id="App-body" >

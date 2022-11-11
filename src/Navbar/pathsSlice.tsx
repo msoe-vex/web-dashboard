@@ -1,12 +1,11 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "./routinesSlice";
-import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
 import { ItemType } from "../Tree/tempUiSlice";
 import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "../Tree/waypointsSlice";
-import { getNextName } from "../Tree/Utils";
 import { selectRobotIds } from "../Tree/robotsSlice";
 
 export interface Path {
@@ -18,7 +17,7 @@ export interface Path {
 }
 
 const pathsAdapter = createEntityAdapter<Path>();
-const simpleSelectors = getErrorlessSelectors(pathsAdapter.getSelectors());
+const simpleSelectors = getSimpleSelectors(pathsAdapter);
 
 export const pathsSlice = createSlice({
     name: "paths",
@@ -66,12 +65,12 @@ export const pathsSlice = createSlice({
                 const path = selectOwnerPathInternal(pathState, waypointId, ItemType.WAYPOINT);
                 // inserts into the array at index
                 path.waypointIds.splice(index ?? path.waypointIds.length, 0, waypointId);
-                pathsAdapter.upsertOne(pathState, path);
+                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: path.waypointIds }));
             })
             .addCase(deletedWaypoint, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload, ItemType.WAYPOINT);
                 const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== action.payload);
-                pathsAdapter.updateOne(pathState, { id: path.id, changes: { waypointIds: newWaypointIds } });
+                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: newWaypointIds }));
             })
             // Add newWaypointId after waypointId in correct path
             .addCase(duplicatedWaypointInternal, (pathState, action) => {
@@ -79,26 +78,26 @@ export const pathsSlice = createSlice({
                 const newWaypointIds = path.waypointIds.slice();
                 const waypointIndex = path.waypointIds.findIndex(waypointId => waypointId === action.payload.waypointId);
                 newWaypointIds.splice(waypointIndex + 1, 0, action.payload.newWaypointId);
-                pathsAdapter.updateOne(pathState, { id: path.id, changes: { waypointIds: newWaypointIds } });
+                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: newWaypointIds }));
             })
             .addCase(addedFolderInternal, (pathState, action) => {
-                const path = simpleSelectors.selectByIdErrorless(pathState, action.payload.pathId);
+                const path = simpleSelectors.selectById(pathState, action.payload.pathId);
                 const newFolderIds = path.folderIds.slice();
                 newFolderIds.push(action.payload.id);
-                pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds } });
+                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { folderIds: newFolderIds }));
             })
             .addCase(deletedFolderInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.FOLDER);
                 const newFolderIds = path.folderIds.filter(folderId => folderId !== action.payload.id);
                 const newWaypointIds = path.waypointIds.filter(waypointId => !action.payload.waypointIds.includes(waypointId));
-                pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds, waypointIds: newWaypointIds } });
+                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { folderIds: newFolderIds, waypointIds: newWaypointIds }));
             })
     }
 });
 
 export function deletedPath(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {
-        const path = selectPathByIdErrorless(getState(), pathId);
+        const path = assertValid(selectPathById(getState(), pathId));
         dispatch(deletedPathInternal({
             id: pathId,
             folderIds: path.folderIds,
@@ -128,11 +127,11 @@ export const {
 // Runtime selectors
 export const {
     selectById: selectPathById,
-    selectByIdErrorless: selectPathByIdErrorless,
+    selectByValidId: selectPathByValidId,
     selectIds: selectPathIds,
     selectAll: selectAllPaths,
     selectEntities: selectPathDictionary,
-} = getErrorlessSelectors(pathsAdapter.getSelectors<RootState>((state) => state.history.present.paths));
+} = addValidIdSelector(pathsAdapter.getSelectors<RootState>((state) => state.history.present.paths));
 
 /**
  * Selects the path which owns a given waypoint, folder, or robot.
@@ -158,5 +157,5 @@ function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId,
         default:
             throw new Error("selectOwnerPath only supports folders, waypoints, and robots.");
     }
-    return verifyValueIsValid(path);
+    return assertValid(path);
 }

@@ -6,8 +6,7 @@ import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal } from "./foldersSlice";
 import { deletedPathInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
-import { getNextName } from "./Utils";
-import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 /**
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
@@ -64,13 +63,14 @@ export function isFollowerWaypoint(waypoint: Waypoint): waypoint is FollowerWayp
 
 export type Waypoint = ControlWaypoint | FollowerWaypoint;
 
-export function verifyIsControlWaypoint(waypoint: Waypoint): ControlWaypoint {
+export function assertControlWaypoint(waypoint: Waypoint | undefined): ControlWaypoint {
+    waypoint = assertValid(waypoint);
     if (!isControlWaypoint(waypoint)) { throw new Error("Expected control waypoint."); }
     return waypoint;
 }
 
 const waypointsAdapter = createEntityAdapter<Waypoint>();
-const simpleSelectors = getErrorlessSelectors(waypointsAdapter.getSelectors());
+const simpleSelectors = getSimpleSelectors(waypointsAdapter);
 
 export const waypointsSlice = createSlice({
     name: "waypoints",
@@ -99,18 +99,18 @@ export const waypointsSlice = createSlice({
             }
         },
         deletedWaypoint: waypointsAdapter.removeOne,
-        changedWaypoint: waypointsAdapter.updateOne,
+        updatedWaypoint: waypointsAdapter.updateOne,
         waypointMovedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
             point: Point,
             selectedWaypointIds: EntityId[]
         }>) => {
             const { id, point, selectedWaypointIds } = action.payload;
-            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
-            const offset = PointUtils.sub(point, waypoint.point);
+            const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
+            const offset = PointUtils.subtract(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
-                const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
+                const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
                 const newPoint = PointUtils.add(waypoint.point, offset);
                 return { id: selectedWaypointId, changes: { point: newPoint } };
             });
@@ -122,9 +122,9 @@ export const waypointsSlice = createSlice({
             magnitudePosition: MagnitudePosition
         }>) => {
             const { id, point, magnitudePosition } = action.payload;
-            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
+            const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
-            const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
+            const newAngle = PointUtils.angle(PointUtils.subtract(point, waypoint.point));
             const newMagnitude = PointUtils.distance(point, waypoint.point);
 
             const changes = (magnitudePosition === MagnitudePosition.START) ?
@@ -136,10 +136,10 @@ export const waypointsSlice = createSlice({
         },
         waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
             const { id, point } = action.payload;
-            const waypoint = verifyIsControlWaypoint(simpleSelectors.selectById(waypointState, id));
+            const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
-            const newAngle = PointUtils.angle(PointUtils.sub(point, waypoint.point));
-            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { robotAngle: newAngle } });
+            const newAngle = PointUtils.angle(PointUtils.subtract(point, waypoint.point));
+            waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { robotAngle: newAngle }));
         },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
@@ -152,7 +152,7 @@ export const waypointsSlice = createSlice({
             waypointsAdapter.addOne(waypointState, copy);
         },
         renamedWaypoint(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            waypointsAdapter.updateOne(waypointState, { id: action.payload.id, changes: { name: action.payload.newName } });
+            waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { name: action.payload.newName }));
         }
     },
     extraReducers: (builder) => {
@@ -177,30 +177,25 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addMany(waypointState, action.payload.waypoints);
             })
             // matchers must come last
-            .addMatcher(
-                isAnyOf(deletedRoutineInternal, deletedPathInternal, deletedFolderInternal),
+            .addMatcher(isAnyOf(deletedRoutineInternal, deletedPathInternal, deletedFolderInternal),
                 (waypointState, action) => waypointsAdapter.removeMany(waypointState, action.payload.waypointIds))
     }
 });
 
 // Runtime selectors
-const selectors = waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints);
 export const {
-    // selectById: selectWaypointById,
+    selectById: selectWaypointById,
+    selectByValidId: selectWaypointByValidId,
     selectIds: selectWaypointIds,
     selectAll: selectAllWaypoints,
     selectEntities: selectWaypointDictionary,
-} = selectors;
-
-export function selectWaypointById(state: any, waypointId: EntityId) {
-    return verifyValueIsValid(selectors.selectById(state, waypointId));
-}
+} = addValidIdSelector(waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints));
 
 export const {
     duplicatedWaypointInternal,
     addedWaypoint,
     deletedWaypoint,
-    changedWaypoint,
+    updatedWaypoint,
     renamedWaypoint,
     waypointMagnitudeMoved,
     waypointRobotRotated,

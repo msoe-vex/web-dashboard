@@ -11,7 +11,7 @@ import {
     selectHiddenWaypointIds,
     itemVisibilityToggled,
 } from "./uiSlice";
-import { selectRoutineById } from "../Navbar/routinesSlice";
+import { selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
 import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
 import { NameInput } from "../Navbar/NameInput";
@@ -29,18 +29,16 @@ import {
     TreeItemType
 } from "./tempUiSlice";
 import { ContextMenuHandlerContext } from "../Field/AppContextMenu";
-import { Path, selectPathById } from "../Navbar/pathsSlice";
-import { verifyValueIsValid } from "../Store/storeUtils";
+import { Path, selectPathByValidId } from "../Navbar/pathsSlice";
+import { assertValid } from "../Store/storeUtils";
 
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
 
     // Could wrap activeRoutineId logic with card and simply pass pathIds
     const activeRoutineId = useAppSelector(selectActiveRoutineId);
-    const routine = useAppSelector(state => selectRoutineById(state, activeRoutineId));
-
-    const paths = useAppSelector(state => routine.pathIds.map(pathId => selectPathById(state, pathId)));
-
+    const routine = useAppSelector(state => selectRoutineByValidId(state, activeRoutineId));
+    const paths = useAppSelector(state => routine.pathIds.map(pathId => selectPathByValidId(state, pathId)));
 
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
     const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
@@ -51,17 +49,15 @@ export function AppTree(): JSX.Element {
 
     const treeNodeInfo = paths.map(path => {
         const orderedWaypoints = path.waypointIds.map(waypointId =>
-            verifyValueIsValid(waypointDictionary[waypointId]));
-
+            assertValid(waypointDictionary[waypointId]));
         const folders = path.folderIds.map(folderId =>
-            verifyValueIsValid(folderDictionary[folderId]));
-
+            assertValid(folderDictionary[folderId]));
         return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedFolderIds);
     });
 
     const handleNodeClick = React.useCallback(
         (node: TreeNodeInfo<TreeItemType>, _nodePath: number[], e: React.MouseEvent) => {
-            dispatch(itemSelected(node.id, verifyValueIsValid(node.nodeData), e.shiftKey));
+            dispatch(itemSelected(node.id, assertValid(node.nodeData), e.shiftKey));
         }, [dispatch]);
 
     const handleNodeCollapse = React.useCallback((node: TreeNodeInfo) => {
@@ -73,15 +69,14 @@ export function AppTree(): JSX.Element {
     }, [dispatch]);
 
     const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<TreeItemType>) => {
-        dispatch(itemMouseEnter(node.id, verifyValueIsValid(node.nodeData)));
+        dispatch(itemMouseEnter(node.id, assertValid(node.nodeData)));
     }, [dispatch]);
 
     const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<TreeItemType>) => {
-        dispatch(itemMouseLeave(node.id, verifyValueIsValid(node.nodeData)));
+        dispatch(itemMouseLeave(node.id, assertValid(node.nodeData)));
     }, [dispatch]);
 
     const contextMenuHandler = React.useContext(ContextMenuHandlerContext);
-
     const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
         // true if right click is on card specifically
         if (e.currentTarget === e.target) {
@@ -103,14 +98,10 @@ export function AppTree(): JSX.Element {
             let contextMenu;
             switch (node.nodeData) {
                 case ItemType.PATH:
-                    contextMenu = (<PathContextMenu
-                        {...contextMenuProps}
-                    />);
+                    contextMenu = (<PathContextMenu {...contextMenuProps} />);
                     break;
                 case ItemType.FOLDER:
-                    contextMenu = (<FolderContextMenu
-                        {...contextMenuProps}
-                    />);
+                    contextMenu = (<FolderContextMenu {...contextMenuProps} />);
                     break;
                 case ItemType.WAYPOINT:
                     contextMenu = (<WaypointContextMenu

@@ -13,7 +13,6 @@ import {
     selectAllRoutines
 } from "./routinesSlice";
 import { selectActiveRoutine, selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
-
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
 
@@ -37,7 +36,7 @@ export function RoutineMenu(): JSX.Element {
             icon="add"
             text={"Add routine"}
             minimal={true}
-            onClick={() => dispatch(addedRoutine())}
+            onClick={() => { dispatch(addedRoutine()); }}
         />);
 
     const addRoutineItem = (
@@ -127,7 +126,7 @@ function RoutineSubmenu(props: RoutineSubmenuProps): JSX.Element {
     const dispatch = useAppDispatch();
     const dismissProps = { shouldDismissPopover: false };
     return (<>
-        <EditMenuItem onClick={() => dispatch(selectedActiveRoutine(props.id))} />
+        <EditMenuItem onClick={() => { dispatch(selectedActiveRoutine(props.id)); }} />
         <RenameMenuItem {...dismissProps} onClick={props.handleRenameClick} />
         <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRoutine(props.id)); }} />
         <MenuDivider />

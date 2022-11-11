@@ -11,7 +11,7 @@ import { AppBody } from "./AppBody";
 import { useAppDispatch } from "./Store/hooks";
 import { ActionCreators } from "redux-undo";
 
-function App() {
+export function App() {
   FocusStyleManager.onlyShowFocusOnTabs();
   return (
     <Provider store={store}>
@@ -24,8 +24,6 @@ function App() {
     </Provider>
   );
 }
-
-export default App;
 
 interface GlobalHotkeysProps {
   children: ReactNode;

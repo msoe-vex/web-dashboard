@@ -6,10 +6,10 @@ import { RoutineMenu } from "./RoutineMenu";
 import { RobotMenu } from "./RobotMenu";
 import { ExportDialog } from "./ExportDialog";
 import { useAppSelector } from "../Store/hooks";
-import { selectActiveRoutine } from "../Tree/uiSlice";
+import { selectActiveRoutineId } from "../Tree/uiSlice";
 
 export function AppNavbar(): JSX.Element {
-    const exportDialog = useAppSelector(selectActiveRoutine) ? (<>
+    const exportDialog = useAppSelector(selectActiveRoutineId) ? (<>
         <NavbarDivider />
         <ExportDialog />
     </>) : null;

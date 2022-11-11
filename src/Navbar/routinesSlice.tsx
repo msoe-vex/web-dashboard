@@ -1,14 +1,12 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary, EntityState } from "@reduxjs/toolkit";
-import { getErrorlessSelectors, verifyValueIsValid } from "../Store/storeUtils";
-
-// JavaScript handles circular imports like a champ
 import { AppThunk, RootState } from "../Store/store";
-import { Folder, selectFolderById } from "../Tree/foldersSlice";
-import { deletedPathInternal, Path, selectPathById } from "./pathsSlice";
+import { Folder, selectFolderByValidId } from "../Tree/foldersSlice";
+import { deletedPathInternal, Path, selectPathByValidId } from "./pathsSlice";
 import { selectActiveRoutineId } from "../Tree/uiSlice";
-import { getNextName } from "../Tree/Utils";
-import { selectWaypointById, Waypoint } from "../Tree/waypointsSlice";
+import { selectWaypointByValidId, Waypoint } from "../Tree/waypointsSlice";
 import { selectRobotIds } from "../Tree/robotsSlice";
+
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, Dictionary, EntityState } from "@reduxjs/toolkit";
+import { assertValid, addValidIdSelector, getSimpleSelectors, getNextName } from "../Store/storeUtils";
 
 export interface Routine {
     id: EntityId;
@@ -19,9 +17,8 @@ export interface Routine {
 const routinesAdapter = createEntityAdapter<Routine>({
     sortComparer: (a, b) => (a.name.localeCompare(b.name))
 });
-
 // Selectors which take routineState as an argument
-const simpleSelectors = getErrorlessSelectors(routinesAdapter.getSelectors());
+const simpleSelectors = getSimpleSelectors(routinesAdapter);
 
 export const routinesSlice = createSlice({
     name: "routines",
@@ -88,10 +85,10 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
         };
 
         const state = getState();
-        const routineToDelete = selectRoutineById(state, routineId);
+        const routineToDelete = selectRoutineByValidId(state, routineId);
         arg.pathIds = routineToDelete.pathIds;
         arg.pathIds.forEach(pathId => {
-            const path = selectPathById(state, pathId);
+            const path = selectPathByValidId(state, pathId);
             arg.waypointIds.push(...path.waypointIds);
             arg.folderIds.push(...path.folderIds);
         });
@@ -126,11 +123,11 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
         // create a copied routine with updated name and new paths
         // Each slice will then add the new objects to their state
         const state = getState();
-        const routine = selectRoutineById(state, id);
-        const paths = routine.pathIds.map(pathId => selectPathById(state, pathId));
+        const routine = selectRoutineByValidId(state, id);
+        const paths = routine.pathIds.map(pathId => selectPathByValidId(state, pathId));
         const waypointIds = paths.flatMap(path => path.waypointIds);
 
-        const waypoints = paths.flatMap(path => path.waypointIds.map(waypointId => selectWaypointById(state, waypointId)));
+        const waypoints = paths.flatMap(path => path.waypointIds.map(waypointId => selectWaypointByValidId(state, waypointId)));
 
         let waypointDictionary: Dictionary<EntityId> = {};
         waypointIds.forEach(waypointId => {
@@ -158,7 +155,7 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
 
             pathCopy.waypointIds = pathCopy.waypointIds.map(waypointId => waypointDictionary[waypointId]) as EntityId[];
             pathCopy.folderIds = pathCopy.folderIds.map(folderId => {
-                const folderCopy = Object.assign({}, selectFolderById(state, folderId));
+                const folderCopy = Object.assign({}, selectFolderByValidId(state, folderId));
                 folderCopy.id = nanoid();
 
                 folderCopy.waypointIds = folderCopy.waypointIds.map(waypointId => waypointDictionary[waypointId]) as EntityId[];
@@ -183,18 +180,14 @@ export const {
     renamedRoutine
 } = routinesSlice.actions;
 
-const selectors = routinesAdapter.getSelectors<RootState>(state => state.history.present.routines);
 // Runtime selectors
 export const {
-    // selectById: selectRoutineById,
+    selectById: selectRoutineById,
+    selectByValidId: selectRoutineByValidId,
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = selectors;
-
-export function selectRoutineById(state: any, routineId: EntityId) {
-    return verifyValueIsValid(selectors.selectById(state, routineId));
-}
+} = addValidIdSelector(routinesAdapter.getSelectors<RootState>(state => state.history.present.routines));
 
 /**
  * Selects the routine which owns a given path.
@@ -207,5 +200,5 @@ export function selectOwnerRoutine(state: RootState, pathId: EntityId): Routine 
 
 function selectOwnerRoutineInternal(routineState: EntityState<Routine>, pathId: EntityId) {
     const routine = simpleSelectors.selectAll(routineState).find(routine => routine.pathIds.includes(pathId));
-    return verifyValueIsValid(routine);
+    return assertValid(routine);
 }

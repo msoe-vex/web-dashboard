@@ -3,10 +3,9 @@ import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAn
 import { AppThunk, RootState } from "../Store/store";
 import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { deletedPathInternal, selectOwnerPath } from "../Navbar/pathsSlice";
-import { getNextName } from "./Utils";
 import { duplicatedWaypointInternal } from "./waypointsSlice";
 import { ItemType } from "./tempUiSlice";
-import { getErrorlessSelectors } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 export interface Folder {
     id: EntityId;
@@ -16,8 +15,7 @@ export interface Folder {
 }
 
 const foldersAdapter = createEntityAdapter<Folder>();
-
-const simpleSelectors = getErrorlessSelectors(foldersAdapter.getSelectors());
+const simpleSelectors = getSimpleSelectors(foldersAdapter);
 
 export const foldersSlice = createSlice({
     name: "folders",
@@ -43,9 +41,9 @@ export const foldersSlice = createSlice({
         }>) => {
             foldersAdapter.removeOne(folderState, action.payload.id);
         },
-        changedFolder: foldersAdapter.updateOne,
-        renamedFolder(folderState, action: PayloadAction<{ newName: string, id: EntityId }>) {
-            foldersAdapter.updateOne(folderState, { id: action.payload.id, changes: { name: action.payload.newName } });
+        updatedFolder: foldersAdapter.updateOne,
+        renamedFolder(folderState, action: PayloadAction<{ id: EntityId, newName: string }>) {
+            foldersAdapter.updateOne(folderState, makeUpdate(action.payload.id, { name: action.payload.newName }));
         }
     },
     extraReducers: (builder) => {
@@ -86,7 +84,7 @@ export function addedFolder(waypointIds: EntityId[]): AppThunk {
 
 export function deletedFolder(folderId: EntityId): AppThunk {
     return (dispatch, getState) => {
-        const folder = selectFolderById(getState(), folderId);
+        const folder = assertValid(selectFolderById(getState(), folderId));
         dispatch(deletedFolderInternal({ id: folderId, waypointIds: folder.waypointIds }))
     };
 }
@@ -101,20 +99,20 @@ export function unpackedFolder(folderId: EntityId): AppThunk {
 export const {
     addedFolderInternal,
     deletedFolderInternal,
-    changedFolder,
     renamedFolder
 } = foldersSlice.actions;
 
 // Runtime selectors
 export const {
     selectById: selectFolderById,
+    selectByValidId: selectFolderByValidId,
     selectIds: selectFolderIds,
     selectAll: selectAllFolders,
     selectEntities: selectFolderDictionary,
-} = getErrorlessSelectors(foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders));
+} = addValidIdSelector(foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders));
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
-    return selectFolderById(state, folderId).waypointIds;
+    return selectFolderByValidId(state, folderId).waypointIds;
 }
 
 /**
@@ -130,6 +128,6 @@ export function selectOwnerFolder(state: RootState, waypointId: EntityId): Folde
  * Returns true if a waypointId is in a folder, and false otherwise.
  * @param waypointId - The waypoint id to use.
  */
-export function checkIfWaypointIdIsInFolder(state: RootState, waypointId: EntityId): boolean {
+export function selectIsWaypointIdInFolder(state: RootState, waypointId: EntityId): boolean {
     return selectOwnerFolder(state, waypointId) !== undefined;
 }

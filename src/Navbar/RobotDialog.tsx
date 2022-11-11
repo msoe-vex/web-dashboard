@@ -1,18 +1,19 @@
 import React from "react";
 import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/core";
 
-import { getDispatchHandler, useAppDispatch, useAppDispatchHandler, useAppSelector } from "../Store/hooks";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
-import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, robotTypeChanged, selectRobotById, selectRobotByIdErrorless } from "../Tree/robotsSlice";
+import { Robot, robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, updatedRobot } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
+import { assertValid, makeUpdate } from "../Store/storeUtils";
 
 export function RobotDialog(): JSX.Element {
-    const handleDispatch = useAppDispatchHandler();
+    const dispatch = useAppDispatch();
 
-    const handleClose = React.useCallback(handleDispatch(robotDialogClosed), [handleDispatch]);
+    const handleClose = React.useCallback(() => { dispatch(robotDialogClosed()); }, [dispatch]);
 
     const robotDialogId = useAppSelector(selectRobotDialogId);
-    const robotName = useAppSelector(state => robotDialogId ? selectRobotByIdErrorless(state, robotDialogId).name : "");
+    const robotName = useAppSelector(state => robotDialogId ? assertValid(selectRobotById(state, robotDialogId)).name : "");
     return (
         <Dialog
             title={robotName}
@@ -21,12 +22,12 @@ export function RobotDialog(): JSX.Element {
             isCloseButtonShown={true}
         >
             <RobotDialogContents />
-        </Dialog>);
+        </Dialog>
+    );
 }
 
 function RobotDialogContents(): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const handleDispatch = getDispatchHandler(dispatch);
 
     // selectRobotById to prevent zombie behavior
     const robot = useAppSelector(state => selectRobotById(state, selectRobotDialogId(state) ?? ""));
@@ -43,7 +44,7 @@ function RobotDialogContents(): JSX.Element | null {
                         selected={isSwerve}
                         label="Swerve"
                         icon="move"
-                        onClick={handleDispatch(robotTypeChanged({ id: robot.id, robotType: RobotType.SWERVE }))}
+                        onClick={() => { dispatch(updatedRobot(makeUpdate(robot.id, { robotType: RobotType.SWERVE }))); }}
                     />
                     <MenuItem2
                         className={!isSwerve ? Classes.SELECTED : ""}
@@ -51,7 +52,7 @@ function RobotDialogContents(): JSX.Element | null {
                         selected={!isSwerve}
                         label="Tank"
                         icon="arrows-vertical"
-                        onClick={handleDispatch(robotTypeChanged({ id: robot.id, robotType: RobotType.TANK }))}
+                        onClick={() => { dispatch(updatedRobot(makeUpdate(robot.id, { robotType: RobotType.TANK }))); }}
                     />
                 </Menu>
             </FormGroup>

@@ -1,11 +1,11 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
 import { selectActiveRoutineId, selectHiddenWaypointIds } from "./uiSlice";
-import { Path, selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
-import { addedFolder, renamedFolder, selectFolderById } from "./foldersSlice";
-import { selectRoutineById } from "../Navbar/routinesSlice";
+import { Path, selectOwnerPath, selectPathByValidId } from "../Navbar/pathsSlice";
+import { addedFolder, renamedFolder, selectFolderByValidId } from "./foldersSlice";
 import { renamedWaypoint } from "./waypointsSlice";
 import { ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
+import { selectRoutineByValidId } from "../Navbar/routinesSlice";
 
 export function treeItemRenamed(id: EntityId, treeItemType: ItemType, newName: string): AppThunk {
     return (dispatch) => {
@@ -51,8 +51,8 @@ export function selectionAddedToNewFolder(): AppThunk {
 // };
 
 export function selectAllTreePaths(state: RootState): Path[] {
-    const activeRoutine = selectRoutineById(state, selectActiveRoutineId(state));
-    return activeRoutine.pathIds.map(pathId => selectPathById(state, pathId));
+    const activeRoutine = selectRoutineByValidId(state, selectActiveRoutineId(state));
+    return activeRoutine.pathIds.map(pathId => selectPathByValidId(state, pathId));
 };
 
 export function selectAllTreeWaypointIds(state: RootState): EntityId[] {
@@ -104,7 +104,7 @@ export function checkIfSelectionCanBePutInFolder(state: RootState): boolean {
     if (selection.some(waypointId => !ownerPath.waypointIds.includes(waypointId))) { return false; }
     // If some waypoint in selection is owned by a folder in owner path, return false
     else if (selection.some(waypointId =>
-        ownerPath.folderIds.some(folderId => selectFolderById(state, folderId).waypointIds.includes(waypointId))
+        ownerPath.folderIds.some(folderId => selectFolderByValidId(state, folderId).waypointIds.includes(waypointId))
     )) { return false; }
     return true;
 };
@@ -115,7 +115,8 @@ export function checkIfSelectionCanBePutInFolder(state: RootState): boolean {
 export function makeSelectionContiguous(state: RootState): EntityId[] {
     const treeWaypointIds = selectAllTreeWaypointIds(state);
     const currentSelection = selectSelectedWaypointIds(state);
-    const indices = currentSelection.map(waypointId => treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);
+    const indices = currentSelection.map(waypointId =>
+        treeWaypointIds.findIndex(treeWaypointId => treeWaypointId === waypointId)).filter(number => number !== -1);
     if (indices.length === 0) { return []; }
     const min = Math.min(...indices);
     const max = Math.max(...indices);

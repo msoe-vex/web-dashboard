@@ -23,6 +23,9 @@ export const fieldSlice = createSlice({
         splinePointCount: 10
     } as Field,
     reducers: {
+        fieldUpdated(fieldState, action: PayloadAction<Partial<Field>>) {
+            return Object.assign(fieldState, action.payload);
+        },
         fieldDimensionsChanged(fieldState, action: PayloadAction<FieldDimensions>) {
             fieldState.fieldDimensions = action.payload;
         },
@@ -33,6 +36,7 @@ export const fieldSlice = createSlice({
 });
 
 export const {
+    fieldUpdated,
     fieldDimensionsChanged,
     splinePointCountChanged
 } = fieldSlice.actions;

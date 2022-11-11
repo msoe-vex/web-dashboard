@@ -8,7 +8,7 @@ import { selectActiveRoutine } from "../Tree/uiSlice";
 /**
  * Defines the a dialog menu used for exporting.
  */
-export function ExportDialog(): JSX.Element {
+export function ExportDialog(): JSX.Element | null {
     const dispatch = useAppDispatch();
 
     const handleClose = React.useCallback(
@@ -16,32 +16,34 @@ export function ExportDialog(): JSX.Element {
         , [dispatch]);
 
     const activeRoutine = useAppSelector(selectActiveRoutine);
-    if (!activeRoutine) { throw new Error("Export dialog must have an active routine."); }
+    const isOpen = useAppSelector(selectIsExportDialogOpen);
 
-    return (<>
+    return (!activeRoutine ? null : (<>
         <ExportDialogButton onClick={() => { dispatch(exportDialogOpened()); }} />
         <Dialog
             title={"Export " + activeRoutine.name}
-            isOpen={useAppSelector(selectIsExportDialogOpen)}
+            isOpen={isOpen}
             onClose={handleClose}
             isCloseButtonShown={true}
         >
             <ExportDialogContents handleClose={handleClose} />
         </Dialog>
-    </>);
+    </>));
 }
 
 interface ExportDialogMenuContentsProps {
     handleClose: () => void;
 }
 
-function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element {
+function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     // should probably live in field slice (or robot slice?)
     const [maxVelocity, setMaxVelocity] = React.useState(50);
     const [maxAcceleration, setMaxAcceleration] = React.useState(100);
 
-    const splinePointCount = (
+    const splinePointCount = useAppSelector(selectSplinePointCount);
+
+    const splinePointCountField = (
         <FormGroup
             label="Spline point count"
             helperText="The number of points to generate between each waypoint."
@@ -52,7 +54,7 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
                 max={100}
                 min={1}
                 selectAllOnFocus={true}
-                value={useAppSelector(selectSplinePointCount)}
+                value={splinePointCount}
                 onValueChange={(value) => { dispatch(splinePointCountChanged(value)); }}
             />
         </FormGroup>
@@ -60,7 +62,7 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
 
     return (<>
         <div className={Classes.DIALOG_BODY}>
-            {splinePointCount}
+            {splinePointCountField}
             <FormGroup label="Max velocity">
                 <NumericInput
                     max={500}

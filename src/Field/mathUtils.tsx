@@ -52,7 +52,7 @@ export class PointUtils {
         };
     }
 
-    static sub(lhs: Point, rhs: Point): Point {
+    static subtract(lhs: Point, rhs: Point): Point {
         return {
             x: lhs.x - rhs.x,
             y: lhs.y - rhs.y

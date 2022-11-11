@@ -1,7 +1,6 @@
 import React from "react";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { AppDispatch } from "../Store/store";
 import { MenuDivider } from "@blueprintjs/core";
 import { MenuItem2 } from "@blueprintjs/popover2";
 
@@ -64,7 +63,7 @@ export function AddSelectionToNewFolderMenuItem(): JSX.Element | null {
     return canBeFolder ? (<MenuItem2
         text="Add selection to folder"
         icon="folder-new"
-        onClick={() => {dispatch(selectionAddedToNewFolder()); }}
+        onClick={() => { dispatch(selectionAddedToNewFolder()); }}
     />) : null;
 }
 
@@ -131,13 +130,9 @@ function ExpandAllMenuItem(): JSX.Element | null {
         /> : null);
 }
 
-//TODO Check if broken due to dispatchProps refactoring
 export function CollapseAndExpandFoldersMenuItems(): JSX.Element {
-    const dispatch = useAppDispatch();
-    // const collapse = (<CollapseMenuItem {...props} />);
-    // const expand = (<ExpandMenuItem {...props} />);
-    const collapseFolders = (<CollapseFoldersMenuItem {...dispatch} />);
-    const expandFolders = (<ExpandFoldersMenuItem {...dispatch} />);
+    const collapseFolders = (<CollapseFoldersMenuItem />);
+    const expandFolders = (<ExpandFoldersMenuItem />);
     const hasFolders = useAppSelector(selectAllTreeFolderIds).length > 0;
     return (
         <>

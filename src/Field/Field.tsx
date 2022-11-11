@@ -86,13 +86,12 @@ function FieldStage(props: FieldStageProps): JSX.Element {
             onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
                 if (e.currentTarget === e.target) {
                     props.contextMenuHandler(
-                    <Menu>
-                        <MenuItem2 label="Outside field" />
-                    </Menu>, e.evt);
+                        <Menu>
+                            <MenuItem2 label="Outside field" />
+                        </Menu>, e.evt);
                 }
             }}
         >
-            {/* Make store available again inside stage */}
             <Provider store={props.store}>
                 <ContextMenuHandlerContext.Provider value={props.contextMenuHandler}>
                     <FieldLayer

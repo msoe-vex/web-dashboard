@@ -2,10 +2,9 @@ import { createSlice, createEntityAdapter, nanoid, EntityId, PayloadAction } fro
 import { Units } from "../Field/mathUtils";
 
 import { RootState } from "../Store/store";
-import { selectOwnerPath, selectPathById } from "../Navbar/pathsSlice";
+import { selectOwnerPath, selectPathByValidId } from "../Navbar/pathsSlice";
 import { ItemType, TreeItemType } from "./tempUiSlice";
-import { getNextName } from "./Utils";
-import { getErrorlessSelectors } from "../Store/storeUtils";
+import { addValidIdSelector, getNextName, getSimpleSelectors } from "../Store/storeUtils";
 
 export interface Robot {
     id: EntityId;
@@ -23,31 +22,28 @@ export enum RobotType {
 }
 
 const robotsAdapter = createEntityAdapter<Robot>();
-const simpleSelectors = getErrorlessSelectors(robotsAdapter.getSelectors());
+const simpleSelectors = getSimpleSelectors(robotsAdapter);
 
 export const robotsSlice = createSlice({
     name: "robots",
     initialState: robotsAdapter.getInitialState(),
     reducers: {
-        addedRobot: {
-            // we can use prepare since nothing else needs to respond to addedRobot
-            reducer: (robotState, action: PayloadAction<EntityId>) => {
-                robotsAdapter.addOne(robotState, {
-                    id: action.payload,
-                    name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
-                    robotType: RobotType.SWERVE,
-                    width: 18 * Units.INCH,
-                    length: 18 * Units.INCH,
-                    maxVelocity: 50,
-                    maxAcceleration: 100
-                });
-            },
-            prepare: () => { return { payload: nanoid() }; }
+        addedRobot(robotState) {
+            robotsAdapter.addOne(robotState, {
+                id: nanoid(),
+                name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
+                robotType: RobotType.SWERVE,
+                width: 18 * Units.INCH,
+                length: 18 * Units.INCH,
+                maxVelocity: 50,
+                maxAcceleration: 100
+            });
         },
         renamedRobot(robotState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { name: action.payload.newName } });
         },
         deletedRobot: robotsAdapter.removeOne,
+        updatedRobot: robotsAdapter.updateOne,
         duplicatedRobot(robotState, action: PayloadAction<EntityId>) {
             const robot = simpleSelectors.selectById(robotState, action.payload);
             let copy = Object.assign({}, robot);
@@ -73,6 +69,7 @@ export const {
     renamedRobot,
     deletedRobot,
     duplicatedRobot,
+    updatedRobot,
     robotMaxAccelerationChanged,
     robotMaxVelocityChanged,
     robotTypeChanged
@@ -81,11 +78,11 @@ export const {
 // Runtime selectors
 export const {
     selectById: selectRobotById,
-    selectByIdErrorless: selectRobotByIdErrorless,
+    selectByValidId: selectRobotByValidId,
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
     selectEntities: selectRobotDictionary
-} = getErrorlessSelectors(robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots));
+} = addValidIdSelector(robotsAdapter.getSelectors<RootState>((state) => state.history.present.robots));
 
 /**
  * Selects the robot associated with a given item.
@@ -98,10 +95,10 @@ export function selectOwnerRobot(state: RootState, itemId: EntityId, itemType: T
             path = selectOwnerPath(state, itemId, itemType);
             break;
         case ItemType.PATH:
-            path = selectPathById(state, itemId);
+            path = selectPathByValidId(state, itemId);
             break;
         default:
             throw new Error("selectOwnerPath item type is not defined.");
     }
-    return selectRobotById(state, path.robotId);
+    return selectRobotByValidId(state, path.robotId);
 }

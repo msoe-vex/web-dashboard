@@ -53,23 +53,6 @@ const groupActions: GroupByFunction = (action) => {
             prevAction = action;
             return false;
         }
-        // if (!prevAction || action.type !== prevAction.type) {
-        //     ignoreRapid = false;
-        //     prevAction = action;
-        //     return true; // try to group
-        // }
-
-        // if (action.type === waypointMoved.type || action.type === waypointMagnitudeMoved.type) {
-        //     if (action.payload.id !== prevAction.payload.id) {
-        //         return false; // don't batch if different moved
-        //     }
-        // }
-
-        // if (ignoreRapid) { return false; }
-
-        // ignoreRapid = true;
-        // setTimeout(() => { ignoreRapid = false; }, 500)
-        // return true;
     }
     return true;
 }

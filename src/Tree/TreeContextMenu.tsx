@@ -18,23 +18,6 @@ import {
 } from "./MenuItems";
 import { MenuItem2 } from "@blueprintjs/popover2";
 
-
-// interface ContextMenuProps {
-//     event: React.MouseEvent;
-//     children: JSX.Element;
-// }
-
-// export function ContextMenu(props: ContextMenuProps): JSX.Element {
-//     return (
-//         <div style={{
-//             position: "absolute",
-//             left: props.event.clientX,
-//             top: props.event.clientY
-//         }}>
-//             {props.children}
-//         </div>);
-// }
-
 interface WaypointContextMenuProps {
     id: EntityId;
     handleRenameClick: () => void;
@@ -42,7 +25,7 @@ interface WaypointContextMenuProps {
 }
 
 export enum MenuLocation {
-    FIELD, 
+    FIELD,
     TREE
 }
 

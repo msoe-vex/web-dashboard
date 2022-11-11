@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { addedRoutineInternal, deletedRoutineInternal, Routine, selectRoutineById } from "../Navbar/routinesSlice";
+import { addedRoutineInternal, deletedRoutineInternal, Routine, selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { SelectableItemType, selectSelectedWaypointIds, selectContainedWaypointIds } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
@@ -110,7 +110,7 @@ export const {
 export function selectActiveRoutineId(state: RootState) { return state.history.present.ui.activeRoutineId; }
 export function selectActiveRoutine(state: RootState): Routine | undefined {
     const activeRoutineId = selectActiveRoutineId(state);
-    return activeRoutineId ? selectRoutineById(state, activeRoutineId) : undefined;
+    return activeRoutineId ? selectRoutineByValidId(state, activeRoutineId) : undefined;
 }
 
 export function selectHiddenWaypointIds(state: RootState) { return state.history.present.ui.hiddenWaypointIds; }

@@ -1,22 +1,56 @@
-import { AnyAction, EntityId, EntitySelectors } from "@reduxjs/toolkit";
-import { AppDispatch } from "./store";
+import { Dictionary, EntityAdapter, EntityId, EntitySelectors, EntityState, Update } from "@reduxjs/toolkit";
 
-export interface ErrorlessSelectors<T, V> extends EntitySelectors<T, V> {
-    selectByIdErrorless: (state: V, id: EntityId) => T;
+interface SimpleSelectors<T, V> {
+    selectById: (state: V, id: EntityId) => T;
+    selectIds: (state: V) => EntityId[];
+    selectAll: (state: V) => T[];
+    selectEntities: (state: V) => Dictionary<T>;
 }
 
-export function getErrorlessSelectors<T>(selectors: EntitySelectors<T, any>): ErrorlessSelectors<T, any> {
+export function getSimpleSelectors<T>(adapter: EntityAdapter<T>): SimpleSelectors<T, EntityState<T>> {
+    const selectors = adapter.getSelectors();
     return {
         ...selectors,
-        selectByIdErrorless: (state: any, id: EntityId): T =>
-         verifyValueIsValid(selectors.selectById(state, id))
+        selectById: (state: EntityState<T>, id: EntityId) =>
+            assertValid(selectors.selectById(state, id))
     };
 }
 
-export function verifyValueIsValid<T>(value: T | undefined): T {
+interface ValidSelectors<T, V> extends EntitySelectors<T, V> {
+    selectByValidId: (state: V, id: EntityId) => T;
+}
+
+export function addValidIdSelector<T>(selectors: EntitySelectors<T, any>): ValidSelectors<T, any> {
+    return {
+        ...selectors,
+        selectByValidId: (state: EntityState<T>, id: EntityId) =>
+            assertValid(selectors.selectById(state, id))
+    }
+}
+
+export function assertValid<T>(value: T | undefined): T {
     // explicit check to prevent issues with null and false
-    if (value === undefined) { 
-        throw new Error("Expected valid value."); 
+    if (value === undefined) {
+        throw new Error("Expected valid value.");
     }
     return value;
+}
+
+export function makeUpdate<T>(id: EntityId, changes: Partial<T>): Update<T> {
+    return { id, changes };
+}
+
+/**
+ * Returns the next valid default name of an object, e.g. Robot 1, Path 2, Routine 5, etc.
+ * @param items - An array of items with a valid name to check against.
+ * @param itemName - The name of the object. Should start with a capital letter.
+ * @returns {string} - The next valid instance of the name followed by a string.
+ */
+export function getNextName(items: { name: string }[], itemName: string): string {
+    const checkName = (newName: string) =>
+        items.every(item => item.name !== newName);
+
+    for (let i = 1; ; ++i) {
+        if (checkName(itemName + " " + i)) { return itemName + " " + i; }
+    }
 }
