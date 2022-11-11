@@ -81,6 +81,7 @@ export const {
 // Runtime selectors
 export const {
     selectById: selectRobotById,
+    selectByIdErrorless: selectRobotByIdErrorless,
     selectIds: selectRobotIds,
     selectAll: selectAllRobots,
     selectEntities: selectRobotDictionary

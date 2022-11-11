@@ -102,7 +102,8 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
         />);
 
         const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);
-        const rotationManipulator = isSelected ? (<BallManipulator
+        const rotationManipulator = !isSelected ? null :
+         (<BallManipulator
             startPoint={waypoint.point}
             currentPoint={ballPoint}
             handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
@@ -111,7 +112,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
                     point: PointUtils.KonvaEventPoint(e)
                 }))
             }}
-        />) : (null);
+        />);
 
         return (<>
             {robotRectangle}

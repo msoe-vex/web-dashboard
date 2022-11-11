@@ -82,7 +82,7 @@ export const pathsSlice = createSlice({
                 pathsAdapter.updateOne(pathState, { id: path.id, changes: { waypointIds: newWaypointIds } });
             })
             .addCase(addedFolderInternal, (pathState, action) => {
-                const path = simpleSelectors.selectById(pathState, action.payload.pathId);
+                const path = simpleSelectors.selectByIdErrorless(pathState, action.payload.pathId);
                 const newFolderIds = path.folderIds.slice();
                 newFolderIds.push(action.payload.id);
                 pathsAdapter.updateOne(pathState, { id: path.id, changes: { folderIds: newFolderIds } });
@@ -98,7 +98,7 @@ export const pathsSlice = createSlice({
 
 export function deletedPath(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {
-        const path = selectPathById(getState(), pathId);
+        const path = selectPathByIdErrorless(getState(), pathId);
         dispatch(deletedPathInternal({
             id: pathId,
             folderIds: path.folderIds,
@@ -114,7 +114,7 @@ export function addedPath(routineId: EntityId): AppThunk {
         dispatch(pathsSlice.actions.addedPathInternal({
             id: nanoid(),
             routineId,
-            robotId: robotIds[0], 
+            robotId: robotIds[0],
             waypointIds: [nanoid(), nanoid()]
         }));
     };
@@ -128,6 +128,7 @@ export const {
 // Runtime selectors
 export const {
     selectById: selectPathById,
+    selectByIdErrorless: selectPathByIdErrorless,
     selectIds: selectPathIds,
     selectAll: selectAllPaths,
     selectEntities: selectPathDictionary,
