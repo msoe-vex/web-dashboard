@@ -3,7 +3,7 @@ import { Button, Classes, Menu, MenuDivider, Position } from "@blueprintjs/core"
 import { MenuItem2, Popover2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
 
-import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getDispatchHandler, useAppDispatch, useAppDispatchHandler, useAppSelector } from "../Store/hooks";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
@@ -12,7 +12,7 @@ import { addedRobot, deletedRobot, duplicatedRobot, renamedRobot, selectRobotByI
 import { RobotDialog } from "./RobotDialog";
 
 export function RobotMenu(): JSX.Element {
-    const dispatch = useAppDispatch();
+    const handleDispatch = useAppDispatchHandler();
 
     // isOpen, setIsOpen is a function
     const [isOpen, setIsOpen] = React.useState(false);
@@ -25,7 +25,7 @@ export function RobotMenu(): JSX.Element {
             icon="add"
             text="Add robot"
             minimal={true}
-            onClick={() => { dispatch(addedRobot()); }}
+            onClick={handleDispatch(addedRobot())}
         /> :
         <Button
             icon="playbook"
@@ -39,7 +39,7 @@ export function RobotMenu(): JSX.Element {
         <MenuItem2
             icon="add"
             text="Add robot"
-            onClick={() => { dispatch(addedRobot()); }}
+            onClick={handleDispatch(addedRobot())}
             shouldDismissPopover={false}
         />);
 
@@ -80,6 +80,7 @@ interface RobotItemProps {
 
 function RobotItem(props: RobotItemProps): JSX.Element {
     const dispatch = useAppDispatch();
+    const handleDispatch = getDispatchHandler(dispatch);
 
     const robotName = useAppSelector(state => selectRobotById(state, props.id)).name;
 
@@ -96,7 +97,7 @@ function RobotItem(props: RobotItemProps): JSX.Element {
         (<MenuItem2
             icon="playbook"
             text={robotName}
-            onDoubleClick={() => { dispatch(robotDialogOpened(props.id)); }}
+            onDoubleClick={handleDispatch(robotDialogOpened(props.id))}
             submenuProps={{ className: Classes.ELEVATION_2 }}
         >
             <RobotSubmenu
@@ -116,13 +117,13 @@ interface RobotSubmenuProps {
 }
 
 function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
-    const dispatch = useAppDispatch();
+    const handleDispatch = useAppDispatchHandler();
     const dismissProps = { shouldDismissPopover: false };
     return (<>
-        <EditMenuItem onClick={() => dispatch(robotDialogOpened(props.id))} />
+        <EditMenuItem onClick={handleDispatch(robotDialogOpened(props.id))} />
         <RenameMenuItem {...dismissProps} onClick={props.handleRenameClick} />
-        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} />
+        <DuplicateMenuItem {...dismissProps} onClick={handleDispatch(duplicatedRobot(props.id))} />
         <MenuDivider />
-        <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRobot(props.id)); }} />
+        <DeleteMenuItem {...dismissProps} onClick={handleDispatch(deletedRobot(props.id))} />
     </>);
 }
