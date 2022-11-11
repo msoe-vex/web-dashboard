@@ -9,7 +9,6 @@ import { assertValid, makeUpdate } from "../Store/storeUtils";
 
 export function RobotDialog(): JSX.Element {
     const dispatch = useAppDispatch();
-
     const handleClose = React.useCallback(() => { dispatch(robotDialogClosed()); }, [dispatch]);
 
     const robotDialogId = useAppSelector(selectRobotDialogId);
