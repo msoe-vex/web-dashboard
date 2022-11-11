@@ -41,6 +41,7 @@ export function AppTree(): JSX.Element {
 
     const paths = useAppSelector(state => routine.pathIds.map(pathId => selectPathById(state, pathId)));
 
+
     const selectedWaypointIds = useAppSelector(selectSelectedWaypointIds);
     const collapsedFolderIds = useAppSelector(selectCollapsedFolderIds);
     const folderDictionary = useAppSelector(selectFolderDictionary);

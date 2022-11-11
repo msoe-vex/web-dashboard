@@ -15,9 +15,7 @@ export function RobotDialog(): JSX.Element {
         , [dispatch]);
 
     const robotDialogId = useAppSelector(selectRobotDialogId);
-    // hook cannot go below early exit
-    let robotName = useAppSelector(state => robotDialogId ? selectRobotById(state, robotDialogId).name : "");
-
+    const robotName = useAppSelector(state => robotDialogId ? selectRobotById(state, robotDialogId).name : "");
     return (
         <Dialog
             title={robotName}
@@ -29,10 +27,10 @@ export function RobotDialog(): JSX.Element {
         </Dialog>);
 }
 
-function RobotDialogContents(): JSX.Element | null {
+function RobotDialogContents(): JSX.Element {
     const dispatch = useAppDispatch();
-    const robot = useAppSelector(state =>
-        selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
+    // can be a zombie when dialog is closed; becomes id but is undefined
+    const robot = useAppSelector(state => selectRobotById(state, verifyValueIsValid(selectRobotDialogId(state))));
     const isSwerve = (robot.robotType === RobotType.SWERVE);
     return (<>
         <div className={Classes.DIALOG_BODY}>
