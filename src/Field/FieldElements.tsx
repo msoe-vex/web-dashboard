@@ -12,7 +12,7 @@ import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, Item
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById } from "../Tree/waypointsSlice";
-import { Units, PointUtils, Point, Curve, CurveUtils } from "./mathUtils";
+import { Units, PointUtils, Point, Curve } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
@@ -244,18 +244,17 @@ interface CurveVisualizationProps {
 }
 
 function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
-    const derivativePoints = CurveUtils.parameterRange(40).map(parameter => props.curve.curvaturePoint(parameter));
-    const connectRange = CurveUtils.parameterRange(20);
+    const derivativePoints = Curve.parameterRange(40).map(parameter => props.curve.curvaturePoint(parameter));
     return (<>
         <Line
             points={PointUtils.flatten(...derivativePoints)}
-            strokeWidth={0.25 * Units.INCH}
-            stroke={Colors.BLUE1}
+            strokeWidth={0.5 * Units.INCH}
+            stroke={Colors.RED2}
         />
-        {connectRange.map(parameter => <Line
+        {Curve.parameterRange(20).map(parameter => <Line
             points={PointUtils.flatten(props.curve.point(parameter), props.curve.curvaturePoint(parameter))}
-            strokeWidth={0.125 * Units.INCH}
-            stroke={Colors.BLUE1}
+            strokeWidth={0.25 * Units.INCH}
+            stroke={Colors.ORANGE3}
         />)}
     </>);
 }

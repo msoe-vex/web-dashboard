@@ -88,19 +88,14 @@ export class PointUtils {
 }
 
 export class Curve {
-    startPoint: Point;
-    startControlPoint: Point;
-    endPoint: Point;
-    endControlPoint: Point;
-
-    constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
+    public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
         this.startPoint = startWaypoint.point;
         this.startControlPoint = PointUtils.PolarPoint(this.startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
         this.endPoint = endWaypoint.point;
         this.endControlPoint = PointUtils.PolarPoint(this.endPoint, endWaypoint.angle, -endWaypoint.endMagnitude);
     }
 
-    point(parameter: number): Point {
+    public point(parameter: number): Point {
         const startTerm = Math.pow(1 - parameter, 3);
         const startControlTerm = 3 * (1 - parameter) * (1 - parameter) * parameter;
         const endControlTerm = 3 * (1 - parameter) * parameter * parameter;
@@ -113,7 +108,16 @@ export class Curve {
         );
     }
 
-    firstDerivative(parameter: number): Point {
+    /**
+     * Probably wrong?
+     */
+    public distance(parameter: number): number {
+        const parameter1 = (parameter / 2 / -Math.sqrt(3)) + parameter / 2;
+        const parameter2 = (parameter / 2 / Math.sqrt(3)) + parameter / 2;
+        return parameter / 2 * this.curvature(parameter1) * this.curvature(parameter2);
+    }
+
+    public firstDerivative(parameter: number): Point {
         const firstTerm = 3 * (1 - parameter) * (1 - parameter);
         const secondTerm = 6 * (1 - parameter) * parameter;
         const thirdTerm = 3 * parameter * parameter;
@@ -124,19 +128,13 @@ export class Curve {
         );
     }
 
-    normalPoint(parameter: number, distance: number): Point {
+    public normalPoint(parameter: number, distance: number): Point {
         let direction = PointUtils.normalize(this.firstDerivative(parameter));
         let normalPoint = PointUtils.Point(-direction.y, direction.x);
         return PointUtils.multiply(normalPoint, distance);
     }
 
-    // normalFirstDerivative(parameter: number): Point {
-    //     let point = this.firstDerivative(parameter);
-    //     let normalPoint = PointUtils.Point(-point.y, point.x);
-    //     return PointUtils.add(this.point(parameter), normalPoint);
-    // }
-
-    secondDerivative(parameter: number): Point {
+    public secondDerivative(parameter: number): Point {
         const firstPoint = PointUtils.add(
             PointUtils.subtract(this.endControlPoint, PointUtils.multiply(this.startControlPoint, 2)),
             this.startPoint);
@@ -149,7 +147,7 @@ export class Curve {
         );
     }
 
-    curvature(parameter: number): number {
+    public curvature(parameter: number): number {
         const firstDerivative = this.firstDerivative(parameter);
         const secondDerivative = this.secondDerivative(parameter);
         const numerator = firstDerivative.x * secondDerivative.y - secondDerivative.x * firstDerivative.y;
@@ -158,17 +156,21 @@ export class Curve {
         return numerator / denominator;
     }
 
-    curvaturePoint(parameter: number): Point {
+    public curvaturePoint(parameter: number): Point {
         return PointUtils.add(this.point(parameter), this.normalPoint(parameter, -this.curvature(parameter)));
     }
-}
 
-export class CurveUtils {
-    static parameterRange(count: number): number[] {
+    private startPoint: Point;
+    private startControlPoint: Point;
+    private endPoint: Point;
+    private endControlPoint: Point;
+
+    public static parameterRange(count: number): number[] {
         let result = [];
         for (var i = 0; i < count; ++i) {
             result.push(i / (count - 1));
         }
         return result;
     }
+
 }
