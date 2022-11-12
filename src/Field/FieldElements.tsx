@@ -12,7 +12,7 @@ import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, Item
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById } from "../Tree/waypointsSlice";
-import { Units, PointUtils, Point } from "./mathUtils";
+import { Units, PointUtils, Point, Curve, CurveUtils } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
@@ -153,7 +153,7 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        points={PointUtils.flatten([previousWaypoint.point, prevControl, currControl, waypoint.point])}
+        points={PointUtils.flatten(previousWaypoint.point, prevControl, currControl, waypoint.point)}
         bezier={true}
         strokeWidth={0.5 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
@@ -170,6 +170,9 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     />);
 
     const manipulators = !isSelected ? null : (<>
+        <CurveVisualization
+            curve={new Curve(previousWaypoint, waypoint)}
+        />
         <BallManipulator
             startPoint={previousWaypoint.point}
             currentPoint={prevControl}
@@ -209,7 +212,7 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
     const [isSelected, setSelected] = React.useState<boolean>(false);
 
     const line = (<Line
-        points={PointUtils.flatten([props.startPoint, props.currentPoint])}
+        points={PointUtils.flatten(props.startPoint, props.currentPoint)}
         strokeWidth={0.25 * Units.INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
     />);
@@ -233,5 +236,26 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
             onMouseLeave={() => { setHovered(false); }}
         />
         {line}
+    </>);
+}
+
+interface CurveVisualizationProps {
+    curve: Curve;
+}
+
+function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
+    const derivativePoints = CurveUtils.parameterRange(40).map(parameter => props.curve.curvaturePoint(parameter));
+    const connectRange = CurveUtils.parameterRange(20);
+    return (<>
+        <Line
+            points={PointUtils.flatten(...derivativePoints)}
+            strokeWidth={0.25 * Units.INCH}
+            stroke={Colors.BLUE1}
+        />
+        {connectRange.map(parameter => <Line
+            points={PointUtils.flatten(props.curve.point(parameter), props.curve.curvaturePoint(parameter))}
+            strokeWidth={0.125 * Units.INCH}
+            stroke={Colors.BLUE1}
+        />)}
     </>);
 }

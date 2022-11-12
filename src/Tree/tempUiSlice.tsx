@@ -146,12 +146,13 @@ export const tempUiSlice = createSlice({
         },
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
             assertValidSplineId(action.payload);
-            if (uiState.selectedSplineIds.some(splineId => splineId.every(splineId => action.payload.includes(splineId)))) {
-                uiState.selectedSplineIds = [];
+            // already selected
+            if (uiState.selectedSplineIds.some(splineIds => splineIds.every(splineId => action.payload.includes(splineId)))) {
+                uiState.selectedSplineIds = uiState.selectedSplineIds.filter(splineIds => splineIds.every(splineId => action.payload.includes(splineId)));
             } else {
-                uiState.selectedWaypointIds = []; // Remove waypoint selection
-                uiState.selectedSplineIds = [action.payload]; // Only one at a time (for now?)
+                uiState.selectedSplineIds.push(action.payload);
             }
+            uiState.selectedWaypointIds = []; // Remove waypoint selection
         },
         exportDialogOpened(uiState) {
             uiState.isExportDialogOpen = true;
