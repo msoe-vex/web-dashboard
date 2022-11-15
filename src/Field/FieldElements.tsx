@@ -20,15 +20,13 @@ export function FieldElements(): null | JSX.Element {
     const paths = useAppSelector(state => {
         return selectActiveRoutine(state)?.pathIds.map(pathId => selectPathByValidId(state, pathId));
     });
-    if (!paths) { return null; }
 
-    return (<>
+    return (!paths ? null : <>
         {paths.flatMap(path => path.waypointIds.map(waypointId =>
             <RobotElement
                 key={waypointId}
                 waypointId={waypointId}
             />))}
-
         {paths.flatMap(path =>
             path.waypointIds.map((waypointId, i, waypointIds) =>
                 (i === 0) ? null : (<SplineElement
@@ -49,7 +47,7 @@ interface RobotElementProps {
     waypointId: EntityId;
 }
 
-export function RobotElement(props: RobotElementProps): JSX.Element | null {
+function RobotElement(props: RobotElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
@@ -85,7 +83,7 @@ export function RobotElement(props: RobotElementProps): JSX.Element | null {
             offset={{ x: 9 * Units.INCH, y: 9 * Units.INCH }}
             width={18 * Units.INCH}
             height={18 * Units.INCH}
-            rotation={waypoint.robotAngle ? waypoint.robotAngle / Units.DEGREE : 0}
+            rotation={(waypoint.robotAngle ?? 0) / Units.DEGREE}
             strokeWidth={0.5 * Units.INCH}
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
@@ -132,7 +130,7 @@ interface SplineElementProps {
     waypointId: EntityId;
 }
 
-export function SplineElement(props: SplineElementProps): JSX.Element | null {
+function SplineElement(props: SplineElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
 
@@ -250,13 +248,14 @@ interface CurveVisualizationProps {
 function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
     const curve = React.useMemo(() => new Curve(props.previousWaypoint, props.waypoint), [props]);
 
-    const derivativePoints = Curve.parameterRange(40).map(parameter => curve.curvaturePoint(parameter));
+    const curvaturePoints = Curve.parameterRange(60).map(parameter => curve.curvaturePoint(parameter));
     return (<>
         <Line
-            points={PointUtils.flatten(...derivativePoints)}
+            points={PointUtils.flatten(...curvaturePoints)}
             strokeWidth={0.5 * Units.INCH}
             stroke={Colors.RED2}
         />
+
         {Curve.parameterRange(20).map(parameter => <Line
             key={parameter}
             points={PointUtils.flatten(curve.point(parameter), curve.curvaturePoint(parameter))}

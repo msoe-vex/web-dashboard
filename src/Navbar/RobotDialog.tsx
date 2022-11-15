@@ -3,7 +3,7 @@ import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/cor
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
-import { Robot, robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, updatedRobot } from "../Tree/robotsSlice";
+import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, updatedRobot } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { assertValid, makeUpdate } from "../Store/storeUtils";
 

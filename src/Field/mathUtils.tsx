@@ -1,6 +1,7 @@
 import { KonvaEventObject } from "konva/lib/Node";
-import { sortedIndex } from "lodash-es";
 import { ControlWaypoint } from "../Tree/waypointsSlice";
+
+import { sortedIndex } from "lodash-es";
 
 /**
  * A class defining basic unit conversions.
@@ -35,19 +36,19 @@ export interface Point {
 }
 
 export class PointUtils {
-    static Point(x: number, y: number): Point {
+    public static Point(x: number, y: number): Point {
         return { x, y };
     }
 
-    static PolarPoint(base: Point, angle: number, magnitude: number): Point {
+    public static PolarPoint(base: Point, angle: number, magnitude: number): Point {
         return this.add(base, this.Point(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude));
     }
 
-    static KonvaEventPoint(e: KonvaEventObject<MouseEvent>): Point {
+    public static KonvaEventPoint(e: KonvaEventObject<MouseEvent>): Point {
         return this.Point(e.target.x(), e.target.y());
     }
 
-    static add(...point: Point[]): Point {
+    public static add(...point: Point[]): Point {
         let x = 0, y = 0;
         point.forEach(point => {
             x += point.x;
@@ -56,34 +57,34 @@ export class PointUtils {
         return { x, y };
     }
 
-    static subtract(lhs: Point, rhs: Point): Point {
+    public static subtract(lhs: Point, rhs: Point): Point {
         return {
             x: lhs.x - rhs.x,
             y: lhs.y - rhs.y
         };
     }
 
-    static multiply(point: Point, val: number): Point {
+    public static multiply(point: Point, val: number): Point {
         return {
             x: point.x * val,
             y: point.y * val
         };
     }
 
-    static distance(start: Point, end: Point): number {
+    public static distance(start: Point, end: Point): number {
         return Math.sqrt((start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y));
     }
 
-    static angle(point: Point): number {
+    public static angle(point: Point): number {
         return Math.atan2(point.y, point.x);
     }
 
-    static normalize(point: Point): Point {
+    public static normalize(point: Point): Point {
         const distance = this.distance(point, this.Point(0, 0));
         return this.Point(point.x / distance, point.y / distance);
     }
 
-    static flatten(...points: Point[]): number[] {
+    public static flatten(...points: Point[]): number[] {
         return points.flatMap(point => [point.x, point.y]);
     }
 }
@@ -92,46 +93,18 @@ export class Curve {
     public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
         this.startPoint = startWaypoint.point;
         this.startControlPoint = PointUtils.PolarPoint(this.startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
-
         this.endPoint = endWaypoint.point;
         this.endControlPoint = PointUtils.PolarPoint(this.endPoint, endWaypoint.angle, -endWaypoint.endMagnitude);
-
-        const properties = this.computeArcLengthProperties();
-        this.arcLength = properties.arcLength;
-        this.arcLengths = properties.arcLengths;
     }
 
-    private computeArcLengthProperties(): { arcLength: number, arcLengths: number[] } {
-        const points = Curve.parameterRange(Curve.DIVISIONS).map(parameter => this.point(parameter));
+    public arcLength(): number {
+        const points = Curve.parameterRange(ParameterizedCurve.DIVISIONS).map(parameter => this.point(parameter));
         // array containing distance between each successive point
-        let arcLength = 0;
-        const arcLengths = points.map((point, i, points) => {
-            if (i == 0) { return 0; }
-            arcLength += PointUtils.distance(point, points[i - 1]);
-            return arcLength;
-        });
+        return points.reduce((curr, point, i, points) => {
+            if (i === 0) { return 0; }
+            return curr + PointUtils.distance(point, points[i - 1]);
+        }, 0);
 
-        return {
-            arcLength,
-            arcLengths
-        };
-    }
-
-    /**
-     * @returns a parameter corresponding to points on the curve with an even distribution.
-     * Uses arc-length parameterization, so 0.5 is the middle of the curve.
-     */
-    public arcLengthParameter(parameter: number): number {
-        const targetArcLength = parameter * this.arcLength;
-        const index = sortedIndex(this.arcLengths, targetArcLength);
-        if (this.arcLengths[index] == targetArcLength) {
-            return index / (Curve.DIVISIONS - 1);
-        }
-        else {
-            const segmentFraction = (targetArcLength - this.arcLengths[index - 1])
-                / this.arcLengths[index];
-            return (index + segmentFraction) / (Curve.DIVISIONS - 1);
-        }
     }
 
     /**
@@ -153,8 +126,18 @@ export class Curve {
     /**
      * @returns the angle of the robot at the specified point.
      */
-    public rotation(parameter: number, startAngle: number, endAngle: number): number {
-        return 0;
+    public rotation(parameter: number, startRobotAngle: number, endRobotAngle: number): number {
+        let angleDifference = this.shortestRotationTo(startRobotAngle, endRobotAngle);
+        return startRobotAngle + (parameter * angleDifference);
+    }
+
+    private shortestRotationTo(target: number, current: number): number {
+        let counterClockwiseMove = current - target;
+        let clockwiseMove = target - current;
+        // normalize to positive range
+        clockwiseMove += (clockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
+        counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
+        return (clockwiseMove < counterClockwiseMove ? -clockwiseMove : counterClockwiseMove);
     }
 
     public firstDerivative(parameter: number): Point {
@@ -166,12 +149,6 @@ export class Curve {
             PointUtils.multiply(PointUtils.subtract(this.endControlPoint, this.startControlPoint), secondTerm),
             PointUtils.multiply(PointUtils.subtract(this.endPoint, this.endControlPoint), thirdTerm)
         );
-    }
-
-    public normalPoint(parameter: number, distance: number): Point {
-        let direction = PointUtils.normalize(this.firstDerivative(parameter));
-        let normalPoint = PointUtils.Point(-direction.y, direction.x);
-        return PointUtils.multiply(normalPoint, distance);
     }
 
     public secondDerivative(parameter: number): Point {
@@ -204,17 +181,18 @@ export class Curve {
         return PointUtils.add(this.point(parameter), this.normalPoint(parameter, -this.curvature(parameter)));
     }
 
+    private normalPoint(parameter: number, distance: number): Point {
+        let direction = PointUtils.normalize(this.firstDerivative(parameter));
+        let normalPoint = PointUtils.Point(-direction.y, direction.x);
+        return PointUtils.multiply(normalPoint, distance);
+    }
+
     private startPoint: Point;
     private startControlPoint: Point;
     private endPoint: Point;
     private endControlPoint: Point;
 
-    /**
-     * A list of arc lengths taken in context of the total arc length.
-     */
-    private arcLengths: number[];
-    private arcLength: number;
-    private static DIVISIONS = 100;
+    protected static DIVISIONS = 100;
 
     /**
      * @returns `count` parameters evenly spaced between 0 and 1.
@@ -225,4 +203,57 @@ export class Curve {
         return result;
     }
 
+}
+
+/**
+ * An extension of Curve which adds arc length
+ * and rapid arc-length lookups.
+ */
+export class ParameterizedCurve extends Curve {
+    public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
+        super(startWaypoint, endWaypoint);
+
+        const props = this.computeArcLengthProperties();
+        this.totalArcLength = props.arcLength;
+        this.arcLengths = props.arcLengths;
+    }
+
+    private computeArcLengthProperties(): { arcLength: number, arcLengths: number[] } {
+        const points = Curve.parameterRange(Curve.DIVISIONS).map(parameter => this.point(parameter));
+        // array containing distance between each successive point
+        let arcLength = 0;
+        const arcLengths = points.map((point, i, points) => {
+            if (i === 0) { return 0; }
+            arcLength += PointUtils.distance(point, points[i - 1]);
+            return arcLength;
+        });
+
+        return {
+            arcLength,
+            arcLengths
+        };
+    }
+
+    /**
+     * @returns a parameter corresponding to points on the curve with an even distribution.
+     * Uses arc-length parameterization, so 0.5 is the middle of the curve.
+     */
+    public arcLengthParameter(parameter: number): number {
+        const targetArcLength = parameter * this.totalArcLength;
+        const index = sortedIndex(this.arcLengths, targetArcLength);
+        if (this.arcLengths[index] === targetArcLength) {
+            return index / (Curve.DIVISIONS - 1);
+        }
+        else {
+            const segmentFraction = (targetArcLength - this.arcLengths[index - 1])
+                / this.arcLengths[index];
+            return (index + segmentFraction) / (Curve.DIVISIONS - 1);
+        }
+    }
+
+    /**
+     * A list of arc lengths taken in context of the total arc length.
+     */
+    private arcLengths: number[];
+    private totalArcLength: number;
 }
