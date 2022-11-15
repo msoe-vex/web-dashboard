@@ -1,4 +1,5 @@
 import { KonvaEventObject } from "konva/lib/Node";
+import { sortedIndex } from "lodash-es";
 import { ControlWaypoint } from "../Tree/waypointsSlice";
 
 /**
@@ -91,10 +92,51 @@ export class Curve {
     public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
         this.startPoint = startWaypoint.point;
         this.startControlPoint = PointUtils.PolarPoint(this.startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
+
         this.endPoint = endWaypoint.point;
         this.endControlPoint = PointUtils.PolarPoint(this.endPoint, endWaypoint.angle, -endWaypoint.endMagnitude);
+
+        const properties = this.computeArcLengthProperties();
+        this.arcLength = properties.arcLength;
+        this.arcLengths = properties.arcLengths;
     }
 
+    private computeArcLengthProperties(): { arcLength: number, arcLengths: number[] } {
+        const points = Curve.parameterRange(Curve.DIVISIONS).map(parameter => this.point(parameter));
+        // array containing distance between each successive point
+        let arcLength = 0;
+        const arcLengths = points.map((point, i, points) => {
+            if (i == 0) { return 0; }
+            arcLength += PointUtils.distance(point, points[i - 1]);
+            return arcLength;
+        });
+
+        return {
+            arcLength,
+            arcLengths
+        };
+    }
+
+    /**
+     * @returns a parameter corresponding to points on the curve with an even distribution.
+     * Uses arc-length parameterization, so 0.5 is the middle of the curve.
+     */
+    public arcLengthParameter(parameter: number): number {
+        const targetArcLength = parameter * this.arcLength;
+        const index = sortedIndex(this.arcLengths, targetArcLength);
+        if (this.arcLengths[index] == targetArcLength) {
+            return index / (Curve.DIVISIONS - 1);
+        }
+        else {
+            const segmentFraction = (targetArcLength - this.arcLengths[index - 1])
+                / this.arcLengths[index];
+            return (index + segmentFraction) / (Curve.DIVISIONS - 1);
+        }
+    }
+
+    /**
+     * @returns a point on the curve at the specified parameter.
+     */
     public point(parameter: number): Point {
         const startTerm = Math.pow(1 - parameter, 3);
         const startControlTerm = 3 * (1 - parameter) * (1 - parameter) * parameter;
@@ -109,12 +151,10 @@ export class Curve {
     }
 
     /**
-     * Probably wrong?
+     * @returns the angle of the robot at the specified point.
      */
-    public distance(parameter: number): number {
-        const parameter1 = (parameter / 2 / -Math.sqrt(3)) + parameter / 2;
-        const parameter2 = (parameter / 2 / Math.sqrt(3)) + parameter / 2;
-        return parameter / 2 * this.curvature(parameter1) * this.curvature(parameter2);
+    public rotation(parameter: number, startAngle: number, endAngle: number): number {
+        return 0;
     }
 
     public firstDerivative(parameter: number): Point {
@@ -151,11 +191,15 @@ export class Curve {
         const firstDerivative = this.firstDerivative(parameter);
         const secondDerivative = this.secondDerivative(parameter);
         const numerator = firstDerivative.x * secondDerivative.y - secondDerivative.x * firstDerivative.y;
-        const denominator = Math.pow((firstDerivative.x * firstDerivative.x + firstDerivative.y * firstDerivative.y), 3 / 2);
+        const denominator = Math.pow((firstDerivative.x * firstDerivative.x +
+            firstDerivative.y * firstDerivative.y), 3 / 2);
         if (denominator === 0) { return 0; }
         return numerator / denominator;
     }
 
+    /**
+     * @returns a `Point` representing the curvature at a point specified by a given parameter.
+     */
     public curvaturePoint(parameter: number): Point {
         return PointUtils.add(this.point(parameter), this.normalPoint(parameter, -this.curvature(parameter)));
     }
@@ -165,11 +209,19 @@ export class Curve {
     private endPoint: Point;
     private endControlPoint: Point;
 
+    /**
+     * A list of arc lengths taken in context of the total arc length.
+     */
+    private arcLengths: number[];
+    private arcLength: number;
+    private static DIVISIONS = 100;
+
+    /**
+     * @returns `count` parameters evenly spaced between 0 and 1.
+     */
     public static parameterRange(count: number): number[] {
         let result = [];
-        for (var i = 0; i < count; ++i) {
-            result.push(i / (count - 1));
-        }
+        for (var i = 0; i < count; ++i) { result.push(i / (count - 1)); }
         return result;
     }
 

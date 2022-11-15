@@ -11,7 +11,7 @@ import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
-import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById } from "../Tree/waypointsSlice";
+import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById, ControlWaypoint } from "../Tree/waypointsSlice";
 import { Units, PointUtils, Point, Curve } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
@@ -143,9 +143,11 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
     const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
     const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
 
+    // const curve = React.useMemo(() => new Curve(previousWaypoint, waypoint), [previousWaypoint, waypoint]);
+
     if (!waypoint || !previousWaypoint) { return null; }
     else if (!isControlWaypoint(waypoint) || !isControlWaypoint(previousWaypoint)) { return null; }
-    if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
+    else if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
     const prevControl = PointUtils.PolarPoint(previousWaypoint.point, previousWaypoint.angle, previousWaypoint.startMagnitude);
     const currControl = PointUtils.PolarPoint(waypoint.point, waypoint.angle, -waypoint.endMagnitude);
@@ -171,7 +173,8 @@ export function SplineElement(props: SplineElementProps): JSX.Element | null {
 
     const manipulators = !isSelected ? null : (<>
         <CurveVisualization
-            curve={new Curve(previousWaypoint, waypoint)}
+            previousWaypoint={previousWaypoint}
+            waypoint={waypoint}
         />
         <BallManipulator
             startPoint={previousWaypoint.point}
@@ -240,11 +243,14 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
 }
 
 interface CurveVisualizationProps {
-    curve: Curve;
+    previousWaypoint: ControlWaypoint;
+    waypoint: ControlWaypoint;
 }
 
 function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
-    const derivativePoints = Curve.parameterRange(40).map(parameter => props.curve.curvaturePoint(parameter));
+    const curve = React.useMemo(() => new Curve(props.previousWaypoint, props.waypoint), [props]);
+
+    const derivativePoints = Curve.parameterRange(40).map(parameter => curve.curvaturePoint(parameter));
     return (<>
         <Line
             points={PointUtils.flatten(...derivativePoints)}
@@ -252,7 +258,8 @@ function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
             stroke={Colors.RED2}
         />
         {Curve.parameterRange(20).map(parameter => <Line
-            points={PointUtils.flatten(props.curve.point(parameter), props.curve.curvaturePoint(parameter))}
+            key={parameter}
+            points={PointUtils.flatten(curve.point(parameter), curve.curvaturePoint(parameter))}
             strokeWidth={0.25 * Units.INCH}
             stroke={Colors.ORANGE3}
         />)}
