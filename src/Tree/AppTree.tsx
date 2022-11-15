@@ -52,6 +52,7 @@ export function AppTree(): JSX.Element {
             assertValid(waypointDictionary[waypointId]));
         const folders = path.folderIds.map(folderId =>
             assertValid(folderDictionary[folderId]));
+
         return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedFolderIds);
     });
 
@@ -157,18 +158,19 @@ function getPathNode(
             renamingId={renamingId}
         />);
 
-        // call element manually
-        const waypointLabel = TreeNameInput({
-            treeItem: waypoint,
-            itemType: ItemType.WAYPOINT,
-            renamingId,
-            setRenamingId
-        });
+        const waypointNameInput = (
+            <TreeNameInput
+                treeItem={waypoint}
+                itemType={ItemType.WAYPOINT}
+                renamingId={renamingId}
+                setRenamingId={setRenamingId}
+            />
+        );
 
         return {
             id: waypoint.id,
             icon: "flow-linear" as IconName,
-            label: waypointLabel,
+            label: waypointNameInput ?? waypoint.name,
             secondaryLabel: waypointEyeButton,
             isSelected: selectedWaypointIds.includes(waypoint.id),
             nodeData: ItemType.WAYPOINT
@@ -183,13 +185,14 @@ function getPathNode(
             renamingId={renamingId}
         />);
 
-        // call element manually
-        const folderLabel = TreeNameInput({
-            treeItem: folder,
-            itemType: ItemType.FOLDER,
-            renamingId,
-            setRenamingId
-        });
+        const folderNameInput = (
+            <TreeNameInput
+                treeItem={folder}
+                itemType={ItemType.FOLDER}
+                renamingId={renamingId}
+                setRenamingId={setRenamingId}
+            />
+        );
 
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
         if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
@@ -199,7 +202,7 @@ function getPathNode(
             hasCaret: true,
             isExpanded: !collapsedFolderIds.includes(folder.id),
             isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
-            label: folderLabel,
+            label: folderNameInput ?? folder.name,
             secondaryLabel: folderEyeButton,
             nodeData: ItemType.FOLDER as TreeItemType
         }
@@ -263,15 +266,15 @@ interface TreeNameInputProps {
     setRenamingId: (newId: EntityId | undefined) => void;
 }
 
-function TreeNameInput(props: TreeNameInputProps): JSX.Element | string {
+function TreeNameInput(props: TreeNameInputProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     const { treeItem, renamingId } = props;
-    return (treeItem.id === renamingId) ?
+    return (treeItem.id !== renamingId) ? null :
         (<NameInput
             initialName={treeItem.name}
             newNameSubmitted={(newName) => {
                 if (newName) { dispatch(treeItemRenamed(treeItem.id, props.itemType, newName)); }
                 props.setRenamingId(treeItem.id);
             }}
-        />) : treeItem.name;
+        />);
 }
