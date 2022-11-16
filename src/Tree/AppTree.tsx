@@ -156,67 +156,51 @@ function getPathNode(
 ): TreeNodeInfo<ItemType> {
     // Waypoint nodes
     const waypointNodes: TreeNodeInfo<ItemType>[] = orderedWaypoints.map(waypoint => {
-
-        const waypointProps = { id: waypoint.id, itemType: ItemType.WAYPOINT };
-        const waypointEyeButton = (<TreeEyeButton {...waypointProps} />);
-        const waypointNameInput = (<NameInput {...waypointProps} />);
-
+        const waypointProps = treeItemProps(waypoint.id, ItemType.WAYPOINT, waypoint.name, renamingId);
         return {
-            id: waypoint.id,
+            ...waypointProps,
             icon: "flow-linear",
-            label: (waypoint.id === renamingId ? waypointNameInput : waypoint.name),
-            secondaryLabel: waypointEyeButton,
             isSelected: selectedWaypointIds.includes(waypoint.id),
-            nodeData: ItemType.WAYPOINT
         };
     });
 
     // Inject folders
     folders.forEach(folder => {
-        const folderEyeButton = (<TreeEyeButton
-            id={folder.id}
-            itemType={ItemType.FOLDER}
-        />);
-
-        const folderNameInput = (
-            <NameInput
-                id={folder.id}
-                itemType={ItemType.FOLDER}
-            />
-        );
-
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
         if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
 
+        const folderProps = treeItemProps(folder.id, ItemType.FOLDER, folder.name, renamingId);
         const folderNode = {
-            id: folder.id,
+            ...folderProps,
             hasCaret: true,
             isExpanded: !collapsedFolderIds.includes(folder.id),
             isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
-            label: (folder.id === renamingId ? folderNameInput : folder.name),
-            secondaryLabel: folderEyeButton,
-            nodeData: ItemType.FOLDER
         }
         // slice folder contents from waypointNodes and add new folder node
         const childNodes = waypointNodes.splice(startIndex, folder.waypointIds.length, folderNode);
         waypointNodes[startIndex].childNodes = childNodes;
     });
 
-    const pathEyeButton = (<TreeEyeButton
-        id={path.id}
-        itemType={ItemType.PATH}
-    />);
-
+    const pathProps = treeItemProps(path.id, ItemType.PATH, path.name, renamingId);
     return {
-        id: path.id,
+        ...pathProps,
         hasCaret: true,
         isExpanded: !collapsedFolderIds.includes(path.id),
         icon: "layout-linear" as IconName,
-        label: "Path - Robot 1", // todo: change to robot name
         isSelected: path.waypointIds.length > 0 && path.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
-        nodeData: ItemType.PATH,
-        secondaryLabel: pathEyeButton,
         childNodes: waypointNodes
+    };
+}
+
+function treeItemProps(id: EntityId, itemType: ItemType, name: string, renamingId?: EntityId) {
+    const buttonProps = { id, itemType };
+    const eyeButton = (<TreeEyeButton {...buttonProps} />);
+    const nameInput = (<NameInput {...buttonProps} />);
+    return {
+        id,
+        label: (id === renamingId ? nameInput : name),
+        secondaryLabel: eyeButton,
+        nodeData: itemType
     };
 }
 
