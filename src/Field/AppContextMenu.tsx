@@ -42,7 +42,7 @@ export function getKonvaContextMenuHandler(contextMenuHandler: ContextMenuHandle
 }
 
 /**
- * Wraps context menu in a div which positions it correctly (by the mouse).
+ * Wraps context menu in a div which positions it correctly (i.e. by the mouse).
  */
 function wrapContextMenu(contextMenu: JSX.Element, e: MouseEvent): JSX.Element {
     return (
