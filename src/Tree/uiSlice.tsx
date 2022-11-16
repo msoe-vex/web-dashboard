@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
 import { addedRoutineInternal, deletedRoutineInternal, Routine, selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { SelectableItemType, selectSelectedWaypointIds, selectContainedWaypointIds } from "./tempUiSlice";
+import { selectSelectedWaypointIds, selectContainedWaypointIds, ItemType } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 
 /**
@@ -92,11 +92,11 @@ export function allItemsHidden(): AppThunk {
         ));
 }
 
-export function itemVisibilityToggled(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
+export function itemVisibilityToggled(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
         dispatch(uiSlice.actions.itemVisibilityToggledInternal({
-            containedWaypointIds: selectContainedWaypointIds(state, itemId, itemType),
+            containedWaypointIds: selectContainedWaypointIds(state, id, itemType),
             selectedWaypointIds: selectSelectedWaypointIds(state)
         }));
     };

@@ -53,7 +53,7 @@ class ExportPathFactory {
 
     public computeTotalTime(): number {
         // time = distance / (m/s) = seconds
-        // to get, we need to know arc lengths (trivial) and apply veolcity and accleration constraints (yikes)
+        // to get, we need to know arc lengths (trivial) and apply velocity and acceleration constraints (yikes)
         return 0;
     }
 

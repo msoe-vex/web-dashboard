@@ -1,21 +1,69 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
 import { selectActiveRoutineId, selectHiddenWaypointIds } from "./uiSlice";
-import { Path, selectOwnerPath, selectPathByValidId } from "../Navbar/pathsSlice";
-import { addedFolder, renamedFolder, selectFolderByValidId } from "./foldersSlice";
-import { renamedWaypoint } from "./waypointsSlice";
+import { Path, selectOwnerPath, selectPathById, selectPathByValidId } from "../Navbar/pathsSlice";
+import { addedFolder, renamedFolder, selectFolderById, selectFolderByValidId } from "./foldersSlice";
+import { renamedWaypoint, selectWaypointById, selectWaypointByValidId } from "./waypointsSlice";
 import { ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
-import { selectRoutineByValidId } from "../Navbar/routinesSlice";
+import { renamedRoutine, selectRoutineById, selectRoutineByValidId } from "../Navbar/routinesSlice";
+import { renamedRobot, selectRobotById, selectRobotByValidId } from "./robotsSlice";
 
-export function treeItemRenamed(id: EntityId, treeItemType: ItemType, newName: string): AppThunk {
+export function itemRenamed(id: EntityId, itemType: ItemType, newName: string): AppThunk {
     return (dispatch) => {
-        if (treeItemType === ItemType.WAYPOINT) {
-            dispatch(renamedWaypoint({ newName, id }));
-        } else if (treeItemType === ItemType.FOLDER) {
-            dispatch(renamedFolder({ newName, id }));
+        let action;
+        switch (itemType) {
+            case ItemType.FOLDER:
+                action = renamedFolder;
+                break;
+            case ItemType.WAYPOINT:
+                action = renamedWaypoint;
+                break;
+            case ItemType.ROBOT:
+                action = renamedRobot;
+                break;
+            case ItemType.ROUTINE:
+                action = renamedRoutine;
+                break;
+            default:
+                throw new Error("The specified item type cannot be renamed.");
         }
+        dispatch(action({ id, newName }));
     };
 };
+
+export function selectItemByValidId(state: RootState, id: EntityId, itemType: ItemType) {
+    switch (itemType) {
+        case ItemType.FOLDER:
+            return selectFolderByValidId(state, id);
+        case ItemType.WAYPOINT:
+            return selectWaypointByValidId(state, id);
+        case ItemType.ROBOT:
+            return selectRobotByValidId(state, id);
+        case ItemType.PATH:
+            return selectPathByValidId(state, id);
+        case ItemType.ROUTINE:
+            return selectRoutineByValidId(state, id);
+        default:
+            throw new Error("Cannot select specified item type.");
+    }
+}
+
+export function selectItemById(state: RootState, id: EntityId, itemType: ItemType) {
+    switch (itemType) {
+        case ItemType.FOLDER:
+            return selectFolderById(state, id);
+        case ItemType.WAYPOINT:
+            return selectWaypointById(state, id);
+        case ItemType.ROBOT:
+            return selectRobotById(state, id);
+        case ItemType.PATH:
+            return selectPathById(state, id);
+        case ItemType.ROUTINE:
+            return selectRoutineById(state, id);
+        default:
+            throw new Error("Cannot select specified item type.");
+    }
+}
 
 export function selectionAddedToNewFolder(): AppThunk {
     return (dispatch, getState) => {

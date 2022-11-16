@@ -1,9 +1,12 @@
-import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 import { selectPathByValidId } from "../Navbar/pathsSlice";
+import { renamedRoutine } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { selectFolderWaypointIds } from "./foldersSlice";
+import { renamedFolder, selectFolderWaypointIds } from "./foldersSlice";
+import { renamedRobot } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 import { selectedActiveRoutine } from "./uiSlice";
+import { renamedWaypoint } from "./waypointsSlice";
 
 /**
  * @typedef TempUi
@@ -25,6 +28,7 @@ export interface TempUi {
     hoveredSplineIds: EntityId[][];
     isExportDialogOpen: boolean;
     robotDialogId?: EntityId;
+    renamingId?: EntityId;
 }
 
 export enum ItemType {
@@ -32,14 +36,9 @@ export enum ItemType {
     ROBOT = 1,
     WAYPOINT = 2,
     SPLINE = 3,
-    FOLDER = 4
+    FOLDER = 4,
+    ROUTINE = 5
 }
-
-/**
- * Any ItemType which has an explicit entry in the tree.
- */
-export type TreeItemType = ItemType.PATH | ItemType.FOLDER | ItemType.WAYPOINT;
-export type SelectableItemType = TreeItemType | ItemType.SPLINE;
 
 const defaultTempUiState: TempUi = {
     collapsedFolderIds: [],
@@ -48,7 +47,8 @@ const defaultTempUiState: TempUi = {
     hoveredSplineIds: [],
     selectedSplineIds: [],
     isExportDialogOpen: false,
-    robotDialogId: undefined
+    robotDialogId: undefined,
+    renamingId: undefined
 };
 
 export function assertValidSplineId(splineId: EntityId | EntityId[]): EntityId[] {
@@ -165,6 +165,12 @@ export const tempUiSlice = createSlice({
         },
         robotDialogClosed(uiState) {
             uiState.robotDialogId = undefined;
+        },
+        renamingStarted(uiState, action: PayloadAction<EntityId>) {
+            uiState.renamingId = action.payload;
+        },
+        renamingCancelled(uiState) {
+            uiState.renamingId = undefined;
         }
     },
     extraReducers: (builder) => {
@@ -176,17 +182,23 @@ export const tempUiSlice = createSlice({
                 uiState.hoveredSplineIds = [];
                 uiState.selectedSplineIds = [];
             })
+            .addMatcher(isAnyOf(
+                renamedWaypoint,
+                renamedFolder,
+                renamedRobot,
+                renamedRoutine
+            ), (uiState) => { uiState.renamingId = undefined; })
     }
 });
 
 export function itemSelected(
-    selectedItemId: EntityId,
-    itemType: SelectableItemType,
+    id: EntityId,
+    itemType: ItemType,
     shiftKeyHeld: boolean
 ): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
-        const containedWaypointIds = selectContainedWaypointIds(state, selectedItemId, itemType);
+        const containedWaypointIds = selectContainedWaypointIds(state, id, itemType);
         if (shiftKeyHeld) {
             dispatch(tempUiSlice.actions.itemBatchSelectedInternal({
                 containedWaypointIds,
@@ -198,15 +210,15 @@ export function itemSelected(
     };
 }
 
-export function itemMouseEnter(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
+export function itemMouseEnter(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
     return (dispatch, getState) => {
-        dispatch(tempUiSlice.actions.itemMouseEnterInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
+        dispatch(tempUiSlice.actions.itemMouseEnterInternal(selectContainedWaypointIds(getState(), id, itemType)));
     };
 }
 
-export function itemMouseLeave(itemId: EntityId | EntityId[], itemType: SelectableItemType): AppThunk {
+export function itemMouseLeave(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
     return (dispatch, getState) => {
-        dispatch(tempUiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), itemId, itemType)));
+        dispatch(tempUiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), id, itemType)));
     };
 }
 
@@ -221,15 +233,17 @@ export const {
     exportDialogClosed,
     robotDialogOpened,
     robotDialogClosed,
+    renamingStarted,
+    renamingCancelled
 } = tempUiSlice.actions;
 
 /**
  * Returns an array containing the waypointIds contained by an item specified by id.
  */
-export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: SelectableItemType): EntityId[] {
+export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: ItemType): EntityId[] {
     // spline contains itself
     if (itemType === ItemType.SPLINE) { return assertValidSplineId(id); }
-    else if (Array.isArray(id)) { throw new Error("Expected itemId to be a single id."); }
+    else if (Array.isArray(id)) { throw new Error("Expected id to be a single id."); }
 
     switch (itemType) {
         case ItemType.FOLDER:
@@ -253,3 +267,8 @@ export function selectSelectedSplineIds(state: RootState): EntityId[][] { return
 
 export function selectIsExportDialogOpen(state: RootState): boolean { return state.tempUi.isExportDialogOpen; }
 export function selectRobotDialogId(state: RootState): EntityId | undefined { return state.tempUi.robotDialogId; }
+
+export function selectRenamingId(state: RootState): EntityId | undefined { return state.tempUi.renamingId; }
+export function selectIsRenaming(state: RootState, id?: EntityId): boolean {
+    return (id !== undefined && state.tempUi.renamingId === id);
+}

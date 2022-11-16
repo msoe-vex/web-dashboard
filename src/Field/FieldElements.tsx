@@ -98,8 +98,9 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
             onContextMenu={konvaContextMenuHandler(
                 <WaypointContextMenu
                     id={waypoint.id}
-                    menuLocation={MenuLocation.FIELD} handleRenameClick={() => { }}
-                />)}
+                    menuLocation={MenuLocation.FIELD}
+                />)
+            }
         />);
 
         const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);

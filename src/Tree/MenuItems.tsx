@@ -13,15 +13,14 @@ import {
     selectAllTreeContainerIds
 } from "./treeActions";
 import { allItemsShown, allItemsHidden } from "./uiSlice";
-import { selectCollapsedFolderIds, treeItemsCollapsed, treeItemsExpanded } from "./tempUiSlice";
-
-interface OnClickProps {
-    onClick: React.MouseEventHandler;
-}
+import { renamingStarted, selectCollapsedFolderIds, treeItemsCollapsed, treeItemsExpanded } from "./tempUiSlice";
+import { EntityId } from "@reduxjs/toolkit";
 
 interface ShouldDismissPopoverProps {
     shouldDismissPopover?: boolean;
 }
+interface OnClickProps { onClick: React.MouseEventHandler; }
+interface IdProps { id: EntityId; }
 
 export function EditMenuItem(props: OnClickProps): JSX.Element {
     return (<MenuItem2
@@ -31,11 +30,13 @@ export function EditMenuItem(props: OnClickProps): JSX.Element {
     />);
 }
 
-export function RenameMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
+export function RenameMenuItem(props: IdProps & ShouldDismissPopoverProps): JSX.Element {
+    const dispatch = useAppDispatch();
     return (<MenuItem2
-        {...props}
+        shouldDismissPopover={props.shouldDismissPopover}
         text="Rename"
         icon="text-highlight"
+        onClick={() => { dispatch(renamingStarted(props.id)); }}
     />);
 }
 

@@ -1,23 +1,27 @@
 import React from "react";
 import { IconName, InputGroup } from "@blueprintjs/core";
+import { ItemType, renamingCancelled } from "../Tree/tempUiSlice";
+import { EntityId } from "@reduxjs/toolkit";
+import { itemRenamed, selectItemById } from "../Tree/treeActions";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
 
 interface NameInputProps {
-    newNameSubmitted: (newName: string | undefined) => void;
-    initialName: string;
+    id: EntityId;
+    itemType: ItemType;
     icon?: IconName;
 }
 
 /**
- * Defines an InputGroup component which can be used with a MenuItem to implement in line renaming.
- * Automatically gains focus when first mounted and fires a callback when editing is finished.
- * @param props.newNameSubmitted A callback function which is fired when the name is submitted.
+ * Defines an InputGroup component which can be used with to implement in line renaming.
  */
-export function NameInput(props: NameInputProps): JSX.Element {
-    const [newName, setNewName] = React.useState(props.initialName ?? "");
+export function NameInput(props: NameInputProps): JSX.Element | null {
+    const dispatch = useAppDispatch();
+
+    const item = useAppSelector(state => selectItemById(state, props.id, props.itemType));
+    const [newName, setNewName] = React.useState(item?.name);
 
     React.useEffect(() => { setInputFocus(); });
     const inputRef: React.MutableRefObject<HTMLInputElement | null> = React.useRef(null);
-
     const setInputFocus = () => {
         if (inputRef !== null &&
             inputRef.current !== null) {
@@ -26,21 +30,17 @@ export function NameInput(props: NameInputProps): JSX.Element {
     }
 
     const handleKeyDown: React.KeyboardEventHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            props.newNameSubmitted(newName);
-        }
-        else if (e.key === "Escape") {
-            props.newNameSubmitted(undefined);
-        }
+        if (e.key === "Enter") { dispatch(itemRenamed(props.id, props.itemType, newName ?? "")); }
+        else if (e.key === "Escape") { dispatch(renamingCancelled()); }
     }
 
-    return (
+    return !item ? null : (
         <InputGroup
             inputRef={inputRef}
             value={newName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setNewName(e.target.value); }}
             leftIcon={props.icon}
-            onBlur={() => props.newNameSubmitted(newName)}
+            onBlur={() => { dispatch(itemRenamed(props.id, props.itemType, newName ?? "")); }}
             onKeyDown={handleKeyDown}
         />);
 }

@@ -20,7 +20,6 @@ import { MenuItem2 } from "@blueprintjs/popover2";
 
 interface WaypointContextMenuProps {
     id: EntityId;
-    handleRenameClick: () => void;
     menuLocation: MenuLocation;
 }
 
@@ -38,7 +37,7 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
 
     return (
         <Menu>
-            {onTree ? <RenameMenuItem onClick={props.handleRenameClick} /> : null}
+            {onTree ? <RenameMenuItem id={props.id} /> : null}
             {/* <EditMenuItem onClick={dispatch(editedWaypoint(props.id))} /> */}
             <DuplicateMenuItem onClick={() => { dispatch(duplicatedWaypoint(props.id)); }} />
 
@@ -61,7 +60,6 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
 
 interface PathContextMenuProps {
     id: EntityId;
-    handleRenameClick: () => void;
 }
 
 export function PathContextMenu(props: PathContextMenuProps): JSX.Element {
@@ -85,14 +83,13 @@ export function PathContextMenu(props: PathContextMenuProps): JSX.Element {
 
 interface FolderContextMenuProps {
     id: EntityId;
-    handleRenameClick: () => void;
 }
 
 export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
     const dispatch = useAppDispatch();
     return (
         <Menu>
-            <RenameMenuItem onClick={props.handleRenameClick} />
+            <RenameMenuItem id={props.id} />
             <MenuDivider />
 
             {/* Comes with menu divider */}

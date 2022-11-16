@@ -7,8 +7,8 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
-import { robotDialogOpened } from "../Tree/tempUiSlice";
-import { addedRobot, deletedRobot, duplicatedRobot, renamedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
+import { ItemType, robotDialogOpened, selectIsRenaming } from "../Tree/tempUiSlice";
+import { addedRobot, deletedRobot, duplicatedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
 import { RobotDialog } from "./RobotDialog";
 
 export function RobotMenu(): JSX.Element {
@@ -16,7 +16,6 @@ export function RobotMenu(): JSX.Element {
 
     // isOpen, setIsOpen is a function
     const [isOpen, setIsOpen] = React.useState(false);
-    const [globalIsRenaming, setGlobalIsRenaming] = React.useState(false);
 
     const robotIds = useAppSelector(selectRobotIds);
 
@@ -49,7 +48,6 @@ export function RobotMenu(): JSX.Element {
                 <RobotItem
                     key={robotId} // key here to make React happy
                     id={robotId}
-                    setGlobalIsRenaming={setGlobalIsRenaming}
                     setIsOpen={setIsOpen}
                 />)}
             <MenuDivider />
@@ -66,7 +64,7 @@ export function RobotMenu(): JSX.Element {
                 position={Position.BOTTOM_LEFT}
                 matchTargetWidth={true}
                 isOpen={isOpen}
-                onClose={() => { setIsOpen(globalIsRenaming); }} // setIsOpen to globalIsRenaming (which is usually false)
+                onClose={() => { setIsOpen(false); }}
             />
             <RobotDialog />
         </>);
@@ -74,25 +72,20 @@ export function RobotMenu(): JSX.Element {
 
 interface RobotItemProps {
     id: EntityId;
-    setGlobalIsRenaming: (isRenaming: boolean) => void;
     setIsOpen: (state: boolean) => void;
 }
 
 function RobotItem(props: RobotItemProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const [isRenaming, setIsRenaming] = React.useState(false);
 
     const robot = useAppSelector(state => selectRobotById(state, props.id));
-    if (!robot) { return null; }
+    const isRenaming = useAppSelector(state => selectIsRenaming(state, robot?.id));
 
+    if (!robot) { return null; }
     return isRenaming ? (<NameInput
-        initialName={robot.name}
+        id={robot.id}
+        itemType={ItemType.ROBOT}
         icon="playbook"
-        newNameSubmitted={(newName) => {
-            if (newName) { dispatch(renamedRobot({ newName, id: props.id })); }
-            setIsRenaming(false);
-            props.setGlobalIsRenaming(false);
-        }}
     />) :
         (<MenuItem2
             icon="playbook"
@@ -100,20 +93,13 @@ function RobotItem(props: RobotItemProps): JSX.Element | null {
             onDoubleClick={() => { dispatch(robotDialogOpened(props.id)); }}
             submenuProps={{ className: Classes.ELEVATION_2 }}
         >
-            <RobotSubmenu
-                id={props.id}
-                handleRenameClick={() => {
-                    setIsRenaming(true);
-                    props.setGlobalIsRenaming(true);
-                }}
-            />
+            <RobotSubmenu id={props.id} />
         </MenuItem2 >
         );
 }
 
 interface RobotSubmenuProps {
     id: EntityId;
-    handleRenameClick: React.MouseEventHandler;
 }
 
 function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
@@ -121,7 +107,7 @@ function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
     const dismissProps = { shouldDismissPopover: false };
     return (<>
         <EditMenuItem onClick={() => { dispatch(robotDialogOpened(props.id)); }} />
-        <RenameMenuItem {...dismissProps} onClick={props.handleRenameClick} />
+        <RenameMenuItem {...dismissProps} id={props.id} />
         <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} />
         <MenuDivider />
         <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRobot(props.id)); }} />

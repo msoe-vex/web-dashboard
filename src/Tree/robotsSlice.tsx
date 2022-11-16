@@ -3,7 +3,7 @@ import { Units } from "../Field/mathUtils";
 
 import { RootState } from "../Store/store";
 import { selectOwnerPath, selectPathByValidId } from "../Navbar/pathsSlice";
-import { ItemType, TreeItemType } from "./tempUiSlice";
+import { ItemType } from "./tempUiSlice";
 import { addValidIdSelector, getNextName, getSimpleSelectors } from "../Store/storeUtils";
 
 export interface Robot {
@@ -87,15 +87,15 @@ export const {
 /**
  * Selects the robot associated with a given item.
  */
-export function selectOwnerRobot(state: RootState, itemId: EntityId, itemType: TreeItemType): Robot {
+export function selectOwnerRobot(state: RootState, id: EntityId, itemType: ItemType): Robot {
     let path;
     switch (itemType) {
         case ItemType.WAYPOINT:
         case ItemType.FOLDER:
-            path = selectOwnerPath(state, itemId, itemType);
+            path = selectOwnerPath(state, id, itemType);
             break;
         case ItemType.PATH:
-            path = selectPathByValidId(state, itemId);
+            path = selectPathByValidId(state, id);
             break;
         default:
             throw new Error("selectOwnerPath item type is not defined.");

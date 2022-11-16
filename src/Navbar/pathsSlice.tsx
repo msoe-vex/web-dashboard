@@ -135,24 +135,24 @@ export const {
 
 /**
  * Selects the path which owns a given waypoint, folder, or robot.
- * @param itemId - The item id to use.
+ * @param id - The item id to use.
  * @param itemType - The ItemType to use.
  */
-export function selectOwnerPath(state: RootState, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT): Path {
-    return selectOwnerPathInternal(state.history.present.paths, itemId, itemType);
+export function selectOwnerPath(state: RootState, id: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT): Path {
+    return selectOwnerPathInternal(state.history.present.paths, id, itemType);
 }
 
-function selectOwnerPathInternal(pathState: EntityState<Path>, itemId: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT) {
+function selectOwnerPathInternal(pathState: EntityState<Path>, id: EntityId, itemType: ItemType.FOLDER | ItemType.WAYPOINT | ItemType.ROBOT) {
     let path: Path | undefined;
     switch (itemType) {
         case ItemType.FOLDER:
-            path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(itemId));
+            path = simpleSelectors.selectAll(pathState).find(path => path.folderIds.includes(id));
             break;
         case ItemType.WAYPOINT:
-            path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(itemId));
+            path = simpleSelectors.selectAll(pathState).find(path => path.waypointIds.includes(id));
             break;
         case ItemType.ROBOT:
-            path = simpleSelectors.selectAll(pathState).find(path => path.robotId === itemId);
+            path = simpleSelectors.selectAll(pathState).find(path => path.robotId === id);
             break;
         default:
             throw new Error("selectOwnerPath only supports folders, waypoints, and robots.");
