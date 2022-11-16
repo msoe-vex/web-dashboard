@@ -169,8 +169,8 @@ function getPathNode(
 
         return {
             id: waypoint.id,
-            icon: "flow-linear" as IconName,
-            label: waypointNameInput ?? waypoint.name,
+            icon: "flow-linear",
+            label: (waypoint.id === renamingId ? waypointNameInput : waypoint.name),
             secondaryLabel: waypointEyeButton,
             isSelected: selectedWaypointIds.includes(waypoint.id),
             nodeData: ItemType.WAYPOINT
@@ -202,7 +202,7 @@ function getPathNode(
             hasCaret: true,
             isExpanded: !collapsedFolderIds.includes(folder.id),
             isSelected: folder.waypointIds.length > 0 && folder.waypointIds.every(waypointId => selectedWaypointIds.includes(waypointId)),
-            label: folderNameInput ?? folder.name,
+            label: (folder.id === renamingId ? folderNameInput : folder.name),
             secondaryLabel: folderEyeButton,
             nodeData: ItemType.FOLDER as TreeItemType
         }

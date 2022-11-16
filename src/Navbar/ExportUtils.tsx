@@ -1,41 +1,100 @@
-import { NumberLiteralType } from "typescript";
+import { Point } from "fabric/fabric-impl";
+import { start } from "repl";
+import { ParameterizedCurve } from "../Field/mathUtils";
+import { Robot, robotMaxVelocityChanged, RobotType } from "../Tree/robotsSlice";
 import { ControlWaypoint } from "../Tree/waypointsSlice";
+import { Path } from "./pathsSlice";
 
-class Export {
-    public constructor(waypoints: ControlWaypoint[], maxVelocity: number, maxAcceleration: number) {
-        this.waypoints = waypoints;
-        this.maxVelocity = maxVelocity;
-        this.maxAcceleration = maxAcceleration;
+/**
+ * A factory class for constructing an ExportObject.
+ */
+class ExportObjectFactory {
+    public static ExportObject(exportRobot: ExportRobot, exportPath: ExportPath): ExportObject {
+        return {
+            robot: exportRobot,
+            path: exportPath
+        };
     }
 
-    public static makeExportWaypoint(waypoint: ControlWaypoint): ExportWaypoint {
+    public static ExportRobot(robot: Robot): ExportRobot {
+        return {
+            ...robot,
+            isTank: robot.robotType === RobotType.TANK
+        };
+    }
+
+    // public static ExportPath(path: Path, k: number, totalTime: number): ExportPath {
+    //     return {
+    //     }
+    // }
+
+}
+
+class ExportPathFactory {
+    public constructor(waypoints: ControlWaypoint[]) {
+        this.waypoints = waypoints;
+    }
+
+    public makePath(name: string, k: number): ExportPath {
+        const exportWaypoints = this.waypoints.map(waypoint => ExportPathFactory.ExportWaypoint(waypoint));
+        const exportPoints = this.ExportPoints();
+        return {
+            name,
+            k,
+            totalTime: this.computeTotalTime(),
+            points: exportPoints,
+            waypoints: exportWaypoints
+        }
+    }
+
+    public ExportPoints(): ExportPoint[] {
+        return [];
+    }
+
+    public computeTotalTime(): number {
+        // time = distance / (m/s) = seconds
+        // to get, we need to know arc lengths (trivial) and apply veolcity and accleration constraints (yikes)
+        return 0;
+    }
+
+
+    public static ExportPoint(curve: ParameterizedCurve, parameter: number) {
+        const firstDerivative = curve.firstDerivative(parameter);
+        return {
+            ...curve.point(parameter),
+
+            vx: firstDerivative.x,
+            vy: firstDerivative.y
+        }
+    }
+
+    public static ExportWaypoint(waypoint: ControlWaypoint): ExportWaypoint {
         return {
             ...waypoint.point,
             name: waypoint.name,
-            spline_angle: waypoint.angle,
-            angle: waypoint.robotAngle ?? waypoint.angle,
+            robotAngle: waypoint.robotAngle ?? waypoint.angle,
+            angle: waypoint.angle,
             speed: 0
         };
     }
 
     private waypoints: ControlWaypoint[];
-    private maxVelocity: number;
-    private maxAcceleration: number;
 }
 
 interface ExportObject {
-    sharedWaypoints: undefined[];
     robot: ExportRobot;
-    paths: ExportPath[];
+    path: ExportPath;
 }
 
 interface ExportWaypoint {
     name: string;
+    // previously was spline_angle and angle
+    // spline_angle -> angle, angle -> robotAngle
+    robotAngle: number;
     angle: number;
-    spline_angle: number;
     x: number;
     y: number;
-    speed: number; // target speed at point
+    speed: number; // target speed at point?
 }
 
 interface ExportPoint {
@@ -48,7 +107,6 @@ interface ExportPoint {
     // x and y components of first derivatives at point
     vx: number;
     vy: number;
-    splineNum: number; // Always 0?
 }
 
 interface ExportPath {
