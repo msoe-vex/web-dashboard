@@ -32,6 +32,8 @@ import { ContextMenuHandlerContext } from "../Field/AppContextMenu";
 import { Path, selectPathByValidId } from "../Navbar/pathsSlice";
 import { assertValid } from "../Store/storeUtils";
 
+const renamingContext = React.createContext<EntityId | undefined>(undefined);
+
 export function AppTree(): JSX.Element {
     const dispatch = useAppDispatch();
 
@@ -52,7 +54,14 @@ export function AppTree(): JSX.Element {
             assertValid(waypointDictionary[waypointId]));
         const folders = path.folderIds.map(folderId =>
             assertValid(folderDictionary[folderId]));
-        return getPathNode(path, orderedWaypoints, folders, renamingId, setRenamingId, selectedWaypointIds, collapsedFolderIds);
+        return getPathNode(
+            path,
+            orderedWaypoints,
+            folders,
+            selectedWaypointIds,
+            collapsedFolderIds,
+            setRenamingId,
+            renamingId);
     });
 
     const handleNodeClick = React.useCallback(
@@ -144,10 +153,10 @@ function getPathNode(
     path: Path,
     orderedWaypoints: Waypoint[],
     folders: Folder[],
-    renamingId: EntityId | undefined,
-    setRenamingId: (newId?: EntityId) => void,
     selectedWaypointIds: EntityId[],
     collapsedFolderIds: EntityId[],
+    setRenamingId: (newId?: EntityId) => void,
+    renamingId?: EntityId
 ): TreeNodeInfo<TreeItemType> {
     // Waypoint nodes
     const waypointNodes: TreeNodeInfo<TreeItemType>[] = orderedWaypoints.map(waypoint => {
