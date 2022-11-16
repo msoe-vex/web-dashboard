@@ -123,23 +123,6 @@ export class Curve {
         );
     }
 
-    /**
-     * @returns the angle of the robot at the specified point.
-     */
-    public rotation(parameter: number, startRobotAngle: number, endRobotAngle: number): number {
-        let angleDifference = this.shortestRotationTo(startRobotAngle, endRobotAngle);
-        return startRobotAngle + (parameter * angleDifference);
-    }
-
-    private shortestRotationTo(target: number, current: number): number {
-        let counterClockwiseMove = current - target;
-        let clockwiseMove = target - current;
-        // normalize to positive range
-        clockwiseMove += (clockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
-        counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
-        return (clockwiseMove < counterClockwiseMove ? -clockwiseMove : counterClockwiseMove);
-    }
-
     public firstDerivative(parameter: number): Point {
         const firstTerm = 3 * (1 - parameter) * (1 - parameter);
         const secondTerm = 6 * (1 - parameter) * parameter;
@@ -206,12 +189,14 @@ export class Curve {
 }
 
 /**
- * An extension of Curve which adds arc length
- * and rapid arc-length lookups.
+ * An extension of Curve which adds arc length and angular information.
  */
 export class ParameterizedCurve extends Curve {
     public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
         super(startWaypoint, endWaypoint);
+
+        this.startRobotAngle = startWaypoint.robotAngle ?? startWaypoint.angle;
+        this.endRobotAngle = endWaypoint.robotAngle ?? endWaypoint.angle;
 
         const props = this.computeArcLengthProperties();
         this.totalArcLength = props.arcLength;
@@ -251,6 +236,25 @@ export class ParameterizedCurve extends Curve {
         }
     }
 
+    /**
+     * @returns the angle of the robot at the specified point.
+     */
+    public angle(parameter: number): number {
+        let angleDifference = this.shortestRotationTo(this.startRobotAngle, this.endRobotAngle);
+        return this.startRobotAngle + (parameter * angleDifference);
+    }
+
+    private shortestRotationTo(target: number, current: number): number {
+        let counterClockwiseMove = current - target;
+        let clockwiseMove = target - current;
+        // normalize to positive range
+        clockwiseMove += (clockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
+        counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
+        return (clockwiseMove < counterClockwiseMove ? -clockwiseMove : counterClockwiseMove);
+    }
+
+    private startRobotAngle: number;
+    private endRobotAngle: number;
     /**
      * A list of arc lengths taken in context of the total arc length.
      */

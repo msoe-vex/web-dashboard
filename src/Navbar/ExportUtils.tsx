@@ -1,14 +1,15 @@
-import { Point } from "fabric/fabric-impl";
-import { start } from "repl";
-import { ParameterizedCurve } from "../Field/mathUtils";
-import { Robot, robotMaxVelocityChanged, RobotType } from "../Tree/robotsSlice";
+import { AlignLeft } from "@blueprintjs/icons/lib/esm/generated/20px/paths";
+import { ParameterizedCurve, PointUtils } from "../Field/mathUtils";
+import { Robot, RobotType } from "../Tree/robotsSlice";
 import { ControlWaypoint } from "../Tree/waypointsSlice";
-import { Path } from "./pathsSlice";
 
 /**
  * A factory class for constructing an ExportObject.
  */
 class ExportObjectFactory {
+    // public makeExportObject(robot: Robot): ExportObject {
+    // }
+
     public static ExportObject(exportRobot: ExportRobot, exportPath: ExportPath): ExportObject {
         return {
             robot: exportRobot,
@@ -16,7 +17,7 @@ class ExportObjectFactory {
         };
     }
 
-    public static ExportRobot(robot: Robot): ExportRobot {
+    private static ExportRobot(robot: Robot): ExportRobot {
         return {
             ...robot,
             isTank: robot.robotType === RobotType.TANK
@@ -36,7 +37,7 @@ class ExportPathFactory {
     }
 
     public makePath(name: string, k: number): ExportPath {
-        const exportWaypoints = this.waypoints.map(waypoint => ExportPathFactory.ExportWaypoint(waypoint));
+        const exportWaypoints = this.waypoints.map(waypoint => this.ExportWaypoint(waypoint));
         const exportPoints = this.ExportPoints();
         return {
             name,
@@ -47,9 +48,10 @@ class ExportPathFactory {
         }
     }
 
-    public ExportPoints(): ExportPoint[] {
-        return [];
-    }
+    // public ExportPoints(): ExportPoint[] {
+        // map waypoints to curves with k intermediate points
+        
+    // }
 
     public computeTotalTime(): number {
         // time = distance / (m/s) = seconds
@@ -57,18 +59,22 @@ class ExportPathFactory {
         return 0;
     }
 
+    private ExportPoint(curve: ParameterizedCurve, parameter: number) {
+        const firstDerivative = PointUtils.multiply(
+            PointUtils.normalize(curve.firstDerivative(parameter)), 3
+        );
 
-    public static ExportPoint(curve: ParameterizedCurve, parameter: number) {
-        const firstDerivative = curve.firstDerivative(parameter);
+        // const theta = curve.angle(parameter);
+
         return {
             ...curve.point(parameter),
-
+            // theta: angle,
             vx: firstDerivative.x,
             vy: firstDerivative.y
         }
     }
 
-    public static ExportWaypoint(waypoint: ControlWaypoint): ExportWaypoint {
+    private ExportWaypoint(waypoint: ControlWaypoint): ExportWaypoint {
         return {
             ...waypoint.point,
             name: waypoint.name,
