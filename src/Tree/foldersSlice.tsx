@@ -3,7 +3,7 @@ import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAn
 import { AppThunk, RootState } from "../Store/store";
 import { deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { deletedPathInternal, selectOwnerPath } from "../Navbar/pathsSlice";
-import { duplicatedWaypointInternal } from "./waypointsSlice";
+import { deletedWaypointInternal, duplicatedWaypointInternal } from "./waypointsSlice";
 import { ItemType } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
@@ -58,6 +58,18 @@ export const foldersSlice = createSlice({
                     const index = newWaypointIds.findIndex(waypointId => waypointId === action.payload.waypointId);
                     newWaypointIds.splice(index, 0, action.payload.newWaypointId);
                     foldersAdapter.updateOne(folderState, { id: existingFolder.id, changes: { waypointIds: newWaypointIds } });
+                }
+            })
+            .addCase(deletedWaypointInternal, (folderState, action) => {
+                const { id, folderId, deleteFolder } = action.payload;
+                // if waypoint is in folder
+                if (folderId) {
+                    if (deleteFolder) { foldersAdapter.removeOne(folderState, folderId); }
+                    else {
+                        const waypointIds = simpleSelectors.selectById(folderState, folderId)
+                            .waypointIds.filter(waypointId => waypointId !== id);
+                        foldersAdapter.updateOne(folderState, makeUpdate(folderId, { waypointIds }));
+                    }
                 }
             })
             .addMatcher(isAnyOf(deletedRoutineInternal, deletedPathInternal),

@@ -5,7 +5,7 @@ import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeU
 import { AppThunk, RootState } from "../Store/store";
 import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
 import { ItemType } from "../Tree/tempUiSlice";
-import { addedWaypoint, duplicatedWaypointInternal, deletedWaypoint } from "../Tree/waypointsSlice";
+import { addedWaypoint, duplicatedWaypointInternal, deletedWaypointInternal } from "../Tree/waypointsSlice";
 import { selectRobotIds } from "../Tree/robotsSlice";
 
 export interface Path {
@@ -67,10 +67,18 @@ export const pathsSlice = createSlice({
                 path.waypointIds.splice(index ?? path.waypointIds.length, 0, waypointId);
                 pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: path.waypointIds }));
             })
-            .addCase(deletedWaypoint, (pathState, action) => {
-                const path = selectOwnerPathInternal(pathState, action.payload, ItemType.WAYPOINT);
-                const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== action.payload);
-                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: newWaypointIds }));
+            .addCase(deletedWaypointInternal, (pathState, action) => {
+                const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.WAYPOINT);
+                const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== action.payload.id);
+
+                const newFolderIds = action.payload.deleteFolder ?
+                    path.folderIds.filter(folderId => folderId !== action.payload.folderId) : path.folderIds;
+
+                pathsAdapter.updateOne(pathState,
+                    makeUpdate(path.id, {
+                        waypointIds: newWaypointIds,
+                        folderIds: newFolderIds
+                    }));
             })
             // Add newWaypointId after waypointId in correct path
             .addCase(duplicatedWaypointInternal, (pathState, action) => {

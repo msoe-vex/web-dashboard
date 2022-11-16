@@ -6,13 +6,13 @@ import {
 } from "@reduxjs/toolkit";
 
 import { fieldSlice } from "../Field/fieldSlice";
-import { foldersSlice, renamedFolder } from "../Tree/foldersSlice";
+import { foldersSlice } from "../Tree/foldersSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
 import undoable, { GroupByFunction } from "redux-undo";
-import { renamedRoutine, routinesSlice } from "../Navbar/routinesSlice";
+import { routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Navbar/pathsSlice";
-import { renamedWaypoint, waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
+import { waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
 import { tempUiSlice, } from "../Tree/tempUiSlice";
 import { listenerMiddleware } from "./localStorage";
 
@@ -32,24 +32,13 @@ const dragActionTypes = [
     waypointRobotRotated.type
 ];
 
-const groupActionTypes = [
-    renamedWaypoint.type,
-    renamedRoutine.type,
-    renamedFolder.type
-].concat(dragActionTypes);
-
 // let ignoreRapid = false;
 let prevAction: AnyAction;
 const groupActions: GroupByFunction = (action) => {
-    if (groupActionTypes.includes(action.type)) {
+    if (dragActionTypes.includes(action.type)) {
         if (prevAction &&
             action.type === prevAction.type &&
-            dragActionTypes.includes(action.type) &&
             action.payload.id === prevAction.payload.id) {
-            prevAction = action;
-            return false;
-        }
-        else {
             prevAction = action;
             return false;
         }

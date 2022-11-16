@@ -3,7 +3,7 @@ import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAn
 import { Point, PointUtils, Units } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { deletedFolderInternal } from "./foldersSlice";
+import { deletedFolderInternal, selectOwnerFolder } from "./foldersSlice";
 import { deletedPathInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
@@ -98,7 +98,13 @@ export const waypointsSlice = createSlice({
                 return { payload: { waypointId: nanoid(), index } };
             }
         },
-        deletedWaypoint: waypointsAdapter.removeOne,
+        deletedWaypointInternal: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            folderId?: EntityId,
+            deleteFolder: boolean
+        }>) => {
+            waypointsAdapter.removeOne(waypointState, action.payload.id);
+        },
         updatedWaypoint: waypointsAdapter.updateOne,
         waypointMovedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -194,7 +200,7 @@ export const {
 export const {
     duplicatedWaypointInternal,
     addedWaypoint,
-    deletedWaypoint,
+    deletedWaypointInternal,
     updatedWaypoint,
     renamedWaypoint,
     waypointMagnitudeMoved,
@@ -202,17 +208,27 @@ export const {
     waypointMovedInternal
 } = waypointsSlice.actions;
 
+export function deletedWaypoint(id: EntityId): AppThunk {
+    return (dispatch, getState) => {
+        const state = getState();
+        const folder = selectOwnerFolder(state, id);
+        const deleteFolder = (folder !== undefined && folder.waypointIds.length === 1);
+        dispatch(deletedWaypointInternal({ id, folderId: folder?.id, deleteFolder }));
+    };
+}
+
 /**
  * Made tricky by the need to insert into the correct location in path.
  * Could currently be a prepare function.
  * In the future, could simply dispatch addedWaypointAfter.
  */
 export function duplicatedWaypoint(id: EntityId): AppThunk {
-    return (dispatch) =>
+    return (dispatch) => {
         dispatch(duplicatedWaypointInternal({
             waypointId: id,
             newWaypointId: nanoid()
         }));
+    };
 }
 
 export function waypointMoved(id: EntityId, point: Point): AppThunk {

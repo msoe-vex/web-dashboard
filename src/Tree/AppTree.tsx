@@ -152,7 +152,8 @@ function getPathNode(
     folders: Folder[],
     selectedWaypointIds: EntityId[],
     collapsedFolderIds: EntityId[],
-    renamingId?: EntityId
+    // renamingId?: is different from | undefined for functions
+    renamingId: EntityId | undefined
 ): TreeNodeInfo<ItemType> {
     // Waypoint nodes
     const waypointNodes: TreeNodeInfo<ItemType>[] = orderedWaypoints.map(waypoint => {
@@ -167,6 +168,7 @@ function getPathNode(
     // Inject folders
     folders.forEach(folder => {
         const startIndex = waypointNodes.findIndex(waypointNode => waypointNode.id === folder.waypointIds[0]);
+        // empty folders cannot render since we have no idea where to put them in the path
         if (startIndex === -1) { throw new Error("Expected folder contents in path."); }
 
         const folderProps = treeItemProps(folder.id, ItemType.FOLDER, folder.name, renamingId);
