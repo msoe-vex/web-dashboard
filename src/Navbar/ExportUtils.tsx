@@ -1,7 +1,21 @@
-import { AlignLeft } from "@blueprintjs/icons/lib/esm/generated/20px/paths";
 import { ParameterizedCurve, PointUtils } from "../Field/mathUtils";
 import { Robot, RobotType } from "../Tree/robotsSlice";
 import { ControlWaypoint } from "../Tree/waypointsSlice";
+
+function createExportFile(object: object): Blob {
+    const dictionary = JSON.stringify(object);
+    return new Blob([dictionary], { type: 'text/plain' });
+
+    // const element = document.createElement("path");
+
+    // element.href = URL.createObjectURL(textFile);
+    // element.download = fileName;
+
+    // document.body.appendChild(element);
+    // element.click();
+
+    // document.body.remove(element);
+}
 
 /**
  * A factory class for constructing an ExportObject.
@@ -38,19 +52,19 @@ class ExportPathFactory {
 
     public makePath(name: string, k: number): ExportPath {
         const exportWaypoints = this.waypoints.map(waypoint => this.ExportWaypoint(waypoint));
-        const exportPoints = this.ExportPoints();
+        // const exportPoints = this.ExportPoints();
         return {
             name,
             k,
             totalTime: this.computeTotalTime(),
-            points: exportPoints,
+            points: [],
             waypoints: exportWaypoints
         }
     }
 
     // public ExportPoints(): ExportPoint[] {
-        // map waypoints to curves with k intermediate points
-        
+    // map waypoints to curves with k intermediate points
+
     // }
 
     public computeTotalTime(): number {

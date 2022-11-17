@@ -60,6 +60,11 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
         </FormGroup>
     );
 
+    const elementRef = React.useRef<React.MutableRefObject<HTMLButtonElement> | undefined>(undefined);
+    if (elementRef !== undefined) {
+
+    }
+
     return (<>
         <div className={Classes.DIALOG_BODY}>
             {splinePointCountField}
@@ -88,6 +93,7 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
                     text="Export"
                     onClick={props.handleClose}
                     intent={Intent.PRIMARY}
+                    elementRef={elementRef.current}
                 />
             </div>
         </div>
