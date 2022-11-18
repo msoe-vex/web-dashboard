@@ -65,7 +65,6 @@ export function subtract(lhs: Point, rhs: Point): Point {
     return makePoint(lhs.x - rhs.x, lhs.y - rhs.y);
 }
 
-
 export function multiply(input: Point, val: number): Point {
     return makePoint(input.x * val, input.y * val);
 }
@@ -95,7 +94,7 @@ export function makeCurve(startWaypoint: ControlWaypoint, endWaypoint: ControlWa
     const startPoint = startWaypoint.point;
     const endPoint = endWaypoint.point;
     const startControlPoint = makePointFromPolar(startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
-    const endControlPoint = makePointFromPolar(endPoint, endWaypoint.angle, endWaypoint.startMagnitude);
+    const endControlPoint = makePointFromPolar(endPoint, endWaypoint.angle, -endWaypoint.endMagnitude);
     return new Curve(startPoint, startControlPoint, endPoint, endControlPoint);
 }
 

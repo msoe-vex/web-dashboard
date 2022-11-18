@@ -129,7 +129,7 @@ export const tempUiSlice = createSlice({
             // If the only thing selected is clicked, delete the selection.
             // Otherwise change the selection to the thing clicked.
             // Something is not already clicked when at least part of it is not selected.
-            if (uiState.selectedWaypointIds.length == containedWaypointIds.length &&
+            if (uiState.selectedWaypointIds.length === containedWaypointIds.length &&
                 containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
                 uiState.selectedWaypointIds = [];
             }
