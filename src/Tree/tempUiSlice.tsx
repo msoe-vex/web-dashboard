@@ -63,6 +63,7 @@ export const tempUiSlice = createSlice({
         itemBatchSelectedInternal(uiState, action: PayloadAction<{
             treeWaypointIds: EntityId[],
             containedWaypointIds: EntityId[],
+            controlKeyHeld: boolean
         }>) {
             uiState.selectedSplineIds = []; // deselect splines
             // cases:
@@ -71,15 +72,16 @@ export const tempUiSlice = createSlice({
             // If all waypoints are currently selected, deselect the entire tree
             // if the last selected waypoint isn't in the tree (should be impossible), do nothing
             // If shift selected waypoint does not exist, do nothing (should be impossible)
-            const { treeWaypointIds, containedWaypointIds } = action.payload;
+            const { treeWaypointIds, containedWaypointIds, controlKeyHeld } = action.payload;
             if (treeWaypointIds.length === 0) { return; }
-            // If nothing is selected, select all
-            else if (uiState.selectedWaypointIds.length === 0) {
-                uiState.selectedWaypointIds = treeWaypointIds;
-                return;
-                // If everything is already selected, deselect all
-            } else if (treeWaypointIds.every(treeWaypointId => uiState.selectedWaypointIds.includes(treeWaypointId))) {
+            // If everything is already selected, deselect all
+            else if (treeWaypointIds.every(treeWaypointId => uiState.selectedWaypointIds.includes(treeWaypointId))) {
                 uiState.selectedWaypointIds = [];
+                return;
+            }
+            // If nothing is selected or control key held, select all
+            else if (controlKeyHeld || uiState.selectedWaypointIds.length === 0) {
+                uiState.selectedWaypointIds = treeWaypointIds;
                 return;
             }
 
@@ -110,17 +112,32 @@ export const tempUiSlice = createSlice({
                 uiState.selectedWaypointIds.push(...slice, ...copy);
             }
         },
-        itemSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
+        itemMultiSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
             const containedWaypointIds = action.payload;
-            // If every containedWaypointId is already selected, remove them
+            // If every containedWaypointId is already selected
             if (containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
+                // filter each waypoint from selection
                 uiState.selectedWaypointIds = uiState.selectedWaypointIds.filter(selectedId => !containedWaypointIds.includes(selectedId));
             } else {
-                uiState.selectedSplineIds = []; // remove spline id selection
                 // reverse so shift click is based on first element
-                const reversed: EntityId[] = [];
-                containedWaypointIds.forEach(containedId => reversed.unshift(containedId));
-                uiState.selectedWaypointIds.push(...reversed);
+                uiState.selectedWaypointIds.push(...Array.of(...containedWaypointIds).reverse());
+                uiState.selectedSplineIds = []; // remove spline id selection
+            }
+        },
+        itemSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
+            const containedWaypointIds = action.payload;
+            // If the only thing selected is clicked, delete the selection.
+            // Otherwise change the selection to the thing clicked.
+            // Something is not already clicked when at least part of it is not selected.
+            if (uiState.selectedWaypointIds.length == containedWaypointIds.length &&
+                containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
+                uiState.selectedWaypointIds = [];
+            }
+            else {
+                // reverse so shift click is based on first element
+                // .reverse() doesn't work since containedWaypointIds is readonly
+                uiState.selectedWaypointIds = Array.of(...containedWaypointIds).reverse();
+                uiState.selectedSplineIds = [];
             }
         },
         allItemsDeselected(uiState) {
@@ -194,19 +211,21 @@ export const tempUiSlice = createSlice({
 export function itemSelected(
     id: EntityId,
     itemType: ItemType,
-    shiftKeyHeld: boolean
+    shiftKeyHeld: boolean,
+    controlKeyHeld: boolean
 ): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
         const containedWaypointIds = selectContainedWaypointIds(state, id, itemType);
         if (shiftKeyHeld) {
-            dispatch(tempUiSlice.actions.itemBatchSelectedInternal({
+            dispatch(itemBatchSelectedInternal({
                 containedWaypointIds,
-                treeWaypointIds: selectAllTreeWaypointIds(state)
+                treeWaypointIds: selectAllTreeWaypointIds(state),
+                controlKeyHeld
             }));
-        } else {
-            dispatch(tempUiSlice.actions.itemSelectedInternal(containedWaypointIds));
         }
+        else if (controlKeyHeld) { dispatch(itemMultiSelectedInternal(containedWaypointIds)); }
+        else { dispatch(itemSelectedInternal(containedWaypointIds)); }
     };
 }
 
@@ -224,6 +243,9 @@ export function itemMouseLeave(id: EntityId | EntityId[], itemType: ItemType): A
 
 export const {
     allItemsDeselected,
+    itemBatchSelectedInternal,
+    itemMultiSelectedInternal,
+    itemSelectedInternal,
     treeItemsCollapsed,
     treeItemsExpanded,
     splineMouseEnter,
@@ -243,7 +265,7 @@ export const {
 export function selectContainedWaypointIds(state: RootState, id: EntityId | EntityId[], itemType: ItemType): EntityId[] {
     // spline contains itself
     if (itemType === ItemType.SPLINE) { return assertValidSplineId(id); }
-    else if (Array.isArray(id)) { throw new Error("Expected id to be a single id."); }
+    else if (Array.isArray(id)) { throw new Error("Expected non spline id to be a single id."); }
 
     switch (itemType) {
         case ItemType.FOLDER:

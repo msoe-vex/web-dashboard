@@ -64,7 +64,7 @@ export function AppTree(): JSX.Element {
 
     const handleNodeClick = React.useCallback(
         (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
-            dispatch(itemSelected(node.id, assertValid(node.nodeData), e.shiftKey));
+            dispatch(itemSelected(node.id, assertValid(node.nodeData), e.shiftKey, e.ctrlKey));
         }, [dispatch]);
 
     const handleNodeCollapse = React.useCallback((node: TreeNodeInfo) => {

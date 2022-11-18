@@ -89,7 +89,7 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
             fill={fill}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
             {...shadowProps} //Takes key : value pairs from shadowProps.
-            onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey)); }}
+            onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey, e.evt.ctrlKey)); }}
             draggable={!isHidden && isSelected}
             onDragMove={onWaypointDrag}
             onDragEnd={onWaypointDrag}
