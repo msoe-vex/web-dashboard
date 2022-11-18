@@ -1,11 +1,11 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
-import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "./routinesSlice";
+import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal } from "./routinesSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
-import { addedFolderInternal, deletedFolderInternal } from "../Tree/foldersSlice";
+import { folderAddedInternal, folderDeletedInternal } from "../Tree/foldersSlice";
 import { ItemType } from "../Tree/tempUiSlice";
-import { addedWaypoint, duplicatedWaypointInternal, deletedWaypointInternal } from "../Tree/waypointsSlice";
+import { waypointAdded, waypointDuplicatedInternal, waypointDeletedInternal } from "../Tree/waypointsSlice";
 import { selectRobotIds } from "../Tree/robotsSlice";
 
 export interface Path {
@@ -23,7 +23,7 @@ export const pathsSlice = createSlice({
     name: "paths",
     initialState: pathsAdapter.getInitialState(),
     reducers: {
-        addedPathInternal(pathState, action: PayloadAction<{
+        pathAddedInternal(pathState, action: PayloadAction<{
             id: EntityId,
             routineId: EntityId,
             robotId: EntityId,
@@ -35,18 +35,18 @@ export const pathsSlice = createSlice({
                 folderIds: []
             });
         },
-        deletedPathInternal(pathState, action: PayloadAction<{
+        pathDeletedInternal(pathState, action: PayloadAction<{
             id: EntityId,
             folderIds: EntityId[],
             waypointIds: EntityId[]
         }>) {
             pathsAdapter.removeOne(pathState, action.payload.id);
         },
-        changedPath: pathsAdapter.updateOne,
+        pathChanged: pathsAdapter.updateOne,
     },
     extraReducers: (builder) => {
         builder
-            .addCase(addedRoutineInternal, (pathState, action) => {
+            .addCase(routineAddedInternal, (pathState, action) => {
                 pathsAdapter.addOne(pathState, {
                     ...action.payload,
                     name: getNextName(simpleSelectors.selectAll(pathState), "Path"),
@@ -54,20 +54,20 @@ export const pathsSlice = createSlice({
                     folderIds: []
                 });
             })
-            .addCase(deletedRoutineInternal, (pathState, action) => {
+            .addCase(routineDeletedInternal, (pathState, action) => {
                 pathsAdapter.removeMany(pathState, action.payload.pathIds);
             })
-            .addCase(duplicatedRoutineInternal, (pathState, action) => {
+            .addCase(routineDuplicatedInternal, (pathState, action) => {
                 pathsAdapter.addMany(pathState, action.payload.paths);
             })
-            .addCase(addedWaypoint, (pathState, action) => {
+            .addCase(waypointAdded, (pathState, action) => {
                 const { waypointId, index } = action.payload;
                 const path = selectOwnerPathInternal(pathState, waypointId, ItemType.WAYPOINT);
                 // inserts into the array at index
                 path.waypointIds.splice(index ?? path.waypointIds.length, 0, waypointId);
                 pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: path.waypointIds }));
             })
-            .addCase(deletedWaypointInternal, (pathState, action) => {
+            .addCase(waypointDeletedInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.WAYPOINT);
                 const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== action.payload.id);
 
@@ -81,20 +81,20 @@ export const pathsSlice = createSlice({
                     }));
             })
             // Add newWaypointId after waypointId in correct path
-            .addCase(duplicatedWaypointInternal, (pathState, action) => {
+            .addCase(waypointDuplicatedInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.waypointId, ItemType.WAYPOINT);
                 const newWaypointIds = path.waypointIds.slice();
                 const waypointIndex = path.waypointIds.findIndex(waypointId => waypointId === action.payload.waypointId);
                 newWaypointIds.splice(waypointIndex + 1, 0, action.payload.newWaypointId);
                 pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: newWaypointIds }));
             })
-            .addCase(addedFolderInternal, (pathState, action) => {
+            .addCase(folderAddedInternal, (pathState, action) => {
                 const path = simpleSelectors.selectById(pathState, action.payload.pathId);
                 const newFolderIds = path.folderIds.slice();
                 newFolderIds.push(action.payload.id);
                 pathsAdapter.updateOne(pathState, makeUpdate(path.id, { folderIds: newFolderIds }));
             })
-            .addCase(deletedFolderInternal, (pathState, action) => {
+            .addCase(folderDeletedInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.FOLDER);
                 const newFolderIds = path.folderIds.filter(folderId => folderId !== action.payload.id);
                 const newWaypointIds = path.waypointIds.filter(waypointId => !action.payload.waypointIds.includes(waypointId));
@@ -103,10 +103,10 @@ export const pathsSlice = createSlice({
     }
 });
 
-export function deletedPath(pathId: EntityId): AppThunk {
+export function pathDeleted(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const path = assertValid(selectPathById(getState(), pathId));
-        dispatch(deletedPathInternal({
+        dispatch(pathDeletedInternal({
             id: pathId,
             folderIds: path.folderIds,
             waypointIds: path.waypointIds,
@@ -115,10 +115,10 @@ export function deletedPath(pathId: EntityId): AppThunk {
     };
 }
 
-export function addedPath(routineId: EntityId): AppThunk {
+export function pathAdded(routineId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const robotIds = selectRobotIds(getState());
-        dispatch(pathsSlice.actions.addedPathInternal({
+        dispatch(pathsSlice.actions.pathAddedInternal({
             id: nanoid(),
             routineId,
             robotId: robotIds[0],
@@ -128,8 +128,8 @@ export function addedPath(routineId: EntityId): AppThunk {
 }
 
 export const {
-    changedPath,
-    deletedPathInternal
+    pathChanged,
+    pathDeletedInternal
 } = pathsSlice.actions;
 
 // Runtime selectors

@@ -5,13 +5,13 @@ import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import {
-    addedRoutine,
-    deletedRoutine,
-    duplicatedRoutine,
+    routineAdded,
+    routineDeleted,
+    routineDuplicated,
     Routine,
     selectAllRoutines
 } from "./routinesSlice";
-import { selectActiveRoutine, selectActiveRoutineId, selectedActiveRoutine } from "../Tree/uiSlice";
+import { selectActiveRoutine, selectActiveRoutineId, activeRoutineSelected } from "../Tree/uiSlice";
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
 import { ItemType, selectIsRenaming } from "../Tree/tempUiSlice";
@@ -35,14 +35,14 @@ export function RoutineMenu(): JSX.Element {
             icon="add"
             text={"Add routine"}
             minimal={true}
-            onClick={() => { dispatch(addedRoutine()); }}
+            onClick={() => { dispatch(routineAdded()); }}
         />);
 
     const addRoutineItem = (
         <MenuItem2
             icon="add"
             text="Add routine"
-            onClick={() => { dispatch(addedRoutine()); }}
+            onClick={() => { dispatch(routineAdded()); }}
             shouldDismissPopover={false}
         />);
 
@@ -97,7 +97,7 @@ function RoutineItem(props: RoutineItemProps): JSX.Element {
             submenuProps={{ className: Classes.ELEVATION_2 }}
             onClick={() => {
                 props.setIsOpen(false);
-                dispatch(selectedActiveRoutine(routine.id));
+                dispatch(activeRoutineSelected(routine.id));
             }}
         >
             < RoutineSubmenu id={routine.id} />
@@ -112,10 +112,10 @@ function RoutineSubmenu(props: RoutineSubmenuProps): JSX.Element {
     const dispatch = useAppDispatch();
     const dismissProps = { shouldDismissPopover: false };
     return (<>
-        <EditMenuItem onClick={() => { dispatch(selectedActiveRoutine(props.id)); }} />
+        <EditMenuItem onClick={() => { dispatch(activeRoutineSelected(props.id)); }} />
         <RenameMenuItem {...dismissProps} id={props.id} />
-        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRoutine(props.id)); }} />
+        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(routineDuplicated(props.id)); }} />
         <MenuDivider />
-        <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRoutine(props.id)); }} />
+        <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(routineDeleted(props.id)); }} />
     </>);
 }

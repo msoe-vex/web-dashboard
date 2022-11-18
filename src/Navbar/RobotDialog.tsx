@@ -3,7 +3,7 @@ import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/cor
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
-import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, updatedRobot } from "../Tree/robotsSlice";
+import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, robotUpdated } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { assertValid, makeUpdate } from "../Store/storeUtils";
 
@@ -43,7 +43,7 @@ function RobotDialogContents(): JSX.Element | null {
                         selected={isSwerve}
                         label="Swerve"
                         icon="move"
-                        onClick={() => { dispatch(updatedRobot(makeUpdate(robot.id, { robotType: RobotType.SWERVE }))); }}
+                        onClick={() => { dispatch(robotUpdated(makeUpdate(robot.id, { robotType: RobotType.SWERVE }))); }}
                     />
                     <MenuItem2
                         className={!isSwerve ? Classes.SELECTED : ""}
@@ -51,7 +51,7 @@ function RobotDialogContents(): JSX.Element | null {
                         selected={!isSwerve}
                         label="Tank"
                         icon="arrows-vertical"
-                        onClick={() => { dispatch(updatedRobot(makeUpdate(robot.id, { robotType: RobotType.TANK }))); }}
+                        onClick={() => { dispatch(robotUpdated(makeUpdate(robot.id, { robotType: RobotType.TANK }))); }}
                     />
                 </Menu>
             </FormGroup>

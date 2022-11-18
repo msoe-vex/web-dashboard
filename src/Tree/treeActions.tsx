@@ -2,27 +2,27 @@ import { EntityId } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "../Store/store";
 import { selectActiveRoutineId, selectHiddenWaypointIds } from "./uiSlice";
 import { Path, selectOwnerPath, selectPathById, selectPathByValidId } from "../Navbar/pathsSlice";
-import { addedFolder, renamedFolder, selectFolderById, selectFolderByValidId } from "./foldersSlice";
-import { renamedWaypoint, selectWaypointById, selectWaypointByValidId } from "./waypointsSlice";
+import { folderAdded, folderRenamed, selectFolderById, selectFolderByValidId } from "./foldersSlice";
+import { waypointRenamed, selectWaypointById, selectWaypointByValidId } from "./waypointsSlice";
 import { ItemType, selectSelectedWaypointIds } from "./tempUiSlice";
-import { renamedRoutine, selectRoutineById, selectRoutineByValidId } from "../Navbar/routinesSlice";
-import { renamedRobot, selectRobotById, selectRobotByValidId } from "./robotsSlice";
+import { routineRenamed, selectRoutineById, selectRoutineByValidId } from "../Navbar/routinesSlice";
+import { robotRenamed, selectRobotById, selectRobotByValidId } from "./robotsSlice";
 
 export function itemRenamed(id: EntityId, itemType: ItemType, newName: string): AppThunk {
     return (dispatch) => {
         let action;
         switch (itemType) {
             case ItemType.FOLDER:
-                action = renamedFolder;
+                action = folderRenamed;
                 break;
             case ItemType.WAYPOINT:
-                action = renamedWaypoint;
+                action = waypointRenamed;
                 break;
             case ItemType.ROBOT:
-                action = renamedRobot;
+                action = robotRenamed;
                 break;
             case ItemType.ROUTINE:
-                action = renamedRoutine;
+                action = routineRenamed;
                 break;
             default:
                 throw new Error("The specified item type cannot be renamed.");
@@ -68,7 +68,7 @@ export function selectItemById(state: RootState, id: EntityId, itemType: ItemTyp
 export function selectionAddedToNewFolder(): AppThunk {
     return (dispatch, getState) => {
         const selection = makeSelectionContiguous(getState());
-        dispatch(addedFolder(selection));
+        dispatch(folderAdded(selection));
     };
 };
 

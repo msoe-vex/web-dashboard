@@ -28,7 +28,7 @@ export const robotsSlice = createSlice({
     name: "robots",
     initialState: robotsAdapter.getInitialState(),
     reducers: {
-        addedRobot(robotState) {
+        robotAdded(robotState) {
             robotsAdapter.addOne(robotState, {
                 id: nanoid(),
                 name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
@@ -39,12 +39,12 @@ export const robotsSlice = createSlice({
                 maxAcceleration: 100
             });
         },
-        renamedRobot(robotState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+        robotRenamed(robotState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { name: action.payload.newName } });
         },
-        deletedRobot: robotsAdapter.removeOne,
-        updatedRobot: robotsAdapter.updateOne,
-        duplicatedRobot(robotState, action: PayloadAction<EntityId>) {
+        robotDeleted: robotsAdapter.removeOne,
+        robotUpdated: robotsAdapter.updateOne,
+        robotDuplicated(robotState, action: PayloadAction<EntityId>) {
             const robot = simpleSelectors.selectById(robotState, action.payload);
             let copy = Object.assign({}, robot);
             copy.id = nanoid();
@@ -65,11 +65,11 @@ export const robotsSlice = createSlice({
 });
 
 export const {
-    addedRobot,
-    renamedRobot,
-    deletedRobot,
-    duplicatedRobot,
-    updatedRobot,
+    robotAdded,
+    robotRenamed,
+    robotDeleted,
+    robotDuplicated,
+    robotUpdated,
     robotMaxAccelerationChanged,
     robotMaxVelocityChanged,
     robotTypeChanged
@@ -98,7 +98,7 @@ export function selectOwnerRobot(state: RootState, id: EntityId, itemType: ItemT
             path = selectPathByValidId(state, id);
             break;
         default:
-            throw new Error("selectOwnerPath item type is not defined.");
+            throw new Error("selectOwnerRobot item type is not defined.");
     }
     return selectRobotByValidId(state, path.robotId);
 }

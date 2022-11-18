@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 import { selectPathByValidId } from "../Navbar/pathsSlice";
-import { renamedRoutine } from "../Navbar/routinesSlice";
+import { routineRenamed } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { renamedFolder, selectFolderWaypointIds } from "./foldersSlice";
-import { renamedRobot } from "./robotsSlice";
+import { folderRenamed, selectFolderWaypointIds } from "./foldersSlice";
+import { robotRenamed } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
-import { selectedActiveRoutine } from "./uiSlice";
-import { renamedWaypoint } from "./waypointsSlice";
+import { activeRoutineSelected } from "./uiSlice";
+import { waypointRenamed } from "./waypointsSlice";
 
 /**
  * @typedef TempUi
@@ -175,7 +175,7 @@ export const tempUiSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(selectedActiveRoutine, (uiState) => {
+            .addCase(activeRoutineSelected, (uiState) => {
                 // Reset UI state to avoid editing hidden routine
                 uiState.hoveredWaypointIds = [];
                 uiState.selectedWaypointIds = [];
@@ -183,10 +183,10 @@ export const tempUiSlice = createSlice({
                 uiState.selectedSplineIds = [];
             })
             .addMatcher(isAnyOf(
-                renamedWaypoint,
-                renamedFolder,
-                renamedRobot,
-                renamedRoutine
+                waypointRenamed,
+                folderRenamed,
+                robotRenamed,
+                routineRenamed
             ), (uiState) => { uiState.renamingId = undefined; })
     }
 });

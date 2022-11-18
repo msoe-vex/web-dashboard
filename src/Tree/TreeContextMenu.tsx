@@ -3,9 +3,9 @@ import { Menu, MenuDivider } from "@blueprintjs/core";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch } from "../Store/hooks";
-import { deletedWaypoint, duplicatedWaypoint } from "./waypointsSlice";
-import { unpackedFolder, deletedFolder } from "./foldersSlice";
-import { deletedPath } from "../Navbar/pathsSlice";
+import { waypointDeleted, waypointDuplicated } from "./waypointsSlice";
+import { folderUnpacked, folderDeleted } from "./foldersSlice";
+import { pathDeleted } from "../Navbar/pathsSlice";
 import {
     AddSelectionToNewFolderMenuItem,
     CollapseAndExpandAllMenuItems,
@@ -38,8 +38,8 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
     return (
         <Menu>
             {onTree ? <RenameMenuItem id={props.id} /> : null}
-            {/* <EditMenuItem onClick={dispatch(editedWaypoint(props.id))} /> */}
-            <DuplicateMenuItem onClick={() => { dispatch(duplicatedWaypoint(props.id)); }} />
+            {/* <EditMenuItem onClick={dispatch(waypointEdited(props.id))} /> */}
+            <DuplicateMenuItem onClick={() => { dispatch(waypointDuplicated(props.id)); }} />
 
             {onTree ? <AddSelectionToNewFolderMenuItem /> : null}
 
@@ -51,7 +51,7 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
             {hideAll}
             <MenuDivider />
 
-            <DeleteMenuItem onClick={() => { dispatch(deletedWaypoint(props.id)); }} />
+            <DeleteMenuItem onClick={() => { dispatch(waypointDeleted(props.id)); }} />
 
             {/* set speed option */}
         </Menu>
@@ -76,7 +76,7 @@ export function PathContextMenu(props: PathContextMenuProps): JSX.Element {
             <HideAllMenuItem />
             <MenuDivider />
 
-            <DeleteMenuItem onClick={() => { dispatch(deletedPath(props.id)); }} />
+            <DeleteMenuItem onClick={() => { dispatch(pathDeleted(props.id)); }} />
         </Menu>
     );
 }
@@ -102,10 +102,10 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
             <MenuItem2
                 text="Unpack folder"
                 icon="folder-shared-open"
-                onClick={() => dispatch(unpackedFolder(props.id))}
+                onClick={() => dispatch(folderUnpacked(props.id))}
             />
 
-            <DeleteMenuItem onClick={() => { dispatch(deletedFolder(props.id)); }} />
+            <DeleteMenuItem onClick={() => { dispatch(folderDeleted(props.id)); }} />
         </Menu>
     );
 }

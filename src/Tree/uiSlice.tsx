@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
-import { addedRoutineInternal, deletedRoutineInternal, Routine, selectRoutineByValidId } from "../Navbar/routinesSlice";
+import { routineAddedInternal, routineDeletedInternal, Routine, selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { selectSelectedWaypointIds, selectContainedWaypointIds, ItemType } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
@@ -30,7 +30,7 @@ export const uiSlice = createSlice({
     name: "ui",
     initialState: defaultUiState,
     reducers: {
-        selectedActiveRoutine(uiState, action: PayloadAction<EntityId>) {
+        activeRoutineSelected(uiState, action: PayloadAction<EntityId>) {
             uiState.activeRoutineId = action.payload;
         },
         itemVisibilityToggledInternal(uiState, action: PayloadAction<{
@@ -68,10 +68,10 @@ export const uiSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(deletedRoutineInternal, (uiState, action) => {
+            .addCase(routineDeletedInternal, (uiState, action) => {
                 uiState.activeRoutineId = action.payload.newActiveRoutineId;
             })
-            .addCase(addedRoutineInternal, (uiState, action) => { uiState.activeRoutineId = action.payload.routineId; })
+            .addCase(routineAddedInternal, (uiState, action) => { uiState.activeRoutineId = action.payload.routineId; })
     }
 });
 
@@ -103,7 +103,7 @@ export function itemVisibilityToggled(id: EntityId | EntityId[], itemType: ItemT
 }
 
 export const {
-    selectedActiveRoutine,
+    activeRoutineSelected,
     allItemsShown,
 } = uiSlice.actions;
 

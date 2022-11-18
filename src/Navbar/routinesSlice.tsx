@@ -1,6 +1,6 @@
 import { AppThunk, RootState } from "../Store/store";
 import { Folder, selectFolderByValidId } from "../Tree/foldersSlice";
-import { deletedPathInternal, Path, selectPathByValidId } from "./pathsSlice";
+import { pathDeletedInternal, Path, selectPathByValidId } from "./pathsSlice";
 import { selectActiveRoutineId } from "../Tree/uiSlice";
 import { selectWaypointByValidId, Waypoint } from "../Tree/waypointsSlice";
 import { selectRobotIds } from "../Tree/robotsSlice";
@@ -24,7 +24,7 @@ export const routinesSlice = createSlice({
     name: "routines",
     initialState: routinesAdapter.getInitialState(),
     reducers: {
-        addedRoutineInternal(routineState, action: PayloadAction<{
+        routineAddedInternal(routineState, action: PayloadAction<{
             routineId: EntityId,
             robotId: EntityId,
             pathId: EntityId,
@@ -38,7 +38,7 @@ export const routinesSlice = createSlice({
             };
             routinesAdapter.addOne(routineState, routine);
         },
-        deletedRoutineInternal(routineState, action: PayloadAction<{
+        routineDeletedInternal(routineState, action: PayloadAction<{
             routineId: EntityId,
             pathIds: EntityId[],
             waypointIds: EntityId[],
@@ -47,8 +47,8 @@ export const routinesSlice = createSlice({
         }>) {
             routinesAdapter.removeOne(routineState, action.payload.routineId);
         },
-        updatedRoutine: routinesAdapter.updateOne,
-        duplicatedRoutineInternal(routineState, action: PayloadAction<{
+        routineUpdated: routinesAdapter.updateOne,
+        routineDuplicatedInternal(routineState, action: PayloadAction<{
             routine: Routine,
             paths: Path[],
             waypoints: Waypoint[],
@@ -56,13 +56,13 @@ export const routinesSlice = createSlice({
         }>) {
             routinesAdapter.addOne(routineState, action.payload.routine);
         },
-        renamedRoutine(routineState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+        routineRenamed(routineState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             routinesAdapter.updateOne(routineState, { id: action.payload.id, changes: { name: action.payload.newName } });
         }
     },
     extraReducers: (builder) => {
         builder
-            .addCase(deletedPathInternal, (routineState, action) => {
+            .addCase(pathDeletedInternal, (routineState, action) => {
                 const routine = selectOwnerRoutineInternal(routineState, action.payload.id);
                 routine.pathIds = routine.pathIds.filter(pathId => pathId !== action.payload.id);
                 routinesAdapter.upsertOne(routineState, routine);
@@ -71,10 +71,10 @@ export const routinesSlice = createSlice({
 });
 
 /**
- * This is a redux thunk which wraps deletedRoutineInternal.
+ * This is a redux thunk which wraps routineDeletedInternal.
  * It also adds additional logic to delete paths as well.
  */
-export function deletedRoutine(routineId: EntityId): AppThunk {
+export function routineDeleted(routineId: EntityId): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
         const routineToDelete = selectRoutineByValidId(state, routineId);
@@ -98,7 +98,7 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
         }
         else { newActiveRoutineId = activeRoutineId; }
 
-        dispatch(deletedRoutineInternal({
+        dispatch(routineDeletedInternal({
             routineId,
             pathIds,
             folderIds,
@@ -108,10 +108,10 @@ export function deletedRoutine(routineId: EntityId): AppThunk {
     };
 }
 
-export function addedRoutine(): AppThunk {
+export function routineAdded(): AppThunk {
     return (dispatch, getState) => {
         const robotIds = selectRobotIds(getState());
-        dispatch(addedRoutineInternal({
+        dispatch(routineAddedInternal({
             routineId: nanoid(),
             robotId: robotIds[0], // selectFirstRobotId(getState())
             // only a single pathId
@@ -121,7 +121,7 @@ export function addedRoutine(): AppThunk {
     };
 }
 
-export function duplicatedRoutine(id: EntityId): AppThunk {
+export function routineDuplicated(id: EntityId): AppThunk {
     return (dispatch, getState) => {
         // create copies of each path's waypoints and folders
         // assign the new waypoint ids and folder ids to copies of each path
@@ -173,16 +173,16 @@ export function duplicatedRoutine(id: EntityId): AppThunk {
         arg.routine.id = nanoid();
         arg.routine.pathIds = arg.paths.map(path => path.id);
 
-        dispatch(duplicatedRoutineInternal(arg));
+        dispatch(routineDuplicatedInternal(arg));
     };
 }
 
 export const {
-    addedRoutineInternal,
-    deletedRoutineInternal,
-    updatedRoutine,
-    duplicatedRoutineInternal,
-    renamedRoutine
+    routineAddedInternal,
+    routineDeletedInternal,
+    routineUpdated,
+    routineDuplicatedInternal,
+    routineRenamed
 } = routinesSlice.actions;
 
 // Runtime selectors

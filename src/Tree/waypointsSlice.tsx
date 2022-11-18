@@ -1,10 +1,10 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 
 import { add, angle, DEGREE, distance, FEET, makePoint, Point, subtract, ZERO_POINT } from "../Field/mathUtils";
-import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
+import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { deletedFolderInternal, selectOwnerFolder } from "./foldersSlice";
-import { deletedPathInternal } from "../Navbar/pathsSlice";
+import { folderDeletedInternal, selectOwnerFolder } from "./foldersSlice";
+import { pathDeletedInternal } from "../Navbar/pathsSlice";
 import { selectSelectedWaypointIds } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
@@ -80,7 +80,7 @@ export const waypointsSlice = createSlice({
          * @param {number} index @optional
          *      The index to insert at. The existing waypoint at the index is shifted back to make room.
          */
-        addedWaypoint: {
+        waypointAdded: {
             reducer: (waypointState, action: PayloadAction<{
                 waypointId: EntityId,
                 index?: number
@@ -98,14 +98,14 @@ export const waypointsSlice = createSlice({
                 return { payload: { waypointId: nanoid(), index } };
             }
         },
-        deletedWaypointInternal: (waypointState, action: PayloadAction<{
+        waypointDeletedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
             folderId?: EntityId,
             deleteFolder: boolean
         }>) => {
             waypointsAdapter.removeOne(waypointState, action.payload.id);
         },
-        updatedWaypoint: waypointsAdapter.updateOne,
+        waypointUpdated: waypointsAdapter.updateOne,
         waypointMovedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
             point: Point,
@@ -147,7 +147,7 @@ export const waypointsSlice = createSlice({
             const newAngle = angle(subtract(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { robotAngle: newAngle }));
         },
-        duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
+        waypointDuplicatedInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             let copy = Object.assign({}, waypoint);
             copy.id = action.payload.newWaypointId;
@@ -157,13 +157,13 @@ export const waypointsSlice = createSlice({
             } else { copy.parameter += 0.1; }
             waypointsAdapter.addOne(waypointState, copy);
         },
-        renamedWaypoint(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+        waypointRenamed(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
             waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { name: action.payload.newName }));
         }
     },
     extraReducers: (builder) => {
         builder
-            .addCase(addedRoutineInternal, (waypointState, action) => {
+            .addCase(routineAddedInternal, (waypointState, action) => {
                 let index = 0;
                 action.payload.waypointIds.forEach(waypointId => {
                     waypointsAdapter.addOne(waypointState, {
@@ -177,11 +177,11 @@ export const waypointsSlice = createSlice({
                     index++;
                 });
             })
-            .addCase(duplicatedRoutineInternal, (waypointState, action) => {
+            .addCase(routineDuplicatedInternal, (waypointState, action) => {
                 waypointsAdapter.addMany(waypointState, action.payload.waypoints);
             })
             // matchers must come last
-            .addMatcher(isAnyOf(deletedRoutineInternal, deletedPathInternal, deletedFolderInternal),
+            .addMatcher(isAnyOf(routineDeletedInternal, pathDeletedInternal, folderDeletedInternal),
                 (waypointState, action) => waypointsAdapter.removeMany(waypointState, action.payload.waypointIds))
     }
 });
@@ -196,33 +196,33 @@ export const {
 } = addValidIdSelector(waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints));
 
 export const {
-    duplicatedWaypointInternal,
-    addedWaypoint,
-    deletedWaypointInternal,
-    updatedWaypoint,
-    renamedWaypoint,
+    waypointDuplicatedInternal,
+    waypointAdded,
+    waypointDeletedInternal,
+    waypointUpdated,
+    waypointRenamed,
     waypointMagnitudeMoved,
     waypointRobotRotated,
     waypointMovedInternal
 } = waypointsSlice.actions;
 
-export function deletedWaypoint(id: EntityId): AppThunk {
+export function waypointDeleted(id: EntityId): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
         const folder = selectOwnerFolder(state, id);
         const deleteFolder = (folder !== undefined && folder.waypointIds.length === 1);
-        dispatch(deletedWaypointInternal({ id, folderId: folder?.id, deleteFolder }));
+        dispatch(waypointDeletedInternal({ id, folderId: folder?.id, deleteFolder }));
     };
 }
 
 /**
  * Made tricky by the need to insert into the correct location in path.
  * Could currently be a prepare function.
- * In the future, could simply dispatch addedWaypointAfter.
+ * In the future, could simply dispatch waypointAddedAfter.
  */
-export function duplicatedWaypoint(id: EntityId): AppThunk {
+export function waypointDuplicated(id: EntityId): AppThunk {
     return (dispatch) => {
-        dispatch(duplicatedWaypointInternal({
+        dispatch(waypointDuplicatedInternal({
             waypointId: id,
             newWaypointId: nanoid()
         }));

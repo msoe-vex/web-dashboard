@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { NameInput } from "./NameInput";
 import { DeleteMenuItem, DuplicateMenuItem, EditMenuItem, RenameMenuItem } from "../Tree/MenuItems";
 import { ItemType, robotDialogOpened, selectIsRenaming } from "../Tree/tempUiSlice";
-import { addedRobot, deletedRobot, duplicatedRobot, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
+import { robotAdded, robotDeleted, robotDuplicated, selectRobotById, selectRobotIds } from "../Tree/robotsSlice";
 import { RobotDialog } from "./RobotDialog";
 
 export function RobotMenu(): JSX.Element {
@@ -24,7 +24,7 @@ export function RobotMenu(): JSX.Element {
             icon="add"
             text="Add robot"
             minimal={true}
-            onClick={() => { dispatch(addedRobot()); }}
+            onClick={() => { dispatch(robotAdded()); }}
         /> :
         <Button
             icon="playbook"
@@ -38,7 +38,7 @@ export function RobotMenu(): JSX.Element {
         <MenuItem2
             icon="add"
             text="Add robot"
-            onClick={() => { dispatch(addedRobot()); }}
+            onClick={() => { dispatch(robotAdded()); }}
             shouldDismissPopover={false}
         />);
 
@@ -108,8 +108,8 @@ function RobotSubmenu(props: RobotSubmenuProps): JSX.Element {
     return (<>
         <EditMenuItem onClick={() => { dispatch(robotDialogOpened(props.id)); }} />
         <RenameMenuItem {...dismissProps} id={props.id} />
-        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(duplicatedRobot(props.id)); }} />
+        <DuplicateMenuItem {...dismissProps} onClick={() => { dispatch(robotDuplicated(props.id)); }} />
         <MenuDivider />
-        <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(deletedRobot(props.id)); }} />
+        <DeleteMenuItem {...dismissProps} onClick={() => { dispatch(robotDeleted(props.id)); }} />
     </>);
 }
