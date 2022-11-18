@@ -1,10 +1,10 @@
 import { createSlice, createEntityAdapter, nanoid, EntityId, PayloadAction } from "@reduxjs/toolkit";
-import { Units } from "../Field/mathUtils";
 
 import { RootState } from "../Store/store";
 import { selectOwnerPath, selectPathByValidId } from "../Navbar/pathsSlice";
 import { ItemType } from "./tempUiSlice";
 import { addValidIdSelector, getNextName, getSimpleSelectors } from "../Store/storeUtils";
+import { INCH } from "../Field/mathUtils";
 
 export interface Robot {
     id: EntityId;
@@ -33,8 +33,8 @@ export const robotsSlice = createSlice({
                 id: nanoid(),
                 name: getNextName(simpleSelectors.selectAll(robotState), "Robot"),
                 robotType: RobotType.SWERVE,
-                width: 18 * Units.INCH,
-                length: 18 * Units.INCH,
+                width: 18 * INCH,
+                length: 18 * INCH,
                 maxVelocity: 50,
                 maxAcceleration: 100
             });

@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 
-import { Point, PointUtils, Units } from "../Field/mathUtils";
+import { add, angle, DEGREE, distance, FEET, INCH, makePoint, Point, subtract, ZERO_POINT } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal, selectOwnerFolder } from "./foldersSlice";
@@ -88,10 +88,10 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addOne(waypointState, {
                     id: action.payload.waypointId,
                     name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    point: PointUtils.Point(0 * Units.INCH, 0 * Units.INCH),
-                    angle: 0 * Units.DEGREE,
-                    startMagnitude: 1 * Units.FEET,
-                    endMagnitude: 1 * Units.FEET
+                    point: ZERO_POINT,
+                    angle: 0 * DEGREE,
+                    startMagnitude: 1 * FEET,
+                    endMagnitude: 1 * FEET
                 });
             },
             prepare: (index?: number) => {
@@ -113,11 +113,11 @@ export const waypointsSlice = createSlice({
         }>) => {
             const { id, point, selectedWaypointIds } = action.payload;
             const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
-            const offset = PointUtils.subtract(point, waypoint.point);
+            const offset = subtract(point, waypoint.point);
 
             const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
                 const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
-                const newPoint = PointUtils.add(waypoint.point, offset);
+                const newPoint = add(waypoint.point, offset);
                 return { id: selectedWaypointId, changes: { point: newPoint } };
             });
             waypointsAdapter.updateMany(waypointState, updateObjects);
@@ -130,21 +130,21 @@ export const waypointsSlice = createSlice({
             const { id, point, magnitudePosition } = action.payload;
             const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
-            const newAngle = PointUtils.angle(PointUtils.subtract(point, waypoint.point));
-            const newMagnitude = PointUtils.distance(point, waypoint.point);
+            const newAngle = angle(subtract(point, waypoint.point));
+            const newMagnitude = distance(point, waypoint.point);
 
             const changes = (magnitudePosition === MagnitudePosition.START) ?
                 // magnitude out
                 { angle: newAngle, startMagnitude: newMagnitude } :
                 // magnitude in
-                { angle: newAngle + 180 * Units.DEGREE, endMagnitude: newMagnitude };
+                { angle: newAngle + 180 * DEGREE, endMagnitude: newMagnitude };
             waypointsAdapter.updateOne(waypointState, { id, changes });
         },
         waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {
             const { id, point } = action.payload;
             const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
-            const newAngle = PointUtils.angle(PointUtils.subtract(point, waypoint.point));
+            const newAngle = angle(subtract(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { robotAngle: newAngle }));
         },
         duplicatedWaypointInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
@@ -153,7 +153,7 @@ export const waypointsSlice = createSlice({
             copy.id = action.payload.newWaypointId;
             copy.name = "Copy of " + copy.name;
             if (isControlWaypoint(copy)) {
-                copy.point = PointUtils.add(copy.point, PointUtils.Point(1 * Units.FEET, 1 * Units.FEET));
+                copy.point = add(copy.point, makePoint(1 * FEET, 1 * FEET));
             } else { copy.parameter += 0.1; }
             waypointsAdapter.addOne(waypointState, copy);
         },
@@ -169,12 +169,10 @@ export const waypointsSlice = createSlice({
                     waypointsAdapter.addOne(waypointState, {
                         id: waypointId,
                         name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                        point: PointUtils.Point(
-                            (index ? 5 : 1) * Units.FEET,
-                            (index ? 3 : 1) * Units.FEET),
-                        angle: 0 * Units.DEGREE,
-                        startMagnitude: 1 * Units.FEET,
-                        endMagnitude: 1 * Units.FEET
+                        point: makePoint((index ? 5 : 1) * FEET, (index ? 3 : 1) * FEET),
+                        angle: 0 * DEGREE,
+                        startMagnitude: 1 * FEET,
+                        endMagnitude: 1 * FEET
                     });
                     index++;
                 });

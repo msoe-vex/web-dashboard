@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../Store/store";
-import { Units } from "./mathUtils";
+import { FEET, INCH } from "./mathUtils";
 
 export interface Field {
     // image: Image;
@@ -17,8 +17,8 @@ export const fieldSlice = createSlice({
     name: "field",
     initialState: {
         fieldDimensions: {
-            height: 12 * Units.FEET + 2 * Units.INCH,
-            width: 12 * Units.FEET + 2 * Units.INCH,
+            height: 12 * FEET + 2 * INCH,
+            width: 12 * FEET + 2 * INCH,
         },
         splinePointCount: 10
     } as Field,

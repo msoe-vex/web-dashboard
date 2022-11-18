@@ -33,24 +33,23 @@ export interface Point {
     y: number;
 }
 
+export const ZERO_POINT: Point = { x: 0, y: 0 };
+
 export function makePoint(x: number, y: number): Point {
     return { x, y };
-}
-export function makeZeroPoint(): Point {
-    return makePoint(0, 0);
 }
 
 /**
  * Constructs a point from a polar specification.
  */
-export function makePolarPoint(basePoint: Point, angle: number, radius: number): Point {
+export function makePointFromPolar(basePoint: Point, angle: number, radius: number): Point {
     return add(basePoint, makePoint(Math.cos(angle) * radius, Math.sin(angle) * radius));
 }
 
 /**
  * Constructs a point from a Konva event.
  */
-export function makeKonvaEventPoint(e: KonvaEventObject<MouseEvent>): Point {
+export function makePointFromKonvaEvent(e: KonvaEventObject<MouseEvent>): Point {
     return makePoint(e.target.x(), e.target.y());
 }
 
@@ -84,7 +83,7 @@ export function angle(point: Point): number {
 }
 
 export function normalize(point: Point): Point {
-    const length = distance(point, makeZeroPoint());
+    const length = distance(point, ZERO_POINT);
     return makePoint(point.x / length, point.y / length);
 }
 
@@ -95,8 +94,8 @@ export function flatten(...points: Point[]): number[] {
 export function makeCurve(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint): Curve {
     const startPoint = startWaypoint.point;
     const endPoint = endWaypoint.point;
-    const startControlPoint = makePolarPoint(startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
-    const endControlPoint = makePolarPoint(endPoint, endWaypoint.angle, endWaypoint.startMagnitude);
+    const startControlPoint = makePointFromPolar(startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
+    const endControlPoint = makePointFromPolar(endPoint, endWaypoint.angle, endWaypoint.startMagnitude);
     return new Curve(startPoint, startControlPoint, endPoint, endControlPoint);
 }
 

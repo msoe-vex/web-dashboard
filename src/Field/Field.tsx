@@ -12,7 +12,7 @@ import { useAppDispatch } from "../Store/hooks";
 import { Store } from "../Store/store";
 
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
-import { Transform, Units } from "./mathUtils";
+import { Transform, INCH } from "./mathUtils";
 import { allItemsDeselected } from "../Tree/tempUiSlice";
 import { FieldElements } from "./FieldElements";
 import { ContextMenuHandler, ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
@@ -136,11 +136,11 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
             </Menu>)}
     >
         <Rect
-            x={0.5 * Units.INCH}
-            y={0.5 * Units.INCH}
-            width={props.fieldDimensions.width - 1 * Units.INCH}
-            height={props.fieldDimensions.height - 1 * Units.INCH}
-            strokeWidth={1 * Units.INCH}
+            x={0.5 * INCH}
+            y={0.5 * INCH}
+            width={props.fieldDimensions.width - 1 * INCH}
+            height={props.fieldDimensions.height - 1 * INCH}
+            strokeWidth={1 * INCH}
             stroke={Colors.BLACK}
             fill={Colors.GRAY1}
         />

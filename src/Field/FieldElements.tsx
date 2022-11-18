@@ -12,7 +12,7 @@ import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, Item
 import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById, ControlWaypoint } from "../Tree/waypointsSlice";
-import { Units, PointUtils, Point, Curve, makeCurve, parameterRange } from "./mathUtils";
+import { Point, makeCurve, parameterRange, INCH, DEGREE, FEET, flatten, makePointFromKonvaEvent, makePointFromPolar } from "./mathUtils";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
@@ -39,7 +39,7 @@ export function FieldElements(): null | JSX.Element {
 
 const shadowProps = {
     shadowColor: Colors.ORANGE3,
-    shadowBlur: 3 * Units.INCH,
+    shadowBlur: 3 * INCH,
     shadowOpacity: 1
 }
 
@@ -64,7 +64,7 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
 
     if (isControlWaypoint(waypoint)) {
         const onWaypointDrag = (e: KonvaEventObject<MouseEvent>) => {
-            dispatch(waypointMoved(waypoint.id, PointUtils.KonvaEventPoint(e)));
+            dispatch(waypointMoved(waypoint.id, makePointFromKonvaEvent(e)));
         };
 
         // Several different behaviors depending on state
@@ -80,11 +80,11 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
 
         const robotRectangle = (<Rect
             {...waypoint.point}
-            offset={{ x: 9 * Units.INCH, y: 9 * Units.INCH }}
-            width={18 * Units.INCH}
-            height={18 * Units.INCH}
-            rotation={(waypoint.robotAngle ?? 0) / Units.DEGREE}
-            strokeWidth={0.5 * Units.INCH}
+            offset={{ x: 9 * INCH, y: 9 * INCH }}
+            width={18 * INCH}
+            height={18 * INCH}
+            rotation={(waypoint.robotAngle ?? 0) / DEGREE}
+            strokeWidth={0.5 * INCH}
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
@@ -103,7 +103,7 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
             }
         />);
 
-        const ballPoint = PointUtils.PolarPoint(waypoint.point, waypoint.robotAngle ?? 0, 2 * Units.FEET);
+        const ballPoint = makePointFromPolar(waypoint.point, waypoint.robotAngle ?? 0, 2 * FEET);
         const rotationManipulator = !isSelected ? null :
             (<BallManipulator
                 startPoint={waypoint.point}
@@ -111,7 +111,7 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
                 handleManipulatorDrag={(e: KonvaEventObject<MouseEvent>) => {
                     dispatch(waypointRobotRotated({
                         id: waypoint.id,
-                        point: PointUtils.KonvaEventPoint(e)
+                        point: makePointFromKonvaEvent(e)
                     }))
                 }}
             />);
@@ -148,17 +148,17 @@ function SplineElement(props: SplineElementProps): JSX.Element | null {
     else if (!isControlWaypoint(waypoint) || !isControlWaypoint(previousWaypoint)) { return null; }
     else if (hiddenWaypointIds.includes(previousWaypoint.id) && hiddenWaypointIds.includes(waypoint.id)) { return null; }
 
-    const prevControl = PointUtils.PolarPoint(previousWaypoint.point, previousWaypoint.angle, previousWaypoint.startMagnitude);
-    const currControl = PointUtils.PolarPoint(waypoint.point, waypoint.angle, -waypoint.endMagnitude);
+    const prevControl = makePointFromPolar(previousWaypoint.point, previousWaypoint.angle, previousWaypoint.startMagnitude);
+    const currControl = makePointFromPolar(waypoint.point, waypoint.angle, -waypoint.endMagnitude);
 
     const isSelected = selectedSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)));
 
     const line = (<Line
-        points={PointUtils.flatten(previousWaypoint.point, prevControl, currControl, waypoint.point)}
+        points={flatten(previousWaypoint.point, prevControl, currControl, waypoint.point)}
         bezier={true}
-        strokeWidth={0.5 * Units.INCH}
+        strokeWidth={0.5 * INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
-        hitStrokeWidth={3 * Units.INCH}
+        hitStrokeWidth={3 * INCH}
         shadowEnabled={hoveredSplineIds.some(splineIds => splineIds.every(splineId => [previousWaypoint.id, waypoint.id].includes(splineId)))}
         {...shadowProps}
         onClick={() => { dispatch(splineSelected([previousWaypoint.id, waypoint.id])); }}
@@ -198,7 +198,7 @@ function getManipulatorDragHandler(dispatch: AppDispatch, id: EntityId, magnitud
         dispatch(waypointMagnitudeMoved({
             id,
             magnitudePosition,
-            point: PointUtils.KonvaEventPoint(e)
+            point: makePointFromKonvaEvent(e)
         }));
     };
 }
@@ -214,16 +214,16 @@ function BallManipulator(props: BallManipulatorProps): JSX.Element {
     const [isSelected, setSelected] = React.useState<boolean>(false);
 
     const line = (<Line
-        points={PointUtils.flatten(props.startPoint, props.currentPoint)}
-        strokeWidth={0.25 * Units.INCH}
+        points={flatten(props.startPoint, props.currentPoint)}
+        strokeWidth={0.25 * INCH}
         stroke={isSelected ? Colors.ORANGE1 : Colors.BLACK}
     />);
 
     return (<>
         <Circle
             {...props.currentPoint}
-            radius={2 * Units.INCH}
-            hitStrokeWidth={3 * Units.INCH}
+            radius={2 * INCH}
+            hitStrokeWidth={3 * INCH}
             fill={isSelected ? Colors.ORANGE1 : Colors.BLACK}
             shadowEnabled={isHovered}
             {...shadowProps}
@@ -252,15 +252,15 @@ function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
     const curvaturePoints = parameterRange(60).map(parameter => curve.curvaturePoint(parameter));
     return (<>
         <Line
-            points={PointUtils.flatten(...curvaturePoints)}
-            strokeWidth={0.5 * Units.INCH}
+            points={flatten(...curvaturePoints)}
+            strokeWidth={0.5 * INCH}
             stroke={Colors.RED2}
         />
 
         {parameterRange(20).map(parameter => <Line
             key={parameter}
-            points={PointUtils.flatten(curve.point(parameter), curve.curvaturePoint(parameter))}
-            strokeWidth={0.25 * Units.INCH}
+            points={flatten(curve.point(parameter), curve.curvaturePoint(parameter))}
+            strokeWidth={0.25 * INCH}
             stroke={Colors.ORANGE3}
         />)}
     </>);
