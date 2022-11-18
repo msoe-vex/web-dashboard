@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MutableRefObject, useCallback, useRef, useState } from "react";
 import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -11,7 +11,7 @@ import { selectActiveRoutine } from "../Tree/uiSlice";
 export function ExportDialog(): JSX.Element | null {
     const dispatch = useAppDispatch();
 
-    const handleClose = React.useCallback(
+    const handleClose = useCallback(
         () => { dispatch(exportDialogClosed()); }
         , [dispatch]);
 
@@ -38,8 +38,8 @@ interface ExportDialogMenuContentsProps {
 function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element | null {
     const dispatch = useAppDispatch();
     // should probably live in field slice (or robot slice?)
-    const [maxVelocity, setMaxVelocity] = React.useState(50);
-    const [maxAcceleration, setMaxAcceleration] = React.useState(100);
+    const [maxVelocity, setMaxVelocity] = useState(50);
+    const [maxAcceleration, setMaxAcceleration] = useState(100);
 
     const splinePointCount = useAppSelector(selectSplinePointCount);
 
@@ -60,7 +60,7 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
         </FormGroup>
     );
 
-    const elementRef = React.useRef<React.MutableRefObject<HTMLButtonElement> | undefined>(undefined);
+    const elementRef = useRef<MutableRefObject<HTMLButtonElement> | undefined>(undefined);
     if (elementRef !== undefined) {
 
     }

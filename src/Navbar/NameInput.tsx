@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent, KeyboardEventHandler, MutableRefObject, useEffect, useRef, useState, KeyboardEvent } from "react";
 import { IconName, InputGroup } from "@blueprintjs/core";
 import { ItemType, renamingCancelled } from "../Tree/tempUiSlice";
 import { EntityId } from "@reduxjs/toolkit";
@@ -18,10 +18,10 @@ export function NameInput(props: NameInputProps): JSX.Element | null {
     const dispatch = useAppDispatch();
 
     const item = useAppSelector(state => selectItemById(state, props.id, props.itemType));
-    const [newName, setNewName] = React.useState(item?.name);
+    const [newName, setNewName] = useState(item?.name);
 
-    React.useEffect(() => { setInputFocus(); });
-    const inputRef: React.MutableRefObject<HTMLInputElement | null> = React.useRef(null);
+    useEffect(() => { setInputFocus(); });
+    const inputRef: MutableRefObject<HTMLInputElement | null> = useRef(null);
     const setInputFocus = () => {
         if (inputRef !== null &&
             inputRef.current !== null) {
@@ -29,7 +29,7 @@ export function NameInput(props: NameInputProps): JSX.Element | null {
         }
     }
 
-    const handleKeyDown: React.KeyboardEventHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown: KeyboardEventHandler = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") { dispatch(itemRenamed(props.id, props.itemType, newName ?? "")); }
         else if (e.key === "Escape") { dispatch(renamingCancelled()); }
     }
@@ -38,7 +38,7 @@ export function NameInput(props: NameInputProps): JSX.Element | null {
         <InputGroup
             inputRef={inputRef}
             value={newName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setNewName(e.target.value); }}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => { setNewName(e.target.value); }}
             leftIcon={props.icon}
             onBlur={() => { dispatch(itemRenamed(props.id, props.itemType, newName ?? "")); }}
             onKeyDown={handleKeyDown}

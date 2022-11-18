@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { KonvaEventObject } from "konva/lib/Node";
 import { Layer, Rect, Stage } from "react-konva";
@@ -51,10 +51,10 @@ interface FieldStageProps {
 
 function FieldStage(props: FieldStageProps): JSX.Element {
     const dispatch = useAppDispatch();
-    const [canvasWidth, setCanvasWidth] = React.useState<number>(0);
-    const [canvasHeight, setCanvasHeight] = React.useState<number>(0);
+    const [canvasWidth, setCanvasWidth] = useState<number>(0);
+    const [canvasHeight, setCanvasHeight] = useState<number>(0);
 
-    const resizeCanvas = React.useCallback(() => {
+    const resizeCanvas = useCallback(() => {
         const div = document.getElementById("field");
         if (div) {
             if (canvasHeight !== div.offsetHeight ||
@@ -67,7 +67,7 @@ function FieldStage(props: FieldStageProps): JSX.Element {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
         return () => window.removeEventListener("resize", resizeCanvas);
@@ -127,7 +127,7 @@ interface FieldLayerProps {
 }
 
 function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
-    const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
+    const konvaContextMenuHandler = getKonvaContextMenuHandler(useContext(ContextMenuHandlerContext));
     return (<Layer
         {...props.fieldTransform}
         onContextMenu={konvaContextMenuHandler(

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/core";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -9,7 +9,7 @@ import { assertValid, makeUpdate } from "../Store/storeUtils";
 
 export function RobotDialog(): JSX.Element {
     const dispatch = useAppDispatch();
-    const handleClose = React.useCallback(() => { dispatch(robotDialogClosed()); }, [dispatch]);
+    const handleClose = useCallback(() => { dispatch(robotDialogClosed()); }, [dispatch]);
 
     const robotDialogId = useAppSelector(selectRobotDialogId);
     const robotName = useAppSelector(state => robotDialogId ? assertValid(selectRobotById(state, robotDialogId)).name : "");

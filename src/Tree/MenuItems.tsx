@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEventHandler } from "react";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { MenuDivider } from "@blueprintjs/core";
@@ -19,7 +19,7 @@ import { EntityId } from "@reduxjs/toolkit";
 interface ShouldDismissPopoverProps {
     shouldDismissPopover?: boolean;
 }
-interface OnClickProps { onClick: React.MouseEventHandler; }
+interface OnClickProps { onClick: MouseEventHandler; }
 interface IdProps { id: EntityId; }
 
 export function EditMenuItem(props: OnClickProps): JSX.Element {

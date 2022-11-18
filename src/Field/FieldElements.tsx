@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useMemo, useState } from "react";
 
 import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
@@ -49,7 +49,7 @@ interface RobotElementProps {
 
 function RobotElement(props: RobotElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
+    const konvaContextMenuHandler = getKonvaContextMenuHandler(useContext(ContextMenuHandlerContext));
 
     const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
 
@@ -133,7 +133,7 @@ interface SplineElementProps {
 
 function SplineElement(props: SplineElementProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    const konvaContextMenuHandler = getKonvaContextMenuHandler(React.useContext(ContextMenuHandlerContext));
+    const konvaContextMenuHandler = getKonvaContextMenuHandler(useContext(ContextMenuHandlerContext));
 
     const previousWaypoint = useAppSelector(state => selectWaypointById(state, props.previousWaypointId));
     const waypoint = useAppSelector(state => selectWaypointById(state, props.waypointId));
@@ -142,7 +142,7 @@ function SplineElement(props: SplineElementProps): JSX.Element | null {
     const selectedSplineIds = useAppSelector(selectSelectedSplineIds);
     const hoveredSplineIds = useAppSelector(selectHoveredSplineIds);
 
-    // const curve = React.useMemo(() => new Curve(previousWaypoint, waypoint), [previousWaypoint, waypoint]);
+    // const curve = useMemo(() => new Curve(previousWaypoint, waypoint), [previousWaypoint, waypoint]);
 
     if (!waypoint || !previousWaypoint) { return null; }
     else if (!isControlWaypoint(waypoint) || !isControlWaypoint(previousWaypoint)) { return null; }
@@ -210,8 +210,8 @@ interface BallManipulatorProps {
 }
 
 function BallManipulator(props: BallManipulatorProps): JSX.Element {
-    const [isHovered, setHovered] = React.useState<boolean>(false);
-    const [isSelected, setSelected] = React.useState<boolean>(false);
+    const [isHovered, setHovered] = useState<boolean>(false);
+    const [isSelected, setSelected] = useState<boolean>(false);
 
     const line = (<Line
         points={flatten(props.startPoint, props.currentPoint)}
@@ -247,7 +247,7 @@ interface CurveVisualizationProps {
 }
 
 function CurveVisualization(props: CurveVisualizationProps): JSX.Element {
-    const curve = React.useMemo(() => makeCurve(props.previousWaypoint, props.waypoint), [props]);
+    const curve = useMemo(() => makeCurve(props.previousWaypoint, props.waypoint), [props]);
 
     const curvaturePoints = parameterRange(60).map(parameter => curve.curvaturePoint(parameter));
     return (<>

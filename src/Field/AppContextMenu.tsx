@@ -1,17 +1,17 @@
 import { ContextMenu2 } from "@blueprintjs/popover2";
 import { KonvaEventObject } from "konva/lib/Node";
-import React from "react";
+import React, { createContext, ReactNode, useCallback, useState } from "react";
 
 export type ContextMenuHandler = (contextMenu: JSX.Element, e: MouseEvent) => void;
-export const ContextMenuHandlerContext = React.createContext<ContextMenuHandler>(() => { });
+export const ContextMenuHandlerContext = createContext<ContextMenuHandler>(() => { });
 
 interface AppContextMenuProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
-    const [contextMenu, setContextMenu] = React.useState<JSX.Element>(<></>);
-    const getContextMenu = React.useCallback((): JSX.Element => (contextMenu), [contextMenu]);
+    const [contextMenu, setContextMenu] = useState<JSX.Element>(<></>);
+    const getContextMenu = useCallback((): JSX.Element => (contextMenu), [contextMenu]);
 
     const contextMenuHandler = (contextMenu: JSX.Element, e: MouseEvent) => {
         setContextMenu(wrapContextMenu(contextMenu, e));

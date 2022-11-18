@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useContext, MouseEvent } from "react";
 
 import { Tree, TreeNodeInfo, IconName, Button, Card, H5, Menu } from "@blueprintjs/core";
 import { MenuItem2 } from "@blueprintjs/popover2";
@@ -62,29 +62,29 @@ export function AppTree(): JSX.Element {
             renamingId);
     });
 
-    const handleNodeClick = React.useCallback(
-        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
+    const handleNodeClick = useCallback(
+        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: MouseEvent) => {
             dispatch(itemSelected(node.id, assertValid(node.nodeData), e.shiftKey, e.ctrlKey));
         }, [dispatch]);
 
-    const handleNodeCollapse = React.useCallback((node: TreeNodeInfo) => {
+    const handleNodeCollapse = useCallback((node: TreeNodeInfo) => {
         dispatch(treeItemsCollapsed([node.id]));
     }, [dispatch]);
 
-    const handleNodeExpand = React.useCallback((node: TreeNodeInfo) => {
+    const handleNodeExpand = useCallback((node: TreeNodeInfo) => {
         dispatch(treeItemsExpanded([node.id]));
     }, [dispatch]);
 
-    const handleNodeMouseEnter = React.useCallback((node: TreeNodeInfo<ItemType>) => {
+    const handleNodeMouseEnter = useCallback((node: TreeNodeInfo<ItemType>) => {
         dispatch(itemMouseEnter(node.id, assertValid(node.nodeData)));
     }, [dispatch]);
 
-    const handleNodeMouseLeave = React.useCallback((node: TreeNodeInfo<ItemType>) => {
+    const handleNodeMouseLeave = useCallback((node: TreeNodeInfo<ItemType>) => {
         dispatch(itemMouseLeave(node.id, assertValid(node.nodeData)));
     }, [dispatch]);
 
-    const contextMenuHandler = React.useContext(ContextMenuHandlerContext);
-    const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
+    const contextMenuHandler = useContext(ContextMenuHandlerContext);
+    const handleContextMenu = useCallback((e: MouseEvent) => {
         // true if right click is on card specifically
         if (e.currentTarget === e.target) {
             const contextMenu = (
@@ -95,8 +95,8 @@ export function AppTree(): JSX.Element {
         }
     }, [contextMenuHandler]);
 
-    const handleNodeContextMenu = React.useCallback(
-        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: React.MouseEvent) => {
+    const handleNodeContextMenu = useCallback(
+        (node: TreeNodeInfo<ItemType>, _nodePath: number[], e: MouseEvent) => {
             const contextMenuProps = {
                 id: node.id
             };
@@ -124,14 +124,14 @@ export function AppTree(): JSX.Element {
     return (
         <Card
             className={"App-tree-card"}
-            onClick={(e: React.MouseEvent) => {
+            onClick={(e: MouseEvent) => {
                 if (!e.isPropagationStopped()) { dispatch(allItemsDeselected()); }
             }}
             onContextMenu={handleContextMenu}
         >
             <H5 onContextMenu={handleContextMenu}>{routine.name}</H5>
             {/* A div which automatically stops propagation of all tree events. Used to cohesively stop tree actions from deselecting.*/}
-            < div onClick={(e: React.MouseEvent) => { e.stopPropagation(); }}>
+            < div onClick={(e: MouseEvent) => { e.stopPropagation(); }}>
                 <Tree
                     contents={treeNodeInfo}
                     onNodeClick={handleNodeClick}
@@ -214,7 +214,7 @@ interface TreeEyeButtonProps {
 function TreeEyeButton(props: TreeEyeButtonProps): JSX.Element | null {
     const dispatch = useAppDispatch();
 
-    const handleEyeButtonClick = React.useCallback((e: React.MouseEvent) => {
+    const handleEyeButtonClick = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         dispatch(itemVisibilityToggled(props.id, props.itemType));
     }, [props.id, props.itemType, dispatch]);
