@@ -76,30 +76,35 @@ export const routinesSlice = createSlice({
  */
 export function deletedRoutine(routineId: EntityId): AppThunk {
     return (dispatch, getState) => {
-        let arg = {
-            routineId,
-            pathIds: [] as EntityId[],
-            folderIds: [] as EntityId[],
-            waypointIds: [] as EntityId[],
-            newActiveRoutineId: undefined as EntityId | undefined
-        };
-
         const state = getState();
         const routineToDelete = selectRoutineByValidId(state, routineId);
-        arg.pathIds = routineToDelete.pathIds;
-        arg.pathIds.forEach(pathId => {
+        const pathIds = routineToDelete.pathIds;
+
+        let waypointIds: EntityId[] = [], 
+        folderIds: EntityId[] = [];
+        pathIds.forEach(pathId => {
             const path = selectPathByValidId(state, pathId);
-            arg.waypointIds.push(...path.waypointIds);
-            arg.folderIds.push(...path.folderIds);
+            waypointIds.push(...path.waypointIds);
+            folderIds.push(...path.folderIds);
         });
 
-        if (selectActiveRoutineId(state) === routineId) {
+        let newActiveRoutineId = undefined;
+        const activeRoutineId = selectActiveRoutineId(state);
+        if  (routineId === activeRoutineId) {
             const routineIds = selectRoutineIds(state);
-            if (routineIds.length !== 1) {
-                arg.newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
+            if (routineIds.length > 1) {
+                newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
             }
         }
-        dispatch(deletedRoutineInternal(arg));
+        else { newActiveRoutineId = activeRoutineId; }
+
+        dispatch(deletedRoutineInternal({
+            routineId,
+            pathIds,
+            folderIds,
+            waypointIds,
+            newActiveRoutineId
+        }));
     };
 }
 

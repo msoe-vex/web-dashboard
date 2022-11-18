@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
 
-import { add, angle, DEGREE, distance, FEET, INCH, makePoint, Point, subtract, ZERO_POINT } from "../Field/mathUtils";
+import { add, angle, DEGREE, distance, FEET, makePoint, Point, subtract, ZERO_POINT } from "../Field/mathUtils";
 import { addedRoutineInternal, deletedRoutineInternal, duplicatedRoutineInternal } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
 import { deletedFolderInternal, selectOwnerFolder } from "./foldersSlice";
