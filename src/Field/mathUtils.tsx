@@ -4,24 +4,22 @@ import { ControlWaypoint } from "../Tree/waypointsSlice";
 import { sortedIndex } from "lodash-es";
 
 /**
- * A class defining basic unit conversions.
+ * Constants defining basic unit conversions.
  * By default, all lengths should be in meters, and angles in radians.
  * To convert any value to the default value, multiply by the appropriate constant:
- * @example 5 * Units.INCH to represent 5 inches in meters.
- * @example 90 * Units.DEGREE to represent 90 degrees in radians.
+ * @example 5 * INCH to represent 5 inches in meters.
+ * @example 90 * DEGREE to represent 90 degrees in radians.
  * To convert from meters or radians, divide by the appropriate constant:
- * @example 1 / Units.INCH to convert 1 meter to inches.
+ * @example 1 / INCH to convert 1 meter to inches.
  */
-export class Units {
-    static METER = 1;
-    static INCH = 0.0254;
-    static MILLIMETER = 0.001;
-    static FEET = 0.3048;
-    static CENTIMETER = 0.01;
+export const METER = 1;
+export const INCH = 0.0254;
+export const MILLIMETER = 0.001;
+export const FEET = 0.3048;
+export const CENTIMETER = 0.01;
 
-    static RADIAN = 1;
-    static DEGREE = Math.PI / 180;
-}
+export const RADIAN = 1;
+export const DEGREE = Math.PI / 180;
 
 export interface Transform {
     x: number;
@@ -35,74 +33,94 @@ export interface Point {
     y: number;
 }
 
-export class PointUtils {
-    public static Point(x: number, y: number): Point {
-        return { x, y };
-    }
+export function makePoint(x: number, y: number): Point {
+    return { x, y };
+}
+export function makeZeroPoint(): Point {
+    return makePoint(0, 0);
+}
 
-    public static PolarPoint(base: Point, angle: number, magnitude: number): Point {
-        return this.add(base, this.Point(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude));
-    }
+/**
+ * Constructs a point from a polar specification.
+ */
+export function makePolarPoint(basePoint: Point, angle: number, radius: number): Point {
+    return add(basePoint, makePoint(Math.cos(angle) * radius, Math.sin(angle) * radius));
+}
 
-    public static KonvaEventPoint(e: KonvaEventObject<MouseEvent>): Point {
-        return this.Point(e.target.x(), e.target.y());
-    }
+/**
+ * Constructs a point from a Konva event.
+ */
+export function makeKonvaEventPoint(e: KonvaEventObject<MouseEvent>): Point {
+    return makePoint(e.target.x(), e.target.y());
+}
 
-    public static add(...point: Point[]): Point {
-        let x = 0, y = 0;
-        point.forEach(point => {
-            x += point.x;
-            y += point.y;
-        });
-        return { x, y };
-    }
+export function add(...points: Point[]): Point {
+    return points.reduce((result, point) => {
+        result.x += point.x;
+        result.y += point.y;
+        return result;
+    }, { x: 0, y: 0 })
+}
 
-    public static subtract(lhs: Point, rhs: Point): Point {
-        return {
-            x: lhs.x - rhs.x,
-            y: lhs.y - rhs.y
-        };
-    }
+export function subtract(lhs: Point, rhs: Point): Point {
+    return makePoint(lhs.x - rhs.x, lhs.y - rhs.y);
+}
 
-    public static multiply(point: Point, val: number): Point {
-        return {
-            x: point.x * val,
-            y: point.y * val
-        };
-    }
 
-    public static distance(start: Point, end: Point): number {
-        return Math.sqrt((start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y));
-    }
+export function multiply(input: Point, val: number): Point {
+    return makePoint(input.x * val, input.y * val);
+}
 
-    public static angle(point: Point): number {
-        return Math.atan2(point.y, point.x);
-    }
+export function divide(input: Point, val: number): Point {
+    return makePoint(input.x / val, input.y / val);
+}
 
-    public static normalize(point: Point): Point {
-        const distance = this.distance(point, this.Point(0, 0));
-        return this.Point(point.x / distance, point.y / distance);
-    }
+export function distance(start: Point, end: Point): number {
+    return Math.sqrt((start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y));
+}
 
-    public static flatten(...points: Point[]): number[] {
-        return points.flatMap(point => [point.x, point.y]);
-    }
+export function angle(point: Point): number {
+    return Math.atan2(point.y, point.x);
+}
+
+export function normalize(point: Point): Point {
+    const length = distance(point, makeZeroPoint());
+    return makePoint(point.x / length, point.y / length);
+}
+
+export function flatten(...points: Point[]): number[] {
+    return points.flatMap(point => [point.x, point.y]);
+}
+
+export function makeCurve(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint): Curve {
+    const startPoint = startWaypoint.point;
+    const endPoint = endWaypoint.point;
+    const startControlPoint = makePolarPoint(startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
+    const endControlPoint = makePolarPoint(endPoint, endWaypoint.angle, endWaypoint.startMagnitude);
+    return new Curve(startPoint, startControlPoint, endPoint, endControlPoint);
+}
+
+/**
+ * @returns `count` parameters evenly spaced in the range [0, 1].
+ */
+export function parameterRange(count: number): number[] {
+    return Array.from<number>({ length: count }).map((_val, i) => i / (count - 1));
 }
 
 export class Curve {
-    public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
-        this.startPoint = startWaypoint.point;
-        this.startControlPoint = PointUtils.PolarPoint(this.startPoint, startWaypoint.angle, startWaypoint.startMagnitude);
-        this.endPoint = endWaypoint.point;
-        this.endControlPoint = PointUtils.PolarPoint(this.endPoint, endWaypoint.angle, -endWaypoint.endMagnitude);
-    }
+    public constructor(
+        public readonly startPoint: Point,
+        public readonly startControlPoint: Point,
+        public readonly endPoint: Point,
+        public readonly endControlPoint: Point
+    ) { }
 
     public arcLength(): number {
-        const points = Curve.parameterRange(ParameterizedCurve.DIVISIONS).map(parameter => this.point(parameter));
+        const points = parameterRange(ParameterizedCurve.DIVISIONS).map(parameter => this.point(parameter));
         // array containing distance between each successive point
         return points.reduce((curr, point, i, points) => {
             if (i === 0) { return 0; }
-            return curr + PointUtils.distance(point, points[i - 1]);
+            return curr + distance(point, points[i - 1]);
         }, 0);
 
     }
@@ -115,11 +133,11 @@ export class Curve {
         const startControlTerm = 3 * (1 - parameter) * (1 - parameter) * parameter;
         const endControlTerm = 3 * (1 - parameter) * parameter * parameter;
         const endTerm = Math.pow(parameter, 3);
-        return PointUtils.add(
-            PointUtils.multiply(this.startPoint, startTerm),
-            PointUtils.multiply(this.startControlPoint, startControlTerm),
-            PointUtils.multiply(this.endControlPoint, endControlTerm),
-            PointUtils.multiply(this.endPoint, endTerm)
+        return add(
+            multiply(this.startPoint, startTerm),
+            multiply(this.startControlPoint, startControlTerm),
+            multiply(this.endControlPoint, endControlTerm),
+            multiply(this.endPoint, endTerm)
         );
     }
 
@@ -127,23 +145,23 @@ export class Curve {
         const firstTerm = 3 * (1 - parameter) * (1 - parameter);
         const secondTerm = 6 * (1 - parameter) * parameter;
         const thirdTerm = 3 * parameter * parameter;
-        return PointUtils.add(
-            PointUtils.multiply(PointUtils.subtract(this.startControlPoint, this.startPoint), firstTerm),
-            PointUtils.multiply(PointUtils.subtract(this.endControlPoint, this.startControlPoint), secondTerm),
-            PointUtils.multiply(PointUtils.subtract(this.endPoint, this.endControlPoint), thirdTerm)
+        return add(
+            multiply(subtract(this.startControlPoint, this.startPoint), firstTerm),
+            multiply(subtract(this.endControlPoint, this.startControlPoint), secondTerm),
+            multiply(subtract(this.endPoint, this.endControlPoint), thirdTerm)
         );
     }
 
     public secondDerivative(parameter: number): Point {
-        const firstPoint = PointUtils.add(
-            PointUtils.subtract(this.endControlPoint, PointUtils.multiply(this.startControlPoint, 2)),
+        const firstPoint = add(
+            subtract(this.endControlPoint, multiply(this.startControlPoint, 2)),
             this.startPoint);
-        const secondPoint = PointUtils.add(
-            PointUtils.subtract(this.endPoint, PointUtils.multiply(this.endControlPoint, 2)),
+        const secondPoint = add(
+            subtract(this.endPoint, multiply(this.endControlPoint, 2)),
             this.startControlPoint);
-        return PointUtils.add(
-            PointUtils.multiply(firstPoint, 6 * (1 - parameter)),
-            PointUtils.multiply(secondPoint, 6 * parameter)
+        return add(
+            multiply(firstPoint, 6 * (1 - parameter)),
+            multiply(secondPoint, 6 * parameter)
         );
     }
 
@@ -161,30 +179,17 @@ export class Curve {
      * @returns a `Point` representing the curvature at a point specified by a given parameter.
      */
     public curvaturePoint(parameter: number): Point {
-        return PointUtils.add(this.point(parameter), this.normalPoint(parameter, -this.curvature(parameter)));
+        return add(this.point(parameter), this.normalPoint(parameter, -this.curvature(parameter)));
     }
 
     private normalPoint(parameter: number, distance: number): Point {
-        let direction = PointUtils.normalize(this.firstDerivative(parameter));
-        let normalPoint = PointUtils.Point(-direction.y, direction.x);
-        return PointUtils.multiply(normalPoint, distance);
+        let direction = normalize(this.firstDerivative(parameter));
+        let normalPoint = makePoint(-direction.y, direction.x);
+        return multiply(normalPoint, distance);
     }
-
-    private startPoint: Point;
-    private startControlPoint: Point;
-    private endPoint: Point;
-    private endControlPoint: Point;
 
     protected static DIVISIONS = 100;
 
-    /**
-     * @returns `count` parameters evenly spaced between 0 and 1.
-     */
-    public static parameterRange(count: number): number[] {
-        let result = [];
-        for (var i = 0; i < count; ++i) { result.push(i / (count - 1)); }
-        return result;
-    }
 
 }
 
@@ -192,11 +197,12 @@ export class Curve {
  * An extension of Curve which adds arc length and angular information.
  */
 export class ParameterizedCurve extends Curve {
-    public constructor(startWaypoint: ControlWaypoint, endWaypoint: ControlWaypoint) {
-        super(startWaypoint, endWaypoint);
-
-        this.startRobotAngle = startWaypoint.robotAngle ?? startWaypoint.angle;
-        this.endRobotAngle = endWaypoint.robotAngle ?? endWaypoint.angle;
+    public constructor(
+        curve: Curve,
+        protected readonly startRobotAngle: number,
+        protected readonly endRobotAngle: number
+    ) {
+        super(curve.startPoint, curve.startControlPoint, curve.endPoint, curve.endControlPoint);
 
         const props = this.computeArcLengthProperties();
         this.totalArcLength = props.arcLength;
@@ -204,12 +210,12 @@ export class ParameterizedCurve extends Curve {
     }
 
     private computeArcLengthProperties(): { arcLength: number, arcLengths: number[] } {
-        const points = Curve.parameterRange(Curve.DIVISIONS).map(parameter => this.point(parameter));
+        const points = parameterRange(Curve.DIVISIONS).map(parameter => this.point(parameter));
         // array containing distance between each successive point
         let arcLength = 0;
         const arcLengths = points.map((point, i, points) => {
             if (i === 0) { return 0; }
-            arcLength += PointUtils.distance(point, points[i - 1]);
+            arcLength += distance(point, points[i - 1]);
             return arcLength;
         });
 
@@ -248,13 +254,11 @@ export class ParameterizedCurve extends Curve {
         let counterClockwiseMove = current - target;
         let clockwiseMove = target - current;
         // normalize to positive range
-        clockwiseMove += (clockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
-        counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0) * Units.DEGREE;
+        clockwiseMove += (clockwiseMove < 0 ? 360 : 0) * DEGREE;
+        counterClockwiseMove += (counterClockwiseMove < 0 ? 360 : 0) * DEGREE;
         return (clockwiseMove < counterClockwiseMove ? -clockwiseMove : counterClockwiseMove);
     }
 
-    private startRobotAngle: number;
-    private endRobotAngle: number;
     /**
      * A list of arc lengths taken in context of the total arc length.
      */
