@@ -6,7 +6,7 @@ import { folderRenamed, selectFolderWaypointIds } from "./foldersSlice";
 import { robotRenamed } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 import { activeRoutineSelected } from "./uiSlice";
-import { waypointRenamed } from "./waypointsSlice";
+import { waypointMovedInternal, waypointRenamed } from "./waypointsSlice";
 
 /**
  * @typedef TempUi
@@ -198,6 +198,11 @@ export const tempUiSlice = createSlice({
                 uiState.selectedWaypointIds = [];
                 uiState.hoveredSplineIds = [];
                 uiState.selectedSplineIds = [];
+            })
+            .addCase(waypointMovedInternal, (uiState, action) => {
+                if (!uiState.selectedWaypointIds.includes(action.payload.id)) {
+                    uiState.selectedWaypointIds = [action.payload.id];
+                }
             })
             .addMatcher(isAnyOf(
                 waypointRenamed,

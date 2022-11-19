@@ -115,12 +115,17 @@ export const waypointsSlice = createSlice({
             const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
             const offset = subtract(point, waypoint.point);
 
-            const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
-                const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
-                const newPoint = add(waypoint.point, offset);
-                return { id: selectedWaypointId, changes: { point: newPoint } };
-            });
-            waypointsAdapter.updateMany(waypointState, updateObjects);
+            if (!selectedWaypointIds.includes(id)) {
+                waypointsAdapter.updateOne(waypointState, makeUpdate(id, { point }));
+            }
+            else {
+                const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
+                    const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
+                    const newPoint = add(waypoint.point, offset);
+                    return makeUpdate(selectedWaypointId, { point: newPoint });
+                });
+                waypointsAdapter.updateMany(waypointState, updateObjects);
+            }
         },
         waypointMagnitudeMoved: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -232,7 +237,6 @@ export function waypointDuplicated(id: EntityId): AppThunk {
 export function waypointMoved(id: EntityId, point: Point): AppThunk {
     return (dispatch, getState) =>
         dispatch(waypointsSlice.actions.waypointMovedInternal({
-            id, point,
-            selectedWaypointIds: selectSelectedWaypointIds(getState())
+            id, point, selectedWaypointIds: selectSelectedWaypointIds(getState())
         }));
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.scss";
-import { FocusStyleManager, HotkeysProvider, useHotkeys } from "@blueprintjs/core";
+import { FocusStyleManager, HotkeysProvider } from "@blueprintjs/core";
 // import logo from "./logo.svg";
 
 import { Provider } from "react-redux";
