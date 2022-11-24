@@ -60,6 +60,12 @@ export const robotsSlice = createSlice({
         robotMaxAccelerationChanged(robotState, action: PayloadAction<{ id: EntityId, value: number }>) {
             robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { maxAcceleration: action.payload.value } });
         },
+        robotLengthChanged(robotState, action: PayloadAction<{ id: EntityId, value: number }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { length: action.payload.value } });
+        },
+        robotWidthChanged(robotState, action: PayloadAction<{ id: EntityId, value: number }>) {
+            robotsAdapter.updateOne(robotState, { id: action.payload.id, changes: { width: action.payload.value } });
+        },
     }
     // extraReducers: (builder) => { }
 });
@@ -72,7 +78,9 @@ export const {
     robotUpdated,
     robotMaxAccelerationChanged,
     robotMaxVelocityChanged,
-    robotTypeChanged
+    robotTypeChanged,
+    robotLengthChanged,
+    robotWidthChanged
 } = robotsSlice.actions;
 
 // Runtime selectors
