@@ -3,7 +3,7 @@ import { Menu, Classes, Dialog, FormGroup, NumericInput } from "@blueprintjs/cor
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
-import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, robotUpdated } from "../Tree/robotsSlice";
+import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, robotUpdated, robotLengthChanged, robotWidthChanged } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { assertValid, makeUpdate } from "../Store/storeUtils";
 
@@ -72,6 +72,25 @@ function RobotDialogContents(): JSX.Element | null {
                     selectAllOnFocus={true}
                     value={robot.maxAcceleration}
                     onValueChange={(value) => { dispatch(robotMaxAccelerationChanged({ id: robot.id, value })); }}
+                />
+            </FormGroup>
+
+            <FormGroup label="Length">
+                <NumericInput
+                    max={18}
+                    min={2}
+                    selectAllOnFocus={true}
+                    value={robot.length}
+                    onValueChange={(value) => { dispatch(robotLengthChanged({ id: robot.id, value })); }}
+                />
+            </FormGroup>
+            <FormGroup label="Width">
+                <NumericInput
+                    max={18}
+                    min={2}
+                    selectAllOnFocus={true}
+                    value={robot.width}
+                    onValueChange={(value) => { dispatch(robotWidthChanged({ id: robot.id, value })); }}
                 />
             </FormGroup>
         </div>
