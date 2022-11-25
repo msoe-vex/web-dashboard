@@ -81,7 +81,11 @@ function RobotDialogContents(): JSX.Element | null {
                     max={18}
                     min={1}
                     selectAllOnFocus={true}
-                    value={robot.length / INCH}
+                    allowNumericCharactersOnly = {false}
+                    minorStepSize = {0.005}
+                    majorStepSize = {1}
+                    stepSize = {0.01}
+                    defaultValue={robot.length / INCH}
                     onValueChange={(value) => { dispatch(robotLengthChanged({ id: robot.id, value:value * INCH })); }}
                 />
             </FormGroup>
@@ -90,7 +94,11 @@ function RobotDialogContents(): JSX.Element | null {
                     max={18}
                     min={1}
                     selectAllOnFocus={true}
-                    value={robot.width / INCH}
+                    allowNumericCharactersOnly = {false}
+                    minorStepSize = {0.005}
+                    majorStepSize = {1}
+                    stepSize = {0.01}
+                    defaultValue={robot.width / INCH}
                     onValueChange={(value) => { dispatch(robotWidthChanged({ id: robot.id, value:value * INCH })); }}
                 />
             </FormGroup>
