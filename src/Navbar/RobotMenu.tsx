@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Classes, Menu, MenuDivider, Position } from "@blueprintjs/core";
 import { MenuItem2, Popover2 } from "@blueprintjs/popover2";
 import { EntityId } from "@reduxjs/toolkit";
@@ -15,7 +15,7 @@ export function RobotMenu(): JSX.Element {
     const dispatch = useAppDispatch();
 
     // isOpen, setIsOpen is a function
-    const [isOpen, setIsOpen] = React.useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const robotIds = useAppSelector(selectRobotIds);
 

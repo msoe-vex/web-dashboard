@@ -117,8 +117,7 @@ export const waypointsSlice = createSlice({
 
             if (!selectedWaypointIds.includes(id)) {
                 waypointsAdapter.updateOne(waypointState, makeUpdate(id, { point }));
-            }
-            else {
+            } else {
                 const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
                     const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
                     const newPoint = add(waypoint.point, offset);
@@ -143,6 +142,7 @@ export const waypointsSlice = createSlice({
                 { angle: newAngle, startMagnitude: newMagnitude } :
                 // magnitude in
                 { angle: newAngle + 180 * DEGREE, endMagnitude: newMagnitude };
+            // makeUpdate doesn't work with possibly undefined
             waypointsAdapter.updateOne(waypointState, { id, changes });
         },
         waypointRobotRotated: (waypointState, action: PayloadAction<{ id: EntityId, point: Point }>) => {

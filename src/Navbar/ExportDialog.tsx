@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -11,9 +11,7 @@ import { selectActiveRoutine } from "../Tree/uiSlice";
 export function ExportDialog(): JSX.Element | null {
     const dispatch = useAppDispatch();
 
-    const handleClose = useCallback(
-        () => { dispatch(exportDialogClosed()); }
-        , [dispatch]);
+    const handleClose = useCallback(() => { dispatch(exportDialogClosed()); }, [dispatch]);
 
     const activeRoutine = useAppSelector(selectActiveRoutine);
     const isOpen = useAppSelector(selectIsExportDialogOpen);
@@ -49,6 +47,7 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
             helperText="The number of points to generate between each waypoint."
         >
             <NumericInput
+                stepSize={1}
                 majorStepSize={null}
                 minorStepSize={null}
                 max={100}
@@ -60,10 +59,17 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
         </FormGroup>
     );
 
-    const elementRef = useRef<MutableRefObject<HTMLButtonElement> | undefined>(undefined);
-    if (elementRef !== undefined) {
-
-    }
+    const { handleClose } = props;
+    const handleExport = useCallback(() => {
+        const exportData = { "hi": "okay" };
+        const jsonString = "data:text/json;charset=utf-8," +
+            encodeURIComponent(JSON.stringify(exportData));
+        const link = document.createElement("a");
+        link.href = jsonString;
+        link.download = "path.json"; // download file name
+        link.click();
+        handleClose();
+    }, [handleClose]);
 
     return (<>
         <div className={Classes.DIALOG_BODY}>
@@ -91,9 +97,8 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
             <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                 <Button
                     text="Export"
-                    onClick={props.handleClose}
+                    onClick={handleExport}
                     intent={Intent.PRIMARY}
-                    elementRef={elementRef.current}
                 />
             </div>
         </div>
