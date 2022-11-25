@@ -6,6 +6,7 @@ import { robotDialogClosed, selectRobotDialogId } from "../Tree/tempUiSlice";
 import { robotMaxAccelerationChanged, robotMaxVelocityChanged, RobotType, selectRobotById, robotUpdated, robotLengthChanged, robotWidthChanged } from "../Tree/robotsSlice";
 import { MenuItem2 } from "@blueprintjs/popover2";
 import { assertValid, makeUpdate } from "../Store/storeUtils";
+import { INCH } from "../Field/mathUtils";
 
 export function RobotDialog(): JSX.Element {
     const dispatch = useAppDispatch();
@@ -78,19 +79,19 @@ function RobotDialogContents(): JSX.Element | null {
             <FormGroup label="Length">
                 <NumericInput
                     max={18}
-                    min={2}
+                    min={1}
                     selectAllOnFocus={true}
-                    value={robot.length}
-                    onValueChange={(value) => { dispatch(robotLengthChanged({ id: robot.id, value })); }}
+                    value={robot.length / INCH}
+                    onValueChange={(value) => { dispatch(robotLengthChanged({ id: robot.id, value:value * INCH })); }}
                 />
             </FormGroup>
             <FormGroup label="Width">
                 <NumericInput
                     max={18}
-                    min={2}
+                    min={1}
                     selectAllOnFocus={true}
-                    value={robot.width}
-                    onValueChange={(value) => { dispatch(robotWidthChanged({ id: robot.id, value })); }}
+                    value={robot.width / INCH}
+                    onValueChange={(value) => { dispatch(robotWidthChanged({ id: robot.id, value:value * INCH })); }}
                 />
             </FormGroup>
         </div>
