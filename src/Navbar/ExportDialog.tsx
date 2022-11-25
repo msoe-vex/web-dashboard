@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { Button, Classes, Dialog, FormGroup, Intent, NumericInput } from "@blueprintjs/core";
 import { selectSplinePointCount, splinePointCountChanged } from "../Field/fieldSlice";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -35,9 +35,6 @@ interface ExportDialogMenuContentsProps {
 
 function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element | null {
     const dispatch = useAppDispatch();
-    // should probably live in field slice (or robot slice?)
-    const [maxVelocity, setMaxVelocity] = useState(50);
-    const [maxAcceleration, setMaxAcceleration] = useState(100);
 
     const splinePointCount = useAppSelector(selectSplinePointCount);
 
@@ -74,24 +71,6 @@ function ExportDialogContents(props: ExportDialogMenuContentsProps): JSX.Element
     return (<>
         <div className={Classes.DIALOG_BODY}>
             {splinePointCountField}
-            <FormGroup label="Max velocity">
-                <NumericInput
-                    max={500}
-                    min={1}
-                    selectAllOnFocus={true}
-                    value={maxVelocity}
-                    onValueChange={(value) => { setMaxVelocity(value); }}
-                />
-            </FormGroup>
-            <FormGroup label="Max acceleration">
-                <NumericInput
-                    max={500}
-                    min={1}
-                    selectAllOnFocus={true}
-                    value={maxAcceleration}
-                    onValueChange={(value) => { setMaxAcceleration(value); }}
-                />
-            </FormGroup>
         </div>
         <div className={Classes.DIALOG_FOOTER}>
             <div className={Classes.DIALOG_FOOTER_ACTIONS}>
