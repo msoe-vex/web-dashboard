@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit"
 import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { routineRenamed } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
+import { includesAll, includesArray, removeAll, removeArray } from "../Store/storeUtils";
 import { folderRenamed, selectFolderWaypointIds, selectOwnerFolder } from "./foldersSlice";
 import { robotRenamed } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
@@ -19,9 +20,11 @@ import { waypointMovedInternal, waypointRenamed } from "./waypointsSlice";
  * @property hoveredSplineIds - A list of waypointId pairs representing splines which are currently hovered.
  * @property isExportDialogOpen - Whether or not the export menu dialog is currently open.
  * @property robotDialogId - The id of the robot dialog which is currently open, or `DUMMY_ID` if none is.
+ * @property renamingId - The id of the item currently being renamed.
  */
 export interface TempUi {
     collapsedFolderIds: EntityId[];
+    selectedContainers: Item[];
     selectedWaypointIds: EntityId[];
     hoveredWaypointIds: EntityId[];
     selectedSplineIds: EntityId[][];
@@ -40,9 +43,33 @@ export enum ItemType {
     ROUTINE = 5
 }
 
+export interface Item {
+    id: EntityId;
+    itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.PATH;
+}
+
+/**
+ * Returns true if items includes id.
+ */
+export function itemsInclude(items: Item[], id: EntityId): boolean {
+    return items.some(item => item.id === id);
+}
+
+/**
+ * Returns true if every id in ids is included in items.
+ */
+export function itemsIncludeAll(items: Item[], ids: EntityId[]): boolean {
+    return ids.every(id => itemsInclude(items, id));
+}
+
+export function makeItem(id: EntityId, itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.PATH) {
+    return { id, itemType };
+}
+
 const defaultTempUiState: TempUi = {
     collapsedFolderIds: [],
     hoveredWaypointIds: [],
+    selectedContainers: [],
     selectedWaypointIds: [],
     hoveredSplineIds: [],
     selectedSplineIds: [],
@@ -75,7 +102,7 @@ export const tempUiSlice = createSlice({
             const { treeWaypointIds, containedWaypointIds, controlKeyHeld } = action.payload;
             if (treeWaypointIds.length === 0) { return; }
             // If everything is already selected, deselect all
-            else if (treeWaypointIds.every(treeWaypointId => uiState.selectedWaypointIds.includes(treeWaypointId))) {
+            else if (includesAll(uiState.selectedWaypointIds, treeWaypointIds)) {
                 uiState.selectedWaypointIds = [];
                 return;
             }
@@ -115,9 +142,9 @@ export const tempUiSlice = createSlice({
         itemMultiSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
             const containedWaypointIds = action.payload;
             // If every containedWaypointId is already selected
-            if (containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
+            if (includesAll(uiState.selectedWaypointIds, containedWaypointIds)) {
                 // filter each waypoint from selection
-                uiState.selectedWaypointIds = uiState.selectedWaypointIds.filter(selectedId => !containedWaypointIds.includes(selectedId));
+                uiState.selectedWaypointIds = removeAll(uiState.selectedWaypointIds, containedWaypointIds);
             } else {
                 // reverse so shift click is based on first element
                 uiState.selectedWaypointIds.push(...Array.of(...containedWaypointIds).reverse());
@@ -130,7 +157,7 @@ export const tempUiSlice = createSlice({
             // Otherwise change the selection to the thing clicked.
             // Something is not already clicked when at least part of it is not selected.
             if (uiState.selectedWaypointIds.length === containedWaypointIds.length &&
-                containedWaypointIds.every(containedId => uiState.selectedWaypointIds.includes(containedId))) {
+                includesAll(uiState.selectedWaypointIds, containedWaypointIds)) {
                 uiState.selectedWaypointIds = [];
             }
             else {
@@ -150,12 +177,16 @@ export const tempUiSlice = createSlice({
             uiState.selectedSplineIds = [];
         },
         treeItemsExpanded(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.collapsedFolderIds = uiState.collapsedFolderIds.filter(collapsedId => !action.payload.includes(collapsedId));
+            uiState.collapsedFolderIds = removeAll(uiState.collapsedFolderIds, action.payload);
         },
-        treeItemsCollapsed(uiState, action: PayloadAction<EntityId[]>) { uiState.collapsedFolderIds.push(...action.payload); },
-        itemMouseEnterInternal(uiState, action: PayloadAction<EntityId[]>) { uiState.hoveredWaypointIds.push(...action.payload); },
+        treeItemsCollapsed(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.collapsedFolderIds.push(...action.payload);
+        },
+        itemMouseEnterInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hoveredWaypointIds.push(...action.payload);
+        },
         itemMouseLeaveInternal(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.hoveredWaypointIds = uiState.hoveredWaypointIds.filter(hoveredWaypointId => !action.payload.includes(hoveredWaypointId));
+            uiState.hoveredWaypointIds = removeAll(uiState.hoveredWaypointIds, action.payload);
         },
         splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
             assertValidSplineId(action.payload);
@@ -163,14 +194,13 @@ export const tempUiSlice = createSlice({
         },
         splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
             assertValidSplineId(action.payload);
-            // removes array sets that share every id with an id in action.payload
-            uiState.hoveredSplineIds = uiState.hoveredSplineIds.filter(splineIds => !splineIds.every(splineId => action.payload.includes(splineId)));
+            uiState.hoveredSplineIds = removeArray(uiState.hoveredSplineIds, action.payload);
         },
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
             assertValidSplineId(action.payload);
             // already selected
-            if (uiState.selectedSplineIds.some(splineIds => splineIds.every(splineId => action.payload.includes(splineId)))) {
-                uiState.selectedSplineIds = uiState.selectedSplineIds.filter(splineIds => splineIds.every(splineId => action.payload.includes(splineId)));
+            if (includesArray(uiState.selectedSplineIds, action.payload)) {
+                uiState.selectedSplineIds = removeArray(uiState.selectedSplineIds, action.payload);
             } else {
                 uiState.selectedSplineIds.push(action.payload);
             }
@@ -241,6 +271,14 @@ export function selectionDeleted(): AppThunk {
     };
 }
 
+/**
+ * Handles the selection of a given item.
+ * If a given item is selected, we need to do a couple things.
+ * Mark the container as selected (if it exists).
+ * Does clicking every waypoint in a container also select the container?
+ * Hell no, deleting shouldn't touch the container
+ * 
+ */
 export function itemSelected(
     id: EntityId,
     itemType: ItemType,
@@ -264,13 +302,13 @@ export function itemSelected(
 
 export function itemMouseEnter(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
     return (dispatch, getState) => {
-        dispatch(tempUiSlice.actions.itemMouseEnterInternal(selectContainedWaypointIds(getState(), id, itemType)));
+        dispatch(itemMouseEnterInternal(selectContainedWaypointIds(getState(), id, itemType)));
     };
 }
 
 export function itemMouseLeave(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
     return (dispatch, getState) => {
-        dispatch(tempUiSlice.actions.itemMouseLeaveInternal(selectContainedWaypointIds(getState(), id, itemType)));
+        dispatch(itemMouseLeaveInternal(selectContainedWaypointIds(getState(), id, itemType)));
     };
 }
 
@@ -290,7 +328,9 @@ export const {
     robotDialogOpened,
     robotDialogClosed,
     renamingStarted,
-    renamingCancelled
+    renamingCancelled,
+    itemMouseEnterInternal,
+    itemMouseLeaveInternal
 } = tempUiSlice.actions;
 
 /**
