@@ -41,6 +41,20 @@ export function makeUpdate<T>(id: EntityId, changes: Partial<T>): Update<T> {
 }
 
 /**
+ * @returns true if items includes item.
+ */
+export function includes<T>(items: T[], item: T) {
+    return items.some(containedItem => containedItem === item);
+}
+
+/**
+ * @returns true if every item in subItems is in items.
+ */
+export function includesAll<T>(items: T[], subItems: T[]) {
+    return subItems.every(subItem => includes(items, subItem));
+}
+
+/**
  * Returns the next valid default name of an object, e.g. Robot 1, Path 2, Routine 5, etc.
  * @param items - An array of items with a valid name to check against.
  * @param itemName - The name of the object. Should start with a capital letter.
