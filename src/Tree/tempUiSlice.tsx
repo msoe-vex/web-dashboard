@@ -2,7 +2,7 @@ import { createSlice, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit"
 import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { routineRenamed } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { folderRenamed, selectFolderWaypointIds } from "./foldersSlice";
+import { folderRenamed, selectFolderWaypointIds, selectOwnerFolder } from "./foldersSlice";
 import { robotRenamed } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 import { activeRoutineSelected } from "./uiSlice";
@@ -140,6 +140,11 @@ export const tempUiSlice = createSlice({
                 uiState.selectedSplineIds = [];
             }
         },
+        selectionDeletedInternal(uiState, _action: PayloadAction<{
+            waypointIds: EntityId[],
+            folderIds: EntityId[],
+            updateWaypointIds: EntityId[]
+        }>) { uiState.selectedWaypointIds = []; },
         allItemsDeselected(uiState) {
             uiState.selectedWaypointIds = [];
             uiState.selectedSplineIds = [];
@@ -171,24 +176,16 @@ export const tempUiSlice = createSlice({
             }
             uiState.selectedWaypointIds = []; // Remove waypoint selection
         },
-        exportDialogOpened(uiState) {
-            uiState.isExportDialogOpen = true;
-        },
-        exportDialogClosed(uiState) {
-            uiState.isExportDialogOpen = false;
-        },
+        exportDialogOpened(uiState) { uiState.isExportDialogOpen = true; },
+        exportDialogClosed(uiState) { uiState.isExportDialogOpen = false; },
         robotDialogOpened(uiState, action: PayloadAction<EntityId>) {
             uiState.robotDialogId = action.payload;
         },
-        robotDialogClosed(uiState) {
-            uiState.robotDialogId = undefined;
-        },
+        robotDialogClosed(uiState) { uiState.robotDialogId = undefined; },
         renamingStarted(uiState, action: PayloadAction<EntityId>) {
             uiState.renamingId = action.payload;
         },
-        renamingCancelled(uiState) {
-            uiState.renamingId = undefined;
-        }
+        renamingCancelled(uiState) { uiState.renamingId = undefined; }
     },
     extraReducers: (builder) => {
         builder
@@ -212,6 +209,37 @@ export const tempUiSlice = createSlice({
             ), (uiState) => { uiState.renamingId = undefined; })
     }
 });
+
+/**
+ * Deletes everything currently selected. Triggered by hitting the delete key while stuff is selected.
+ * Generally, this function preserves paths but not folders.
+ */
+export function selectionDeleted(): AppThunk {
+    return (dispatch, getState) => {
+        const state = getState();
+        const waypointIds = selectSelectedWaypointIds(state);
+
+        let updateWaypointIds = [] as EntityId[];
+        const folderIds = waypointIds.reduce((folderIds, waypointId) => {
+            const ownerFolder = selectOwnerFolder(state, waypointId);
+            if (ownerFolder) {
+                if (ownerFolder.waypointIds.every(waypointId => waypointIds.includes(waypointId))) {
+                    folderIds.push(ownerFolder.id);
+                }
+                else if (!folderIds.includes(ownerFolder.id)) {
+                    updateWaypointIds.push(waypointId);
+                }
+            }
+            return folderIds;
+        }, [] as EntityId[]);
+
+        dispatch(selectionDeletedInternal({
+            waypointIds,
+            folderIds,
+            updateWaypointIds
+        }));
+    };
+}
 
 export function itemSelected(
     id: EntityId,
@@ -250,6 +278,7 @@ export const {
     allItemsDeselected,
     itemBatchSelectedInternal,
     itemMultiSelectedInternal,
+    selectionDeletedInternal,
     itemSelectedInternal,
     treeItemsCollapsed,
     treeItemsExpanded,

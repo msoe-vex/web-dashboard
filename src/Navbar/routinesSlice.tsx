@@ -80,8 +80,8 @@ export function routineDeleted(routineId: EntityId): AppThunk {
         const routineToDelete = selectRoutineByValidId(state, routineId);
         const pathIds = routineToDelete.pathIds;
 
-        let waypointIds: EntityId[] = [], 
-        folderIds: EntityId[] = [];
+        let waypointIds: EntityId[] = [],
+            folderIds: EntityId[] = [];
         pathIds.forEach(pathId => {
             const path = selectPathByValidId(state, pathId);
             waypointIds.push(...path.waypointIds);
@@ -90,7 +90,7 @@ export function routineDeleted(routineId: EntityId): AppThunk {
 
         let newActiveRoutineId = undefined;
         const activeRoutineId = selectActiveRoutineId(state);
-        if  (routineId === activeRoutineId) {
+        if (routineId === activeRoutineId) {
             const routineIds = selectRoutineIds(state);
             if (routineIds.length > 1) {
                 newActiveRoutineId = (routineIds[0] === routineId ? routineIds[1] : routineIds[0]);
@@ -185,6 +185,10 @@ export const {
     routineRenamed
 } = routinesSlice.actions;
 
+export function selectRoutineSlice(state: RootState) {
+    return state.history.present.routines;
+}
+
 // Runtime selectors
 export const {
     selectById: selectRoutineById,
@@ -192,7 +196,7 @@ export const {
     selectIds: selectRoutineIds,
     selectAll: selectAllRoutines,
     selectEntities: selectRoutineDictionary
-} = addValidIdSelector(routinesAdapter.getSelectors<RootState>(state => state.history.present.routines));
+} = addValidIdSelector(routinesAdapter.getSelectors<RootState>(selectRoutineSlice));
 
 /**
  * Selects the routine which owns a given path.
@@ -200,7 +204,7 @@ export const {
  * @param itemType - The ItemType to use.
  */
 export function selectOwnerRoutine(state: RootState, pathId: EntityId): Routine {
-    return selectOwnerRoutineInternal(state.history.present.routines, pathId);
+    return selectOwnerRoutineInternal(selectRoutineSlice(state), pathId);
 }
 
 function selectOwnerRoutineInternal(routineState: EntityState<Routine>, pathId: EntityId) {

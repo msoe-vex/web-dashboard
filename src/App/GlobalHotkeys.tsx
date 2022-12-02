@@ -1,7 +1,8 @@
 import React, { ReactNode, useMemo } from "react";
 import { useHotkeys } from "@blueprintjs/core";
 import { ActionCreators } from "redux-undo";
-import { useAppDispatch } from "./Store/hooks";
+import { useAppDispatch } from "../Store/hooks";
+import { selectionDeleted } from "../Tree/tempUiSlice";
 
 interface GlobalHotkeysProps {
     children: ReactNode;
@@ -23,6 +24,12 @@ export function GlobalHotkeys(props: GlobalHotkeysProps) {
             onKeyDown: () => { dispatch(ActionCreators.redo()); }
         },
         {
+            combo: "del",
+            global: true,
+            label: "Delete selection",
+            onKeyDown: () => { dispatch(selectionDeleted()); }
+        },
+        {
             combo: "ctrl",
             global: true,
             label: "Select multiple"
@@ -36,7 +43,7 @@ export function GlobalHotkeys(props: GlobalHotkeysProps) {
             combo: "ctrl + shift",
             global: true,
             label: "Select all"
-        }
+        },
     ], [dispatch]);
 
     const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
