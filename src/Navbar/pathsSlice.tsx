@@ -1,6 +1,6 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState, isAnyOf } from "@reduxjs/toolkit";
 import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal } from "./routinesSlice";
-import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate, remove, removeAll } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { folderAddedInternal, folderDeletedInternal } from "../Tree/foldersSlice";
@@ -82,35 +82,30 @@ export const pathsSlice = createSlice({
                 pathsAdapter.updateOne(pathState, makeUpdate(path.id, { folderIds: newFolderIds }));
             })
             .addCase(waypointDeletedInternal, (pathState, action) => {
-                const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.WAYPOINT);
-                const newWaypointIds = path.waypointIds.filter(waypointId => waypointId !== action.payload.id);
-
-                const newFolderIds = action.payload.deleteFolder ?
-                    path.folderIds.filter(folderId => folderId !== action.payload.folderId) : path.folderIds;
-
-                pathsAdapter.updateOne(pathState,
-                    makeUpdate(path.id, {
-                        waypointIds: newWaypointIds,
-                        folderIds: newFolderIds
-                    }));
+                const { id, deleteFolder, folderId } = action.payload;
+                const path = selectOwnerPathInternal(pathState, id, ItemType.WAYPOINT);
+                removeIdsFromPath(pathState, path, [id], deleteFolder ? [folderId ?? ""] : undefined);
             })
             .addCase(folderDeletedInternal, (pathState, action) => {
                 const path = selectOwnerPathInternal(pathState, action.payload.id, ItemType.FOLDER);
-                const newFolderIds = path.folderIds.filter(folderId => folderId !== action.payload.id);
-                const newWaypointIds = path.waypointIds.filter(waypointId => !action.payload.waypointIds.includes(waypointId));
-                pathsAdapter.updateOne(pathState, makeUpdate(path.id, { folderIds: newFolderIds, waypointIds: newWaypointIds }));
+                removeIdsFromPath(pathState, path, action.payload.waypointIds, [action.payload.id]);
             })
             .addCase(selectionDeletedInternal, (pathState, action) => {
-                const updates = action.payload.folderIds.map(folderId => {
+                const { folderIds, waypointIds } = action.payload;
+                folderIds.forEach(folderId => {
                     const path = selectOwnerPathInternal(pathState, folderId, ItemType.FOLDER);
-                    const newFolderIds = path.folderIds.filter(currFolderId => currFolderId !== folderId);
-                    const newWaypointIds = path.waypointIds.filter(waypointId => !action.payload.waypointIds.includes(waypointId));
-                    return makeUpdate(path.id, { folderIds: newFolderIds, waypointIds: newWaypointIds });
+                    removeIdsFromPath(pathState, path, waypointIds, [folderId]);
                 });
-                pathsAdapter.updateMany(pathState, updates);
             })
     }
 });
+
+function removeIdsFromPath(pathState: EntityState<Path>, path: Path, waypointIds?: EntityId[], folderIds?: EntityId[]) {
+    pathsAdapter.updateOne(pathState, makeUpdate(path.id, {
+        waypointIds: waypointIds && removeAll(path.waypointIds, waypointIds),
+        folderIds: folderIds && removeAll(path.folderIds, folderIds)
+    }));
+}
 
 export function pathDeleted(pathId: EntityId): AppThunk {
     return (dispatch, getState) => {

@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction, EntityId, isAnyOf } from "@reduxjs/toolkit";
+import { WritableDraft } from "immer/dist/internal";
 import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { routineRenamed } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
-import { includesAll, includesArray, removeAll, removeArray } from "../Store/storeUtils";
+import { addReversedArray, includesAll, includesArray, removeAll, removeArray } from "../Store/storeUtils";
 import { folderRenamed, selectFolderWaypointIds, selectOwnerFolder } from "./foldersSlice";
 import { robotRenamed } from "./robotsSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
@@ -24,7 +25,6 @@ import { waypointMovedInternal, waypointRenamed } from "./waypointsSlice";
  */
 export interface TempUi {
     collapsedFolderIds: EntityId[];
-    selectedContainers: Item[];
     selectedWaypointIds: EntityId[];
     hoveredWaypointIds: EntityId[];
     selectedSplineIds: EntityId[][];
@@ -48,28 +48,9 @@ export interface Item {
     itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.PATH;
 }
 
-/**
- * Returns true if items includes id.
- */
-export function itemsInclude(items: Item[], id: EntityId): boolean {
-    return items.some(item => item.id === id);
-}
-
-/**
- * Returns true if every id in ids is included in items.
- */
-export function itemsIncludeAll(items: Item[], ids: EntityId[]): boolean {
-    return ids.every(id => itemsInclude(items, id));
-}
-
-export function makeItem(id: EntityId, itemType: ItemType.WAYPOINT | ItemType.FOLDER | ItemType.PATH) {
-    return { id, itemType };
-}
-
 const defaultTempUiState: TempUi = {
     collapsedFolderIds: [],
     hoveredWaypointIds: [],
-    selectedContainers: [],
     selectedWaypointIds: [],
     hoveredSplineIds: [],
     selectedSplineIds: [],
@@ -134,9 +115,7 @@ export const tempUiSlice = createSlice({
                 // slice is 4
                 const slice = treeWaypointIds.slice(index + 1, lastSelectedIndex).reverse();
                 // copy is 1, 2, 3
-                const copy: EntityId[] = [];
-                containedWaypointIds.forEach(containedId => copy.unshift(containedId));
-                uiState.selectedWaypointIds.push(...slice, ...copy);
+                addReversedArray(uiState.selectedWaypointIds, containedWaypointIds);
             }
         },
         itemMultiSelectedInternal(uiState, action: PayloadAction<EntityId[]>) {
@@ -147,7 +126,7 @@ export const tempUiSlice = createSlice({
                 uiState.selectedWaypointIds = removeAll(uiState.selectedWaypointIds, containedWaypointIds);
             } else {
                 // reverse so shift click is based on first element
-                uiState.selectedWaypointIds.push(...Array.of(...containedWaypointIds).reverse());
+                addReversedArray(uiState.selectedWaypointIds, containedWaypointIds);
                 uiState.selectedSplineIds = []; // remove spline id selection
             }
         },
@@ -163,7 +142,7 @@ export const tempUiSlice = createSlice({
             else {
                 // reverse so shift click is based on first element
                 // .reverse() doesn't work since containedWaypointIds is readonly
-                uiState.selectedWaypointIds = Array.of(...containedWaypointIds).reverse();
+                addReversedArray(uiState.selectedWaypointIds, containedWaypointIds);
                 uiState.selectedSplineIds = [];
             }
         },
@@ -176,26 +155,12 @@ export const tempUiSlice = createSlice({
             uiState.selectedWaypointIds = [];
             uiState.selectedSplineIds = [];
         },
-        treeItemsExpanded(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.collapsedFolderIds = removeAll(uiState.collapsedFolderIds, action.payload);
-        },
-        treeItemsCollapsed(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.collapsedFolderIds.push(...action.payload);
-        },
-        itemMouseEnterInternal(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.hoveredWaypointIds.push(...action.payload);
-        },
-        itemMouseLeaveInternal(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.hoveredWaypointIds = removeAll(uiState.hoveredWaypointIds, action.payload);
-        },
-        splineMouseEnter(uiState, action: PayloadAction<EntityId[]>) {
-            assertValidSplineId(action.payload);
-            uiState.hoveredSplineIds.push(action.payload);
-        },
-        splineMouseLeave(uiState, action: PayloadAction<EntityId[]>) {
-            assertValidSplineId(action.payload);
-            uiState.hoveredSplineIds = removeArray(uiState.hoveredSplineIds, action.payload);
-        },
+        treeItemsCollapsed: arrayAppendAction("collapsedFolderIds"),
+        treeItemsExpanded: arrayRemoveAction("collapsedFolderIds"),
+        itemMouseEnterInternal: arrayAppendAction("hoveredWaypointIds"),
+        itemMouseLeaveInternal: arrayRemoveAction("hoveredWaypointIds"),
+        splineMouseEnter: nestedArrayAppendAction("hoveredSplineIds"),
+        splineMouseLeave: nestedArrayRemoveAction("hoveredSplineIds"),
         splineSelected(uiState, action: PayloadAction<EntityId[]>) {
             assertValidSplineId(action.payload);
             // already selected
@@ -240,6 +205,47 @@ export const tempUiSlice = createSlice({
     }
 });
 
+type TempUiDraft = WritableDraft<TempUi>;
+type TempUiDraftKeys = keyof TempUiDraft;
+
+type TempUiArrayKey = {
+    // bug: K in keyof fails for some dumb typescript reason
+    [K in TempUiDraftKeys]: TempUiDraft[K] extends EntityId[] ? K : never
+}[TempUiDraftKeys];
+
+type TempUiNestedArrayKey = {
+    // bug: K in keyof fails for some dumb typescript reason
+    [K in TempUiDraftKeys]: TempUiDraft[K] extends EntityId[][] ? K : never
+}[TempUiDraftKeys];
+
+function arrayAppendAction(key: TempUiArrayKey) {
+    return (uiState: WritableDraft<TempUi>,
+        action: PayloadAction<EntityId[]>) => {
+        uiState[key].push(...action.payload);
+    };
+}
+
+function arrayRemoveAction(key: TempUiArrayKey) {
+    return (uiState: WritableDraft<TempUi>,
+        action: PayloadAction<EntityId[]>) => {
+        uiState[key] = removeAll(uiState[key], action.payload);
+    };
+}
+
+function nestedArrayAppendAction(key: TempUiNestedArrayKey) {
+    return (uiState: WritableDraft<TempUi>,
+        action: PayloadAction<EntityId[]>) => {
+        uiState[key].push(action.payload);
+    };
+}
+
+function nestedArrayRemoveAction(key: TempUiNestedArrayKey) {
+    return (uiState: WritableDraft<TempUi>,
+        action: PayloadAction<EntityId[]>) => {
+        uiState[key] = removeArray(uiState[key], action.payload);
+    };
+}
+
 /**
  * Deletes everything currently selected. Triggered by hitting the delete key while stuff is selected.
  * Generally, this function preserves paths but not folders.
@@ -253,7 +259,7 @@ export function selectionDeleted(): AppThunk {
         const folderIds = waypointIds.reduce((folderIds, waypointId) => {
             const ownerFolder = selectOwnerFolder(state, waypointId);
             if (ownerFolder) {
-                if (ownerFolder.waypointIds.every(waypointId => waypointIds.includes(waypointId))) {
+                if (includesAll(ownerFolder.waypointIds, waypointIds)) {
                     folderIds.push(ownerFolder.id);
                 }
                 else if (!folderIds.includes(ownerFolder.id)) {
