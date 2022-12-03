@@ -148,3 +148,11 @@ export function AppTreeContextMenu(): JSX.Element{
         </Menu>
     )
 }
+
+export function SplineContextMenu(): JSX.Element{
+    return (
+        <Menu>
+            <MenuItem2 label="Spline"/>
+        </Menu>
+    )
+}

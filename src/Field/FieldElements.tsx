@@ -9,7 +9,7 @@ import { useAppSelector, useAppDispatch } from "../Store/hooks";
 import { AppDispatch } from "../Store/store";
 import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
-import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
+import { MenuLocation, WaypointContextMenu, SplineContextMenu } from "../Tree/TreeContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById, ControlWaypoint } from "../Tree/waypointsSlice";
 import { Point, makeCurve, parameterRange, INCH, DEGREE, FEET, flatten, makePointFromKonvaEvent, makePointFromPolar } from "./mathUtils";
@@ -165,9 +165,7 @@ function SplineElement(props: SplineElementProps): JSX.Element | null {
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
         onContextMenu={konvaContextMenuHandler(
-            <Menu>
-                <MenuItem2 label="Spline" />
-            </Menu>)}
+            <SplineContextMenu />)}
     />);
 
     const manipulators = !isSelected ? null : (<>
