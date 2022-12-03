@@ -24,6 +24,7 @@ export const fieldSlice = createSlice({
     } as Field,
     reducers: {
         fieldUpdated(fieldState, action: PayloadAction<Partial<Field>>) {
+            // return to replace entire field
             return Object.assign(fieldState, action.payload);
         },
         fieldDimensionsChanged(fieldState, action: PayloadAction<FieldDimensions>) {

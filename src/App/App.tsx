@@ -4,9 +4,9 @@ import { FocusStyleManager, HotkeysProvider } from "@blueprintjs/core";
 // import logo from "./logo.svg";
 
 import { Provider } from "react-redux";
-import { store } from "./Store/store";
+import { store } from "../Store/store";
 
-import { AppNavbar } from "./Navbar/AppNavbar";
+import { AppNavbar } from "../Navbar/AppNavbar";
 import { AppBody } from "./AppBody";
 import { GlobalHotkeys } from "./GlobalHotkeys";
 
