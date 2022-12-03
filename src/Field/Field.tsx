@@ -16,6 +16,7 @@ import { Transform, INCH } from "./mathUtils";
 import { allItemsDeselected } from "../Tree/tempUiSlice";
 import { FieldElements } from "./FieldElements";
 import { ContextMenuHandler, ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
+import { OutsideFieldContextMenu, OnFieldContextMenu } from "../Tree/TreeContextMenu";
 
 /**
  * We need a couple manipulators
@@ -84,11 +85,14 @@ function FieldStage(props: FieldStageProps): JSX.Element {
                 if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
             }}
             onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
-                if (e.currentTarget === e.target) {
+                
+                // TODO - Determine Intent here.
+                if (e.currentTarget === e.target) {             
                     props.contextMenuHandler(
-                        <Menu>
+                        /*<Menu>
                             <MenuItem2 label="Outside field" />
-                        </Menu>, e.evt);
+                        </Menu>*/
+                        <OutsideFieldContextMenu/>, e.evt);
                 }
             }}
         >
@@ -131,9 +135,11 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
     return (<Layer
         {...props.fieldTransform}
         onContextMenu={konvaContextMenuHandler(
-            <Menu>
-                <MenuItem2 label="Field" />
-            </Menu>)}
+            <OnFieldContextMenu/>
+            //<Menu>
+                //<MenuItem2 label="Field" />
+            //</Menu>
+            )}
     >
         <Rect
             x={0.5 * INCH}
