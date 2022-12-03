@@ -208,6 +208,14 @@ export const tempUiSlice = createSlice({
 type TempUiDraft = WritableDraft<TempUi>;
 type TempUiDraftKeys = keyof TempUiDraft;
 
+/**
+ * Represents Keys in O which map to values of type T.
+ */
+// type KeyTo<O, T> = {
+//     [K in Keys<O>]: O[K] extends EntityId[] ? K : never
+// }[Keys<O>];
+// type Keys<O> = keyof O;
+
 type TempUiArrayKey = {
     // bug: K in keyof fails for some dumb typescript reason
     [K in TempUiDraftKeys]: TempUiDraft[K] extends EntityId[] ? K : never
