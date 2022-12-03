@@ -13,7 +13,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, AppTreeContextMenu } from "./TreeContextMenu";
 import { NameInput } from "../Navbar/NameInput";
 import {
     allItemsDeselected,
@@ -87,11 +87,7 @@ export function AppTree(): JSX.Element {
     const handleContextMenu = useCallback((e: MouseEvent) => {
         // true if right click is on card specifically
         if (e.currentTarget === e.target) {
-            const contextMenu = (
-                <Menu>
-                    <MenuItem2 label="Ahh" />
-                </Menu>);
-            contextMenuHandler(contextMenu, e.nativeEvent);
+            contextMenuHandler(<AppTreeContextMenu/>, e.nativeEvent);
         }
     }, [contextMenuHandler]);
 
