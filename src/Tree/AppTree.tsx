@@ -13,7 +13,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, AppTreeContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, AppTreeContextMenu } from "./ContextMenu";
 import { NameInput } from "../Navbar/NameInput";
 import {
     allItemsDeselected,

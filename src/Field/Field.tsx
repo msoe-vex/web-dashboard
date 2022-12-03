@@ -16,7 +16,7 @@ import { Transform, INCH } from "./mathUtils";
 import { allItemsDeselected } from "../Tree/tempUiSlice";
 import { FieldElements } from "./FieldElements";
 import { ContextMenuHandler, ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
-import { OutsideFieldContextMenu, OnFieldContextMenu } from "../Tree/TreeContextMenu";
+import { OutsideFieldContextMenu, OnFieldContextMenu } from "../Tree/ContextMenu";
 
 /**
  * We need a couple manipulators
