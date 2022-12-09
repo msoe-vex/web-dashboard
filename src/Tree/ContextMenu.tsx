@@ -150,9 +150,12 @@ export function AppTreeContextMenu(): JSX.Element{
 }
 
 export function SplineContextMenu(): JSX.Element{
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
     return (
         <Menu>
-            <MenuItem2 label="Spline"/>
+            {showAll}
+            {hideAll}
         </Menu>
     )
 }
