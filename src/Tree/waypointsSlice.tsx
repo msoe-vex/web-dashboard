@@ -5,7 +5,7 @@ import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal
 import { AppThunk, RootState } from "../Store/store";
 import { folderDeletedInternal, selectOwnerFolder } from "./foldersSlice";
 import { pathDeletedInternal } from "../Navbar/pathsSlice";
-import { selectSelectedWaypointIds } from "./tempUiSlice";
+import { selectionDeletedInternal, selectSelectedWaypointIds } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 /**
@@ -120,8 +120,7 @@ export const waypointsSlice = createSlice({
             } else {
                 const updateObjects = selectedWaypointIds.map((selectedWaypointId) => {
                     const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, selectedWaypointId));
-                    const newPoint = add(waypoint.point, offset);
-                    return makeUpdate(selectedWaypointId, { point: newPoint });
+                    return makeUpdate(selectedWaypointId, { point: add(waypoint.point, offset) });
                 });
                 waypointsAdapter.updateMany(waypointState, updateObjects);
             }
@@ -162,7 +161,7 @@ export const waypointsSlice = createSlice({
             } else { copy.parameter += 0.1; }
             waypointsAdapter.addOne(waypointState, copy);
         },
-        waypointRenamed(waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) {
+        waypointRenamed: (waypointState, action: PayloadAction<{ newName: string, id: EntityId }>) => {
             waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { name: action.payload.newName }));
         }
     },
@@ -186,10 +185,16 @@ export const waypointsSlice = createSlice({
                 waypointsAdapter.addMany(waypointState, action.payload.waypoints);
             })
             // matchers must come last
-            .addMatcher(isAnyOf(routineDeletedInternal, pathDeletedInternal, folderDeletedInternal),
-                (waypointState, action) => waypointsAdapter.removeMany(waypointState, action.payload.waypointIds))
+            .addMatcher(isAnyOf(routineDeletedInternal, pathDeletedInternal, folderDeletedInternal, selectionDeletedInternal),
+                (waypointState, action) => {
+                    waypointsAdapter.removeMany(waypointState, action.payload.waypointIds);
+                })
     }
 });
+
+export function selectWaypointSlice(state: RootState) {
+    return state.history.present.waypoints;
+}
 
 // Runtime selectors
 export const {
@@ -198,7 +203,7 @@ export const {
     selectIds: selectWaypointIds,
     selectAll: selectAllWaypoints,
     selectEntities: selectWaypointDictionary,
-} = addValidIdSelector(waypointsAdapter.getSelectors<RootState>((state) => state.history.present.waypoints));
+} = addValidIdSelector(waypointsAdapter.getSelectors<RootState>(selectWaypointSlice));
 
 export const {
     waypointDuplicatedInternal,
@@ -214,6 +219,7 @@ export const {
 export function waypointDeleted(id: EntityId): AppThunk {
     return (dispatch, getState) => {
         const state = getState();
+        // folder and deleteFolder is bundled so path can also update correctly
         const folder = selectOwnerFolder(state, id);
         const deleteFolder = (folder !== undefined && folder.waypointIds.length === 1);
         dispatch(waypointDeletedInternal({ id, folderId: folder?.id, deleteFolder }));
@@ -222,8 +228,7 @@ export function waypointDeleted(id: EntityId): AppThunk {
 
 /**
  * Made tricky by the need to insert into the correct location in path.
- * Could currently be a prepare function.
- * In the future, could simply dispatch waypointAddedAfter.
+ * Cannot be prepare function because folder also needs to insert the new waypoint.
  */
 export function waypointDuplicated(id: EntityId): AppThunk {
     return (dispatch) => {

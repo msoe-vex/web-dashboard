@@ -1,10 +1,10 @@
-import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAnyOf } from "@reduxjs/toolkit";
+import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAnyOf, EntityState } from "@reduxjs/toolkit";
 
 import { AppThunk, RootState } from "../Store/store";
 import { routineDeletedInternal, routineDuplicatedInternal } from "../Navbar/routinesSlice";
 import { pathDeletedInternal, selectOwnerPath } from "../Navbar/pathsSlice";
 import { waypointDeletedInternal, waypointDuplicatedInternal } from "./waypointsSlice";
-import { ItemType } from "./tempUiSlice";
+import { ItemType, selectionDeletedInternal } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
 export interface Folder {
@@ -48,8 +48,11 @@ export const foldersSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(routineDuplicatedInternal, (folderState, action) => {
-                foldersAdapter.addMany(folderState, action.payload.folders);
+            .addCase(waypointDeletedInternal, (folderState, action) => {
+                handleWaypointDeleted(folderState, action.payload.id);
+            })
+            .addCase(selectionDeletedInternal, (folderState, action) => {
+                action.payload.updateWaypointIds.forEach(waypointId => { handleWaypointDeleted(folderState, waypointId); });
             })
             .addCase(waypointDuplicatedInternal, (folderState, action) => {
                 const existingFolder = simpleSelectors.selectAll(folderState).find(folder => folder.waypointIds.includes(action.payload.waypointId));
@@ -60,22 +63,26 @@ export const foldersSlice = createSlice({
                     foldersAdapter.updateOne(folderState, { id: existingFolder.id, changes: { waypointIds: newWaypointIds } });
                 }
             })
-            .addCase(waypointDeletedInternal, (folderState, action) => {
-                const { id, folderId, deleteFolder } = action.payload;
-                // if waypoint is in folder
-                if (folderId) {
-                    if (deleteFolder) { foldersAdapter.removeOne(folderState, folderId); }
-                    else {
-                        const waypointIds = simpleSelectors.selectById(folderState, folderId)
-                            .waypointIds.filter(waypointId => waypointId !== id);
-                        foldersAdapter.updateOne(folderState, makeUpdate(folderId, { waypointIds }));
-                    }
-                }
+            .addCase(routineDuplicatedInternal, (folderState, action) => {
+                foldersAdapter.addMany(folderState, action.payload.folders);
             })
             .addMatcher(isAnyOf(routineDeletedInternal, pathDeletedInternal),
                 (folderState, action) => foldersAdapter.removeMany(folderState, action.payload.folderIds))
     }
 });
+
+function handleWaypointDeleted(folderState: EntityState<Folder>, waypointId: EntityId) {
+    const ownerFolder = selectOwnerFolderInternal(folderState, waypointId);
+    if (ownerFolder) {
+        if (ownerFolder.waypointIds.length === 1) {
+            foldersAdapter.removeOne(folderState, ownerFolder.id);
+        }
+        else {
+            const waypointIds = ownerFolder.waypointIds.filter(containedId => containedId !== waypointId);
+            foldersAdapter.updateOne(folderState, makeUpdate(ownerFolder.id, { waypointIds }));
+        }
+    }
+}
 
 export function folderAdded(waypointIds: EntityId[]): AppThunk {
     return (dispatch, getState) => {
@@ -114,6 +121,10 @@ export const {
     folderRenamed
 } = foldersSlice.actions;
 
+export function selectFolderSlice(state: RootState) {
+    return state.history.present.folders;
+}
+
 // Runtime selectors
 export const {
     selectById: selectFolderById,
@@ -121,7 +132,7 @@ export const {
     selectIds: selectFolderIds,
     selectAll: selectAllFolders,
     selectEntities: selectFolderDictionary,
-} = addValidIdSelector(foldersAdapter.getSelectors<RootState>((state) => state.history.present.folders));
+} = addValidIdSelector(foldersAdapter.getSelectors<RootState>(selectFolderSlice));
 
 export function selectFolderWaypointIds(state: RootState, folderId: EntityId): EntityId[] {
     return selectFolderByValidId(state, folderId).waypointIds;
@@ -133,7 +144,11 @@ export function selectFolderWaypointIds(state: RootState, folderId: EntityId): E
  * @param waypointId - The waypoint id to use.
  */
 export function selectOwnerFolder(state: RootState, waypointId: EntityId): Folder | undefined {
-    return selectAllFolders(state).find(folder => folder.waypointIds.includes(waypointId));
+    return selectOwnerFolderInternal(selectFolderSlice(state), waypointId);
+}
+
+export function selectOwnerFolderInternal(folderState: EntityState<Folder>, waypointId: EntityId): Folder | undefined {
+    return simpleSelectors.selectAll(folderState).find(folder => folder.waypointIds.includes(waypointId));
 }
 
 /**

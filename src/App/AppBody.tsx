@@ -1,12 +1,12 @@
 import React from "react";
 import { NonIdealState } from "@blueprintjs/core";
 
-import { AppTree } from "./Tree/AppTree";
-import { Field } from "./Field/Field";
+import { AppTree } from "../Tree/AppTree";
+import { Field } from "../Field/Field";
 
-import { useAppSelector } from "./Store/hooks";
-import { selectActiveRoutineId } from "./Tree/uiSlice";
-import { AppContextMenu } from "./Field/AppContextMenu";
+import { useAppSelector } from "../Store/hooks";
+import { selectActiveRoutineId } from "../Tree/uiSlice";
+import { AppContextMenu } from "../Field/AppContextMenu";
 
 interface AppBodyProps {
     className: string;

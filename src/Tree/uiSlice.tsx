@@ -52,9 +52,8 @@ export const uiSlice = createSlice({
                         uiState.hiddenWaypointIds.filter(hiddenId => !selectedWaypointIds.includes(hiddenId));
                 }
             } else {
-                if (nowHidden) {
-                    uiState.hiddenWaypointIds.push(...containedWaypointIds);
-                } else {
+                if (nowHidden) { uiState.hiddenWaypointIds.push(...containedWaypointIds); }
+                else {
                     uiState.hiddenWaypointIds = uiState.hiddenWaypointIds.filter(hiddenId => !containedWaypointIds.includes(hiddenId));
                 }
             }
@@ -76,20 +75,23 @@ export const uiSlice = createSlice({
 });
 
 export function itemSelectionShown(): AppThunk {
-    return (dispatch, getState) =>
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemSelectionShownInternal(selectSelectedWaypointIds(getState())));
+    }
 }
 
 export function itemSelectionHidden(): AppThunk {
-    return (dispatch, getState) =>
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.itemSelectionHiddenInternal(selectSelectedWaypointIds(getState())));
+    }
 }
 
 export function allItemsHidden(): AppThunk {
-    return (dispatch, getState) =>
+    return (dispatch, getState) => {
         dispatch(uiSlice.actions.allItemsHiddenInternal(
             selectAllTreeWaypointIds(getState())
         ));
+    }
 }
 
 export function itemVisibilityToggled(id: EntityId | EntityId[], itemType: ItemType): AppThunk {
@@ -110,7 +112,6 @@ export const {
 export function selectActiveRoutineId(state: RootState) { return state.history.present.ui.activeRoutineId; }
 export function selectActiveRoutine(state: RootState): Routine | undefined {
     const activeRoutineId = selectActiveRoutineId(state);
-    return activeRoutineId ? selectRoutineByValidId(state, activeRoutineId) : undefined;
+    return (activeRoutineId ? selectRoutineByValidId(state, activeRoutineId) : undefined);
 }
-
 export function selectHiddenWaypointIds(state: RootState) { return state.history.present.ui.hiddenWaypointIds; }
