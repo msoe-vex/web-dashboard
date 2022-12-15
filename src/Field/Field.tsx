@@ -7,8 +7,7 @@ import { Html } from "react-konva-utils";
 import useImage from "use-image";
 
 import { Intent } from "@blueprintjs/core/lib/esm/common";
-import { MenuItem2 } from "@blueprintjs/popover2";
-import { Menu, Spinner, SpinnerSize } from "@blueprintjs/core";
+import { Spinner, SpinnerSize } from "@blueprintjs/core";
 
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch } from "../Store/hooks";
@@ -20,6 +19,7 @@ import { allItemsDeselected } from "../Tree/tempUiSlice";
 import { FieldElements } from "./FieldElements";
 import { ContextMenuHandler, ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 import { IRect, Vector2d } from "konva/lib/types";
+import { OutsideFieldContextMenu, OnFieldContextMenu } from "../Tree/ContextMenu";
 
 /**
  * We need a couple manipulators
@@ -87,14 +87,12 @@ function FieldStage(props: FieldStageProps): JSX.Element {
             onClick={(e: KonvaEventObject<MouseEvent>) => {
                 if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
             }}
-            onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
-                if (e.currentTarget === e.target) {
-                    props.contextMenuHandler(
-                        <Menu>
-                            <MenuItem2 label="Outside field" />
-                        </Menu>, e.evt);
-                }
-            }}
+            onContextMenu={
+                (e: KonvaEventObject<MouseEvent>) => {
+                    if (e.currentTarget === e.target) {
+                        props.contextMenuHandler(<OutsideFieldContextMenu />, e.evt);
+                    }
+                }}
         >
             <Provider store={props.store}>
                 <ContextMenuHandlerContext.Provider value={props.contextMenuHandler}>
@@ -192,10 +190,7 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
     const konvaContextMenuHandler = getKonvaContextMenuHandler(useContext(ContextMenuHandlerContext));
     return (<Layer
         {...props.fieldTransform}
-        onContextMenu={konvaContextMenuHandler(
-            <Menu>
-                <MenuItem2 label="Field" />
-            </Menu>)}
+        onContextMenu={konvaContextMenuHandler(<OnFieldContextMenu />)}
     >
         {/* <Rect
             x={0.5 * INCH}

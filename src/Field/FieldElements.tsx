@@ -2,18 +2,17 @@ import React, { useContext, useMemo, useState } from "react";
 
 import { EntityId } from "@reduxjs/toolkit";
 import { KonvaEventObject } from "konva/lib/Node";
-import { Colors, Menu } from "@blueprintjs/core";
+import { Colors } from "@blueprintjs/core";
 import { Line, Circle, Rect } from "react-konva";
 
 import { useAppSelector, useAppDispatch } from "../Store/hooks";
 import { AppDispatch } from "../Store/store";
 import { selectPathByValidId } from "../Navbar/pathsSlice";
 import { selectHoveredWaypointIds, selectSelectedWaypointIds, itemSelected, ItemType, itemMouseEnter, itemMouseLeave, selectSelectedSplineIds, selectHoveredSplineIds, splineSelected, splineMouseEnter, splineMouseLeave } from "../Tree/tempUiSlice";
-import { MenuLocation, WaypointContextMenu } from "../Tree/TreeContextMenu";
+import { MenuLocation, WaypointContextMenu, SplineContextMenu } from "../Tree/ContextMenu";
 import { selectActiveRoutine, selectHiddenWaypointIds } from "../Tree/uiSlice";
 import { isControlWaypoint, waypointMoved, waypointRobotRotated, MagnitudePosition, waypointMagnitudeMoved, selectWaypointById, ControlWaypoint } from "../Tree/waypointsSlice";
 import { Point, makeCurve, parameterRange, INCH, DEGREE, FEET, flatten, makePointFromKonvaEvent, makePointFromPolar } from "./mathUtils";
-import { MenuItem2 } from "@blueprintjs/popover2";
 import { ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
 
 export function FieldElements(): null | JSX.Element {
@@ -88,7 +87,7 @@ function RobotElement(props: RobotElementProps): JSX.Element | null {
             stroke={isHidden ? undefined : Colors.BLACK}
             fill={fill}
             shadowEnabled={hoveredWaypointIds.includes(waypoint.id)}
-            {...shadowProps} //Takes key : value pairs from shadowProps.
+            {...shadowProps}
             onClick={(e: KonvaEventObject<MouseEvent>) => { dispatch(itemSelected(waypoint.id, ItemType.WAYPOINT, e.evt.shiftKey, e.evt.ctrlKey)); }}
             draggable={!isHidden}
             onDragMove={onWaypointDrag}
@@ -165,9 +164,7 @@ function SplineElement(props: SplineElementProps): JSX.Element | null {
         onMouseEnter={() => { dispatch(splineMouseEnter([previousWaypoint.id, waypoint.id])); }}
         onMouseLeave={() => { dispatch(splineMouseLeave([previousWaypoint.id, waypoint.id])); }}
         onContextMenu={konvaContextMenuHandler(
-            <Menu>
-                <MenuItem2 label="Spline" />
-            </Menu>)}
+            <SplineContextMenu />)}
     />);
 
     const manipulators = !isSelected ? null : (<>

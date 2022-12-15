@@ -109,3 +109,50 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
         </Menu>
     );
 }
+
+export function OnFieldContextMenu(): JSX.Element {
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
+    return (
+        <Menu>
+            {showAll}
+            {hideAll}
+        </Menu>
+    )
+}
+
+export function OutsideFieldContextMenu(): JSX.Element {
+    //const dispatch = useAppDispatch();
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
+    return (
+        <Menu>
+            {showAll}
+            {hideAll}
+        </Menu>
+    )
+}
+
+export function AppTreeContextMenu(): JSX.Element {
+    const collapseAndExpandAll = (<CollapseAndExpandAllMenuItems />);
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
+    return (
+        <Menu>
+            {collapseAndExpandAll}
+            {showAll}
+            {hideAll}
+        </Menu>
+    )
+}
+
+export function SplineContextMenu(): JSX.Element {
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
+    return (
+        <Menu>
+            {showAll}
+            {hideAll}
+        </Menu>
+    )
+}

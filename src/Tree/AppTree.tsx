@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, MouseEvent } from "react";
 
-import { Tree, TreeNodeInfo, IconName, Button, Card, H5, Menu } from "@blueprintjs/core";
-import { MenuItem2 } from "@blueprintjs/popover2";
+import { Tree, TreeNodeInfo, IconName, Button, Card, H5 } from "@blueprintjs/core";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -13,7 +12,7 @@ import {
 } from "./uiSlice";
 import { selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { Folder, selectFolderDictionary } from "./foldersSlice";
-import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu } from "./TreeContextMenu";
+import { FolderContextMenu, MenuLocation, PathContextMenu, WaypointContextMenu, AppTreeContextMenu } from "./ContextMenu";
 import { NameInput } from "../Navbar/NameInput";
 import {
     allItemsDeselected,
@@ -87,11 +86,7 @@ export function AppTree(): JSX.Element {
     const handleContextMenu = useCallback((e: MouseEvent) => {
         // true if right click is on card specifically
         if (e.currentTarget === e.target) {
-            const contextMenu = (
-                <Menu>
-                    <MenuItem2 label="Ahh" />
-                </Menu>);
-            contextMenuHandler(contextMenu, e.nativeEvent);
+            contextMenuHandler(<AppTreeContextMenu />, e.nativeEvent);
         }
     }, [contextMenuHandler]);
 
