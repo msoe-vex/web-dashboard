@@ -7,9 +7,7 @@ import { Html } from "react-konva-utils";
 import useImage from "use-image";
 
 import { Intent } from "@blueprintjs/core/lib/esm/common";
-import { MenuItem2 } from "@blueprintjs/popover2";
-import { Menu, Spinner, SpinnerSize } from "@blueprintjs/core";
-import { Colors } from "@blueprintjs/core/lib/esm/common";
+import { Spinner, SpinnerSize } from "@blueprintjs/core";
 
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch } from "../Store/hooks";
