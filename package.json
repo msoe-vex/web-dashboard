@@ -23,6 +23,7 @@
     "react-complex-tree": "^1.1.11",
     "react-dom": "^18.1.0",
     "react-konva": "^18.2.1",
+    "react-konva-utils": "^0.3.0",
     "react-redux": "^8.0.2",
     "react-scripts": "^5.0.1",
     "redux": "^4.2.0",
