@@ -7,6 +7,7 @@ import { folderDeletedInternal, selectOwnerFolder } from "./foldersSlice";
 import { pathDeletedInternal } from "../Navbar/pathsSlice";
 import { selectionDeletedInternal, selectSelectedWaypointIds } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
+import { selectActiveRoutine } from "./uiSlice";
 
 /**
  * @param {number} robotAngle - The angle of the robot at the waypoint in radians.
@@ -72,31 +73,36 @@ export function assertControlWaypoint(waypoint: Waypoint | undefined): ControlWa
 const waypointsAdapter = createEntityAdapter<Waypoint>();
 const simpleSelectors = getSimpleSelectors(waypointsAdapter);
 
+export enum InsertLocation {
+    BEFORE,
+    AFTER
+}
+
 export const waypointsSlice = createSlice({
     name: "waypoints",
     initialState: waypointsAdapter.getInitialState(),
     reducers: {
-        /**
-         * @param {number} index @optional
-         *      The index to insert at. The existing waypoint at the index is shifted back to make room.
-         */
-        waypointAdded: {
-            reducer: (waypointState, action: PayloadAction<{
-                waypointId: EntityId,
-                index?: number
-            }>) => {
-                waypointsAdapter.addOne(waypointState, {
-                    id: action.payload.waypointId,
-                    name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
-                    point: ZERO_POINT,
-                    angle: 0 * DEGREE,
-                    startMagnitude: 1 * FEET,
-                    endMagnitude: 1 * FEET
-                });
-            },
-            prepare: (index?: number) => {
-                return { payload: { waypointId: nanoid(), index } };
-            }
+        waypointAddedInternal: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            pathId: EntityId,
+            point?: Point,
+        }>) => {
+            waypointsAdapter.addOne(waypointState, {
+                id: action.payload.id,
+                name: getNextName(simpleSelectors.selectAll(waypointState), "Waypoint"),
+                point: action.payload.point ?? ZERO_POINT,
+                angle: 0 * DEGREE,
+                startMagnitude: 1 * FEET,
+                endMagnitude: 1 * FEET
+            });
+        },
+        waypointInserted: (waypointState, action: PayloadAction<{
+            id: EntityId,
+            waypointId: EntityId,
+            location: InsertLocation
+        }>) => {
+            // TODO: add new waypoint, optionally inheriting properties (like magnitude and position) from waypointId
+            // use simpleSelectors to get the waypoint represented by waypointId
         },
         waypointDeletedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -207,14 +213,38 @@ export const {
 
 export const {
     waypointDuplicatedInternal,
-    waypointAdded,
     waypointDeletedInternal,
     waypointUpdated,
     waypointRenamed,
     waypointMagnitudeMoved,
     waypointRobotRotated,
-    waypointMovedInternal
+    waypointMovedInternal,
+    waypointAddedInternal,
+    waypointInserted
 } = waypointsSlice.actions;
+
+export function waypointAdded(point?: Point): AppThunk {
+    return (dispatch, getState) => {
+        const state = getState();
+        const activeRoutine = selectActiveRoutine(state);
+        if (!activeRoutine) { return; }
+        // select last path in currently active routine
+        const pathId = activeRoutine.pathIds[-1];
+        dispatch(waypointAddedInternal({ id: nanoid(), pathId, point }));
+    };
+}
+
+export function waypointAddedBefore(waypointId: EntityId): AppThunk {
+    return (dispatch, getState) => {
+        // dispatch waypointInserted
+    };
+}
+
+export function waypointAddedAfter(waypointId: EntityId): AppThunk {
+    return (dispatch, getState) => {
+        // dispatch waypointInserted
+    };
+}
 
 export function waypointDeleted(id: EntityId): AppThunk {
     return (dispatch, getState) => {
