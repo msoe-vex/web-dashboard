@@ -4,8 +4,6 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { Layer, Rect, Stage } from "react-konva";
 
 import { Colors } from "@blueprintjs/core/lib/esm/common";
-import { MenuItem2 } from "@blueprintjs/popover2";
-import { Menu } from "@blueprintjs/core";
 
 import { Provider, ReactReduxContext } from "react-redux";
 import { useAppDispatch } from "../Store/hooks";
@@ -84,17 +82,12 @@ function FieldStage(props: FieldStageProps): JSX.Element {
             onClick={(e: KonvaEventObject<MouseEvent>) => {
                 if (!e.cancelBubble) { dispatch(allItemsDeselected()); }
             }}
-            onContextMenu={(e: KonvaEventObject<MouseEvent>) => {
-                
-                // TODO - Determine Intent here.
-                if (e.currentTarget === e.target) {             
-                    props.contextMenuHandler(
-                        /*<Menu>
-                            <MenuItem2 label="Outside field" />
-                        </Menu>*/
-                        <OutsideFieldContextMenu/>, e.evt);
-                }
-            }}
+            onContextMenu={
+                (e: KonvaEventObject<MouseEvent>) => {
+                    if (e.currentTarget === e.target) {
+                        props.contextMenuHandler(<OutsideFieldContextMenu />, e.evt);
+                    }
+                }}
         >
             <Provider store={props.store}>
                 <ContextMenuHandlerContext.Provider value={props.contextMenuHandler}>
@@ -134,12 +127,7 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
     const konvaContextMenuHandler = getKonvaContextMenuHandler(useContext(ContextMenuHandlerContext));
     return (<Layer
         {...props.fieldTransform}
-        onContextMenu={konvaContextMenuHandler(
-            <OnFieldContextMenu/>
-            //<Menu>
-                //<MenuItem2 label="Field" />
-            //</Menu>
-            )}
+        onContextMenu={konvaContextMenuHandler(<OnFieldContextMenu />)}
     >
         <Rect
             x={0.5 * INCH}
