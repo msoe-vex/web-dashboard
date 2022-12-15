@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, EntityId } from "@reduxjs/toolkit";
 import { routineAddedInternal, routineDeletedInternal, Routine, selectRoutineByValidId } from "../Navbar/routinesSlice";
 import { AppThunk, RootState } from "../Store/store";
+import { includesAll, removeAll } from "../Store/storeUtils";
 import { selectSelectedWaypointIds, selectContainedWaypointIds, ItemType } from "./tempUiSlice";
 import { selectAllTreeWaypointIds } from "./treeActions";
 
@@ -16,7 +17,7 @@ export interface Ui {
 
 const defaultUiState: Ui = {
     activeRoutineId: undefined,
-    hiddenWaypointIds: [],
+    hiddenWaypointIds: []
 };
 
 /**
@@ -39,31 +40,33 @@ export const uiSlice = createSlice({
         }>) {
             const { containedWaypointIds, selectedWaypointIds } = action.payload;
             // if every contained waypoint is already hidden, nowHidden is false
-            const nowHidden = !containedWaypointIds.every(containedId => uiState.hiddenWaypointIds.includes(containedId));
+            const nowHidden = !includesAll(uiState.hiddenWaypointIds, containedWaypointIds);
 
             // If the clicked eye icon is currently part of a selection:
-            if (containedWaypointIds.every(containedId => selectedWaypointIds.includes(containedId))) {
-                if (nowHidden) {
+            if (includesAll(selectedWaypointIds, containedWaypointIds)) {
+                // hide selection (which is guaranteed to contain container children)
+                if (nowHidden) { uiState.hiddenWaypointIds.push(...selectedWaypointIds); }
+                else {
                     // hide selection (which is guaranteed to contain container children)
-                    uiState.hiddenWaypointIds.push(...selectedWaypointIds);
-                } else {
-                    uiState.hiddenWaypointIds =
-                        // hide selection (which is guaranteed to contain container children)
-                        uiState.hiddenWaypointIds.filter(hiddenId => !selectedWaypointIds.includes(hiddenId));
+                    uiState.hiddenWaypointIds = removeAll(uiState.hiddenWaypointIds, selectedWaypointIds);
                 }
             } else {
                 if (nowHidden) { uiState.hiddenWaypointIds.push(...containedWaypointIds); }
                 else {
-                    uiState.hiddenWaypointIds = uiState.hiddenWaypointIds.filter(hiddenId => !containedWaypointIds.includes(hiddenId));
+                    uiState.hiddenWaypointIds = removeAll(uiState.hiddenWaypointIds, containedWaypointIds);
                 }
             }
         },
         allItemsShown(uiState) { uiState.hiddenWaypointIds = []; },
-        allItemsHiddenInternal(uiState, action: PayloadAction<EntityId[]>) { uiState.hiddenWaypointIds = action.payload; },
-        itemSelectionShownInternal(uiState, action: PayloadAction<EntityId[]>) {
-            uiState.hiddenWaypointIds = uiState.hiddenWaypointIds.filter(hiddenId => !action.payload.includes(hiddenId));
+        allItemsHiddenInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hiddenWaypointIds = action.payload;
         },
-        itemSelectionHiddenInternal(uiState, action: PayloadAction<EntityId[]>) { uiState.hiddenWaypointIds.push(...action.payload); },
+        itemSelectionShownInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hiddenWaypointIds = removeAll(uiState.hiddenWaypointIds, action.payload);
+        },
+        itemSelectionHiddenInternal(uiState, action: PayloadAction<EntityId[]>) {
+            uiState.hiddenWaypointIds.push(...action.payload);
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -76,13 +79,13 @@ export const uiSlice = createSlice({
 
 export function itemSelectionShown(): AppThunk {
     return (dispatch, getState) => {
-        dispatch(uiSlice.actions.itemSelectionShownInternal(selectSelectedWaypointIds(getState())));
+        dispatch(itemSelectionShownInternal(selectSelectedWaypointIds(getState())));
     }
 }
 
 export function itemSelectionHidden(): AppThunk {
     return (dispatch, getState) => {
-        dispatch(uiSlice.actions.itemSelectionHiddenInternal(selectSelectedWaypointIds(getState())));
+        dispatch(itemSelectionHiddenInternal(selectSelectedWaypointIds(getState())));
     }
 }
 
@@ -105,13 +108,16 @@ export function itemVisibilityToggled(id: EntityId | EntityId[], itemType: ItemT
 }
 
 export const {
-    activeRoutineSelected,
     allItemsShown,
+    itemSelectionHiddenInternal,
+    itemSelectionShownInternal,
+    activeRoutineSelected
 } = uiSlice.actions;
 
 export function selectActiveRoutineId(state: RootState) { return state.history.present.ui.activeRoutineId; }
 export function selectActiveRoutine(state: RootState): Routine | undefined {
     const activeRoutineId = selectActiveRoutineId(state);
-    return (activeRoutineId ? selectRoutineByValidId(state, activeRoutineId) : undefined);
+    // undefined if activeRoutineId is undefined
+    return activeRoutineId && selectRoutineByValidId(state, activeRoutineId);
 }
 export function selectHiddenWaypointIds(state: RootState) { return state.history.present.ui.hiddenWaypointIds; }
