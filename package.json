@@ -58,6 +58,7 @@
   "devDependencies": {
     "@types/fabric": "^4.5.11",
     "@types/lodash-es": "^4.17.6",
+    "@types/react-redux": "^7.1.24",
     "sass": "^1.55.0"
   }
 }
