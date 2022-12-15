@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
 import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal } from "./routinesSlice";
-import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate, removeAll } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate, remove, removeAll } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { folderAddedInternal, folderDeletedInternal } from "../Tree/foldersSlice";
