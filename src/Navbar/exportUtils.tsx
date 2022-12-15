@@ -108,7 +108,6 @@ interface ExportObject {
 
 interface ExportWaypoint {
     name: string;
-    // previously was spline_angle and angle
     // spline_angle -> angle, angle -> robotAngle
     robotAngle: number;
     angle: number;
