@@ -9,7 +9,7 @@ import { fieldSlice } from "../Field/fieldSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
-import undoable, { GroupByFunction } from "redux-undo";
+import undoable from "redux-undo";
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Navbar/pathsSlice";
 import { waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
@@ -26,29 +26,23 @@ const stateReducer = combineReducers({
     ui: uiSlice.reducer
 });
 
+
 const dragActionTypes = [
     waypointMagnitudeMoved.type,
     waypointMovedInternal.type,
-    waypointRobotRotated.type
+    waypointRobotRotated.type,
 ];
-
-// let ignoreRapid = false;
-let prevAction: AnyAction;
-const groupActions: GroupByFunction = (action) => {
+// other args: currentState: any, previousHistory: StateWithHistory<any>
+function filterActions(action: AnyAction): boolean {
     if (dragActionTypes.includes(action.type)) {
-        if (prevAction &&
-            action.type === prevAction.type &&
-            action.payload.id === prevAction.payload.id) {
-            prevAction = action;
-            return false;
-        }
+        return false;
     }
     return true;
-}
+};
 
 const undoableReducer = undoable(stateReducer, {
     limit: 200,
-    groupBy: groupActions
+    filter: filterActions
 });
 
 function getPreloadedState() {

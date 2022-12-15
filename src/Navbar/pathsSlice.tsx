@@ -1,6 +1,6 @@
-import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState, isAnyOf } from "@reduxjs/toolkit";
+import { createSlice, createEntityAdapter, nanoid, PayloadAction, EntityId, EntityState } from "@reduxjs/toolkit";
 import { routineAddedInternal, routineDeletedInternal, routineDuplicatedInternal } from "./routinesSlice";
-import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate, remove, removeAll } from "../Store/storeUtils";
+import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate, removeAll } from "../Store/storeUtils";
 
 import { AppThunk, RootState } from "../Store/store";
 import { folderAddedInternal, folderDeletedInternal } from "../Tree/foldersSlice";
@@ -91,20 +91,25 @@ export const pathsSlice = createSlice({
                 removeIdsFromPath(pathState, path, action.payload.waypointIds, [action.payload.id]);
             })
             .addCase(selectionDeletedInternal, (pathState, action) => {
-                const { folderIds, waypointIds } = action.payload;
+                const { folderIds, waypointIds, updateWaypointIds } = action.payload;
                 folderIds.forEach(folderId => {
                     const path = selectOwnerPathInternal(pathState, folderId, ItemType.FOLDER);
                     removeIdsFromPath(pathState, path, waypointIds, [folderId]);
+                });
+
+                // yikes performance wise
+                updateWaypointIds.forEach(waypointId => {
+                    const path = selectOwnerPathInternal(pathState, waypointId, ItemType.WAYPOINT);
+                    removeIdsFromPath(pathState, path, [waypointId]);
                 });
             })
     }
 });
 
 function removeIdsFromPath(pathState: EntityState<Path>, path: Path, waypointIds?: EntityId[], folderIds?: EntityId[]) {
-    pathsAdapter.updateOne(pathState, makeUpdate(path.id, {
-        waypointIds: waypointIds && removeAll(path.waypointIds, waypointIds),
-        folderIds: folderIds && removeAll(path.folderIds, folderIds)
-    }));
+    const newWaypointIds = waypointIds ? removeAll(path.waypointIds, waypointIds) : path.waypointIds;
+    const newFolderIds = folderIds ? removeAll(path.folderIds, folderIds) : path.folderIds;
+    pathsAdapter.updateOne(pathState, makeUpdate(path.id, { waypointIds: newWaypointIds, folderIds: newFolderIds }));
 }
 
 export function pathDeleted(pathId: EntityId): AppThunk {

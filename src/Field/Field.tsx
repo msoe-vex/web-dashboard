@@ -1,8 +1,14 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { KonvaEventObject } from "konva/lib/Node";
-import { Layer, Rect, Stage } from "react-konva";
+import { Layer, Stage, Image } from "react-konva";
+import { Html } from "react-konva-utils";
 
+import useImage from "use-image";
+
+import { Intent } from "@blueprintjs/core/lib/esm/common";
+import { MenuItem2 } from "@blueprintjs/popover2";
+import { Menu, Spinner, SpinnerSize } from "@blueprintjs/core";
 import { Colors } from "@blueprintjs/core/lib/esm/common";
 
 import { Provider, ReactReduxContext } from "react-redux";
@@ -10,10 +16,11 @@ import { useAppDispatch } from "../Store/hooks";
 import { Store } from "../Store/store";
 
 import { FieldDimensions, selectFieldDimensions } from "./fieldSlice";
-import { Transform, INCH } from "./mathUtils";
+import { Transform } from "./mathUtils";
 import { allItemsDeselected } from "../Tree/tempUiSlice";
 import { FieldElements } from "./FieldElements";
 import { ContextMenuHandler, ContextMenuHandlerContext, getKonvaContextMenuHandler } from "./AppContextMenu";
+import { IRect, Vector2d } from "konva/lib/types";
 import { OutsideFieldContextMenu, OnFieldContextMenu } from "../Tree/ContextMenu";
 
 /**
@@ -102,6 +109,64 @@ function FieldStage(props: FieldStageProps): JSX.Element {
     );
 }
 
+interface FieldImageProps {
+    fieldDimensions: FieldDimensions;
+}
+
+function FieldImage(props: FieldImageProps): JSX.Element {
+    const [image, status] = useImage("https://user-images.githubusercontent.com/89172296/204705317-1b8b4635-7698-4a64-a60e-bc5d619ec512.png");
+    if (status === "failed") { throw new Error("Could not load field image."); }
+    return (status === "loading" || !image) ?
+        <Html>
+            <Spinner
+                intent={Intent.PRIMARY}
+                size={SpinnerSize.LARGE}
+            />
+        </Html>
+        : <Image
+            {...getCropAndScale(image, props.fieldDimensions)}
+            image={image}
+        />;
+};
+
+interface CropAndScale {
+    crop: IRect;
+    scale: Vector2d;
+}
+
+// Function to calculate crop values from source image, its visible size and a crop strategy
+function getCropAndScale(
+    imageDimensions: FieldDimensions,
+    fieldDimensions: FieldDimensions
+): CropAndScale {
+    const fieldWidth = fieldDimensions.width;
+    const fieldHeight = fieldDimensions.height;
+    const aspectRatio = fieldWidth / fieldHeight;
+
+    const imageWidth = imageDimensions.width;
+    const imageHeight = imageDimensions.height;
+    const imageRatio = imageWidth / imageHeight;
+
+    let newWidth, newHeight, scale;
+    if (aspectRatio >= imageRatio) {
+        scale = fieldWidth / imageWidth;
+        newWidth = imageDimensions.width;
+        newHeight = imageDimensions.width / aspectRatio;
+    } else {
+        scale = fieldHeight / imageHeight;
+        newWidth = imageDimensions.height * aspectRatio;
+        newHeight = imageDimensions.height;
+    }
+    return {
+        crop: {
+            x: 0, y: 0,
+            width: newWidth,
+            height: newHeight,
+        },
+        scale: { x: scale, y: scale }
+    };
+}
+
 function computeFieldTransform(canvasHeight: number, canvasWidth: number, fieldDimensions: FieldDimensions): Transform {
     const heightToWidth = fieldDimensions.width / fieldDimensions.height;
     const widthToHeight = fieldDimensions.height / fieldDimensions.width;
@@ -129,7 +194,7 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
         {...props.fieldTransform}
         onContextMenu={konvaContextMenuHandler(<OnFieldContextMenu />)}
     >
-        <Rect
+        {/* <Rect
             x={0.5 * INCH}
             y={0.5 * INCH}
             width={props.fieldDimensions.width - 1 * INCH}
@@ -137,7 +202,8 @@ function FieldLayer(props: FieldLayerProps & FieldTransformProps): JSX.Element {
             strokeWidth={1 * INCH}
             stroke={Colors.BLACK}
             fill={Colors.GRAY1}
-        />
+        /> */}
+        <FieldImage fieldDimensions={props.fieldDimensions} />
     </Layer>);
 }
 
