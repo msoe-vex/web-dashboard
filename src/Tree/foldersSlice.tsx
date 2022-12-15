@@ -3,7 +3,7 @@ import { createSlice, createEntityAdapter, PayloadAction, EntityId, nanoid, isAn
 import { AppThunk, RootState } from "../Store/store";
 import { routineDeletedInternal, routineDuplicatedInternal } from "../Navbar/routinesSlice";
 import { pathDeletedInternal, selectOwnerPath } from "../Navbar/pathsSlice";
-import { waypointDeletedInternal, waypointDuplicatedInternal } from "./waypointsSlice";
+import { waypointAddedInternal, waypointDeletedInternal, waypointDuplicatedInternal, waypointInserted } from "./waypointsSlice";
 import { ItemType, selectionDeletedInternal } from "./tempUiSlice";
 import { addValidIdSelector, assertValid, getNextName, getSimpleSelectors, makeUpdate } from "../Store/storeUtils";
 
@@ -65,6 +65,11 @@ export const foldersSlice = createSlice({
             })
             .addCase(routineDuplicatedInternal, (folderState, action) => {
                 foldersAdapter.addMany(folderState, action.payload.folders);
+            })
+            .addCase(waypointInserted, (folderState, action) => {
+                // TODO : if waypointId is in folder, insert id before/after that path
+                // use selectFolderId to test if waypointId is in folder and get said folder
+                // Then use findIndex to get index of waypointId in folder and use slice to insert id
             })
             .addMatcher(isAnyOf(routineDeletedInternal, pathDeletedInternal),
                 (folderState, action) => foldersAdapter.removeMany(folderState, action.payload.folderIds))
