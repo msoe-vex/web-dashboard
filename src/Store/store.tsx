@@ -9,7 +9,7 @@ import { fieldSlice } from "../Field/fieldSlice";
 import { foldersSlice } from "../Tree/foldersSlice";
 import { robotsSlice } from "../Tree/robotsSlice";
 import { uiSlice } from "../Tree/uiSlice";
-import undoable, { FilterFunction, StateWithHistory } from "redux-undo";
+import undoable from "redux-undo";
 import { routinesSlice } from "../Navbar/routinesSlice";
 import { pathsSlice } from "../Navbar/pathsSlice";
 import { waypointMagnitudeMoved, waypointMovedInternal, waypointRobotRotated, waypointsSlice } from "../Tree/waypointsSlice";
