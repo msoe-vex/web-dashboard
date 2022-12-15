@@ -110,25 +110,10 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
     );
 }
 
-//Would this need an interface? TODO - Andy Dao
 export function OnFieldContextMenu(): JSX.Element {
-    //const dispatch = useAppDispatch();
     const showAll = (<ShowAllMenuItem />);
     const hideAll = (<HideAllMenuItem />);
-    //TODO Needs Adding Robot Waypoints Functionality
-    return(
-        <Menu>
-            {showAll}
-            {hideAll}
-        </Menu> //Insert Adding Waypoint Here?
-    )
-}
-
-export function OutsideFieldContextMenu(): JSX.Element{
-    //const dispatch = useAppDispatch();
-    const showAll = (<ShowAllMenuItem />);
-    const hideAll = (<HideAllMenuItem />);
-    return(
+    return (
         <Menu>
             {showAll}
             {hideAll}
@@ -136,7 +121,19 @@ export function OutsideFieldContextMenu(): JSX.Element{
     )
 }
 
-export function AppTreeContextMenu(): JSX.Element{
+export function OutsideFieldContextMenu(): JSX.Element {
+    //const dispatch = useAppDispatch();
+    const showAll = (<ShowAllMenuItem />);
+    const hideAll = (<HideAllMenuItem />);
+    return (
+        <Menu>
+            {showAll}
+            {hideAll}
+        </Menu>
+    )
+}
+
+export function AppTreeContextMenu(): JSX.Element {
     const collapseAndExpandAll = (<CollapseAndExpandAllMenuItems />);
     const showAll = (<ShowAllMenuItem />);
     const hideAll = (<HideAllMenuItem />);
@@ -149,7 +146,7 @@ export function AppTreeContextMenu(): JSX.Element{
     )
 }
 
-export function SplineContextMenu(): JSX.Element{
+export function SplineContextMenu(): JSX.Element {
     const showAll = (<ShowAllMenuItem />);
     const hideAll = (<HideAllMenuItem />);
     return (
