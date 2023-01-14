@@ -48,6 +48,30 @@ export function DuplicateMenuItem(props: OnClickProps & ShouldDismissPopoverProp
     />);
 }
 
+export function AddMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
+    return (<MenuItem2
+        {...props}
+        text="Add"
+        icon="add"
+    />);
+}
+
+export function AddMenuItemAfter(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
+    return (<MenuItem2
+        {...props}
+        text="Add after"
+        icon="add"
+    />);
+}
+
+export function AddMenuItemBefore(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
+    return (<MenuItem2
+        {...props}
+        text="Add before"
+        icon="add"
+    />);
+}
+
 export function DeleteMenuItem(props: OnClickProps & ShouldDismissPopoverProps): JSX.Element {
     return (<MenuItem2
         {...props}
