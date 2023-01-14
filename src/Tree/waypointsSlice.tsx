@@ -102,7 +102,17 @@ export const waypointsSlice = createSlice({
             location: InsertLocation
         }>) => {
             // TODO: add new waypoint, optionally inheriting properties (like magnitude and position) from waypointId
+            const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
+            let newWayPoint = Object.assign({}, waypoint);
+            newWayPoint.id = action.payload.waypointId;
             // use simpleSelectors to get the waypoint represented by waypointId
+
+            if (isControlWaypoint(newWayPoint)) {
+                newWayPoint.point = add(newWayPoint.point, makePoint(1 * FEET, 1 * FEET));
+            } else { newWayPoint.parameter += 0.1; }
+
+            waypointsAdapter.addOne(waypointState, newWayPoint); // TODO - Need understanding on how to add waypoints to a chain
+            
         },
         waypointDeletedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -236,13 +246,15 @@ export function waypointAdded(point?: Point): AppThunk {
 
 export function waypointAddedBefore(waypointId: EntityId): AppThunk {
     return (dispatch, getState) => {
-        // dispatch waypointInserted
+        const location = InsertLocation.BEFORE;
+        dispatch(waypointInserted({id: nanoid(), waypointId, location}));
     };
 }
 
 export function waypointAddedAfter(waypointId: EntityId): AppThunk {
-    return (dispatch, getState) => {
-        // dispatch waypointInserted
+    return (dispatch, getState) => {    
+        const location = InsertLocation.AFTER;
+        dispatch(waypointInserted({id: nanoid(), waypointId, location}));
     };
 }
 
