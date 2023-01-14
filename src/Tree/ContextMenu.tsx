@@ -3,20 +3,24 @@ import { Menu, MenuDivider } from "@blueprintjs/core";
 import { EntityId } from "@reduxjs/toolkit";
 
 import { useAppDispatch } from "../Store/hooks";
-import { waypointDeleted, waypointDuplicated } from "./waypointsSlice";
+import { waypointAdded, waypointAddedAfter, waypointAddedBefore, waypointDeleted, waypointDuplicated, waypointInserted } from "./waypointsSlice";
 import { folderUnpacked, folderDeleted } from "./foldersSlice";
 import { pathDeleted } from "../Navbar/pathsSlice";
 import {
     AddSelectionToNewFolderMenuItem,
+    AddMenuItem,
+    AddMenuItemBefore,
+    AddMenuItemAfter,
     CollapseAndExpandAllMenuItems,
     CollapseAndExpandFoldersMenuItems,
     DeleteMenuItem,
     DuplicateMenuItem,
     HideAllMenuItem,
     RenameMenuItem,
-    ShowAllMenuItem
+    ShowAllMenuItem,
 } from "./MenuItems";
 import { MenuItem2 } from "@blueprintjs/popover2";
+import { Point } from "fabric/fabric-impl";
 
 interface WaypointContextMenuProps {
     id: EntityId;
@@ -40,6 +44,10 @@ export function WaypointContextMenu(props: WaypointContextMenuProps): JSX.Elemen
             {onTree ? <RenameMenuItem id={props.id} /> : null}
             {/* <EditMenuItem onClick={dispatch(waypointEdited(props.id))} /> */}
             <DuplicateMenuItem onClick={() => { dispatch(waypointDuplicated(props.id)); }} />
+            
+            <AddMenuItemAfter onClick={() => { dispatch(waypointAddedAfter(props.id)); }} />
+            
+            <AddMenuItemBefore onClick={() => { dispatch(waypointAddedBefore(props.id)); }} />
 
             {onTree ? <AddSelectionToNewFolderMenuItem /> : null}
 
@@ -111,12 +119,15 @@ export function FolderContextMenu(props: FolderContextMenuProps): JSX.Element {
 }
 
 export function OnFieldContextMenu(): JSX.Element {
+    // const dispatch = useAppDispatch();
     const showAll = (<ShowAllMenuItem />);
     const hideAll = (<HideAllMenuItem />);
+    // const addWaypoint = (<AddMenuItem onClick={() => { dispatch(waypointAdded(props.menuLocation)); }}/>);
     return (
         <Menu>
             {showAll}
             {hideAll}
+            {/* {addWaypoint} */}
         </Menu>
     )
 }
