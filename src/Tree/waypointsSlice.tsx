@@ -97,22 +97,29 @@ export const waypointsSlice = createSlice({
             });
         },
         waypointInserted: (waypointState, action: PayloadAction<{
-            id: EntityId,
             waypointId: EntityId,
+            newWaypointId: EntityId,
             location: InsertLocation
         }>) => {
             // TODO: add new waypoint, optionally inheriting properties (like magnitude and position) from waypointId
+            // const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
+            // let newWayPoint = Object.assign({}, waypoint);
+            // newWayPoint.id = action.payload.waypointId;
+            // // use simpleSelectors to get the waypoint represented by waypointId
+
+            // if (isControlWaypoint(newWayPoint)) {
+            //     newWayPoint.point = add(newWayPoint.point, makePoint(1 * FEET, 1 * FEET));
+            // } else { newWayPoint.parameter += 0.1; }
+
+            // waypointsAdapter.addOne(waypointState, newWayPoint); // TODO - Need understanding on how to add waypoints to a chain
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
-            let newWayPoint = Object.assign({}, waypoint);
-            newWayPoint.id = action.payload.waypointId;
-            // use simpleSelectors to get the waypoint represented by waypointId
-
-            if (isControlWaypoint(newWayPoint)) {
-                newWayPoint.point = add(newWayPoint.point, makePoint(1 * FEET, 1 * FEET));
-            } else { newWayPoint.parameter += 0.1; }
-
-            waypointsAdapter.addOne(waypointState, newWayPoint); // TODO - Need understanding on how to add waypoints to a chain
-            
+            let copy = Object.assign({}, waypoint);
+            copy.id = action.payload.newWaypointId;
+            copy.name = "Copy of " + copy.name;
+            if (isControlWaypoint(copy)) {
+                copy.point = add(copy.point, makePoint(1 * FEET, 1 * FEET));
+            } else { copy.parameter += 0.1; }
+            waypointsAdapter.addOne(waypointState, copy);
         },
         waypointDeletedInternal: (waypointState, action: PayloadAction<{
             id: EntityId,
@@ -144,8 +151,7 @@ export const waypointsSlice = createSlice({
         waypointMagnitudeMoved: (waypointState, action: PayloadAction<{
             id: EntityId,
             point: Point,
-            magnitudePosition: MagnitudePosition
-        }>) => {
+            magnitudePosition: MagnitudePosition}>) => {
             const { id, point, magnitudePosition } = action.payload;
             const waypoint = assertControlWaypoint(simpleSelectors.selectById(waypointState, id));
 
@@ -167,7 +173,8 @@ export const waypointsSlice = createSlice({
             const newAngle = angle(subtract(point, waypoint.point));
             waypointsAdapter.updateOne(waypointState, makeUpdate(action.payload.id, { robotAngle: newAngle }));
         },
-        waypointDuplicatedInternal: (waypointState, action: PayloadAction<{ waypointId: EntityId, newWaypointId: EntityId }>) => {
+        waypointDuplicatedInternal: (waypointState, action: PayloadAction<{ 
+            waypointId: EntityId, newWaypointId: EntityId }>) => {
             const waypoint = simpleSelectors.selectById(waypointState, action.payload.waypointId);
             let copy = Object.assign({}, waypoint);
             copy.id = action.payload.newWaypointId;
@@ -244,17 +251,27 @@ export function waypointAdded(point?: Point): AppThunk {
     };
 }
 
-export function waypointAddedBefore(waypointId: EntityId): AppThunk {
-    return (dispatch, getState) => {
-        const location = InsertLocation.BEFORE;
-        dispatch(waypointInserted({id: nanoid(), waypointId, location}));
+export function waypointAddedBefore(id: EntityId): AppThunk {
+    return (dispatch) => {
+        dispatch(waypointInserted({
+            waypointId: id,
+            newWaypointId: nanoid(),
+            location: InsertLocation.AFTER
+        }));
     };
 }
 
-export function waypointAddedAfter(waypointId: EntityId): AppThunk {
-    return (dispatch, getState) => {    
-        const location = InsertLocation.AFTER;
-        dispatch(waypointInserted({id: nanoid(), waypointId, location}));
+export function waypointAddedAfter(id: EntityId): AppThunk {
+    // return (dispatch) => {    
+    //     const location = InsertLocation.AFTER;
+    //     dispatch(waypointInserted({id: nanoid(), waypointId, location}));
+    // };
+    return (dispatch) => {
+        dispatch(waypointInserted({
+            waypointId: id,
+            newWaypointId: nanoid(),
+            location: InsertLocation.AFTER
+        }));
     };
 }
 
